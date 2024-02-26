@@ -1,4 +1,0 @@
-isaac.lo: isaac.c /usr/include/stdc-predef.h isaac.h isaacs.h
-/usr/include/stdc-predef.h:
-isaac.h:
-isaacs.h:
