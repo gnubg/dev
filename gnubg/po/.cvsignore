@@ -1,0 +1,7 @@
+Makefile
+Makefile.in
+*.gmo
+POTFILES
+remove-potcdate.sed
+stamp-po
+en@quot.insert-header

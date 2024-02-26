@@ -432,7 +432,7 @@ Copyright (C) 2021 Free Software Foundation, Inc.
 This config.status script is free software; the Free Software Foundation
 gives unlimited permission to copy, distribute and modify it."
 
-ac_pwd='/home/isaac/n/new-gnubg-features/gnubg'
+ac_pwd='/home/isaac/official/dev/gnubg'
 srcdir='.'
 INSTALL='/usr/bin/install -c'
 MKDIR_P='/usr/bin/mkdir -p'
@@ -937,7 +937,7 @@ S["YACC"]="bison -y"
 S["FLEX_VERSION"]="2.6.4"
 S["LEXLIB"]="-ll "
 S["LEX_OUTPUT_ROOT"]="lex.yy"
-S["LEX"]="${SHELL} '/home/isaac/n/new-gnubg-features/gnubg/missing' flex"
+S["LEX"]="${SHELL} '/home/isaac/official/dev/gnubg/missing' flex"
 S["FLEX"]="flex"
 S["LT_SYS_LIBRARY_PATH"]=""
 S["OTOOL64"]=""
@@ -1007,12 +1007,12 @@ S["mkdir_p"]="$(MKDIR_P)"
 S["MKDIR_P"]="/usr/bin/mkdir -p"
 S["INSTALL_STRIP_PROGRAM"]="$(install_sh) -c -s"
 S["STRIP"]="strip"
-S["install_sh"]="${SHELL} /home/isaac/n/new-gnubg-features/gnubg/install-sh"
-S["MAKEINFO"]="${SHELL} '/home/isaac/n/new-gnubg-features/gnubg/missing' makeinfo"
-S["AUTOHEADER"]="${SHELL} '/home/isaac/n/new-gnubg-features/gnubg/missing' autoheader"
-S["AUTOMAKE"]="${SHELL} '/home/isaac/n/new-gnubg-features/gnubg/missing' automake-1.16"
-S["AUTOCONF"]="${SHELL} '/home/isaac/n/new-gnubg-features/gnubg/missing' autoconf"
-S["ACLOCAL"]="${SHELL} '/home/isaac/n/new-gnubg-features/gnubg/missing' aclocal-1.16"
+S["install_sh"]="${SHELL} /home/isaac/official/dev/gnubg/install-sh"
+S["MAKEINFO"]="${SHELL} '/home/isaac/official/dev/gnubg/missing' makeinfo"
+S["AUTOHEADER"]="${SHELL} '/home/isaac/official/dev/gnubg/missing' autoheader"
+S["AUTOMAKE"]="${SHELL} '/home/isaac/official/dev/gnubg/missing' automake-1.16"
+S["AUTOCONF"]="${SHELL} '/home/isaac/official/dev/gnubg/missing' autoconf"
+S["ACLOCAL"]="${SHELL} '/home/isaac/official/dev/gnubg/missing' aclocal-1.16"
 S["VERSION"]="1.08.002"
 S["PACKAGE"]="gnubg"
 S["CYGPATH_W"]="echo"
