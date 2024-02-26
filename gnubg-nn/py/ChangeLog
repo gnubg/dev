@@ -1,0 +1,9 @@
+Thu Feb 03 17:25:05 2005  Oystein Johansen  <oystein@gnubg.org>
+
+	* pynets.cc, pytrainer.cc: Add #include "defs.h"
+
+Tue Oct 26 15:33:05 2004  Joseph Heled  <joseph@gnubg.org>
+
+	* pygnubg.cc (set_shortcuts): Fix bug. once shortcuts were on,
+	they would not be turned off
+

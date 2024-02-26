@@ -1,0 +1,22 @@
+Mon Jul 28 09:58:51 CEST 2008 Christian Anthon <anthon@kiku.dk>
+
+	* : port to use autotools
+
+Thu Feb  3 17:45:18 2005  Oystein Johansen  <oystein@gnubg.org>
+
+	* analyze/analyse.cc: Some Win32 fixes.
+	
+Wed Nov  3 21:19:18 2004  Joseph Heled  <joseph@gnubg.org>
+
+	* Re-intreduce reduced 33% evals.
+
+Mon Jun 21 10:34:49 2004  Joseph Heled  <joseph@gnubg.org>
+
+	* flags.make (EXTRAFLAGS): add LOADED_BO to enable usage of
+	mainline bearoff databases.
+
+Sun Jun 20 19:22:44 2004  Joseph Heled  <pepster@users.sourceforge.net>
+
+	* flags.make (EXTRAFLAGS): make HAVE_DLFCN_H conditional on linux
+	for now.
+

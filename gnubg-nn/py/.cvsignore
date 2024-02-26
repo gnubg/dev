@@ -1,0 +1,7 @@
+.deps
+.libs
+pygnubg
+*.pyc
+
+Makefile
+Makefile.in

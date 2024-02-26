@@ -1,0 +1,146 @@
+\input texinfo
+@setfilename gnubg-nn.info
+@settitle GNU Backgammon NN
+@include version.texi
+
+@set month-year June, 2004
+
+@c @syncodeindex vr cp
+
+@macro gnubg
+@t{gnubg}
+@end macro
+
+@dircategory Games
+@direntry
+* gnubg-nn: (gnubg).               GNU Backgammon NN.
+@end direntry
+
+@ifinfo
+This file documents GNU Backgammon, a program for playing and analysing
+backgammon games and matches.
+
+Copyright @copyright{} 2004 Joseph Heled.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1; with
+no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License".
+@end ifinfo
+
+@titlepage
+@sp 10
+@title GNU Backgammon NN
+@subtitle version @value{VERSION}
+@subtitle @value{month-year}
+@author Joseph Heled
+@page
+@vskip 0pt plus 1filll
+Copyright @copyright{} 1999, 2000, 2001, 2002 Gary Wong, Achim Mueller
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1; with
+no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.  A
+copy of the license is included in the section entitled "GNU Free
+Documentation License".
+@end titlepage
+
+@ifnottex
+@node Top
+@top GNU Backgammon NN
+
+@menu
+* Introduction::			What is GNU Backgammon NN.
+* Compilation::
+* Run Time Data files::
+* Training and Benchmark Data Files::
+@end menu
+@end ifnottex
+
+@node Introduction
+@chapter Introduction
+
+This is my @gnubg{} development setup, geared specifically toward
+developing @gnubg{} Neural Networks (NN's). Basically it
+is a heavily modified @gnubg{}-0.0 with my cube handling code and python
+interface. 
+
+Some features not found in mainline @gnubg{},
+
+@itemize
+@item Ability to load/delete multiple nets and dynamically choose the active one.
+For example, it is easy to write a script for two nets to play one against the
+other.
+@item Each net has it's own cache.
+@item Net inputs are not hardwired but can be specified per net.
+The inputs code can even be dynamically loaded on the fly, which
+allows a script to generate it on the fly if needed!  
+@item Use of small evaluation nets to speed up higher plies.
+@item Comprehensive python interface to game engine, setup and training.
+@end itemize
+
+@node Compilation
+@chapter Compilation
+
+gnubg-nn is configured with GNU autotools.
+
+To build it, in the base directory, run @samp{./configure --with-python} or
+@samp{./configure --with-python=python2} if the latter is not the default
+version on your system, then @samp{make}.
+
+@node Run Time Data files
+@chapter Run Time Data files
+
+To run, @gnubg{} needs to read in the NN's from an external file.
+
+Please note that gnubg-nn NN file format is different than @gnubg{}.
+Grab the latest net from
+@uref{http://files.gnubg.org/media/nn-training/current/nets/nngnubg.weights.bz2}.
+After unzipping, you might want to rename it gnubg.weights.
+
+@section How to specify which net to use in run time
+
+There are three methods, in order of precedence,
+
+@itemize
+@item
+Use the file given in the @samp{-W} command line argument of @file{pygnubg}
+(@samp{pygnubg -W my-net.weights}. This obviously applied to any @file{pygnubg}
+script as well.
+
+@item
+Use the file specified by the environment variable @env{GNUBGWEIGHTS}.
+
+@item Use @env{GNUBGHOME}/gnubg.weights
+@end itemize
+
+Remember that a script may load and use any number of other nets. However,
+@file{pygnubg} will not start without a valid default net.
+
+If gnubg-nn is compiled for external builtin bearoff database (i.e
+with the @var{LOADED_BO} flag), the environment variable
+@env{GNUBGHOME} must be set and point to a directory containing
+@file{gnubg_os0.bd} and @file{gnubg_ts0.bd}.
+
+@node Training and Benchmark Data Files
+@chapter Training and Benchmark Data Files
+
+Creating benchmark files has been a long and difficult task, made possible
+only with the generous help of the
+@uref{http://pages.quicksilver.net.nz/pepe/ngb/index-top.html#Creating the
+benchmark,rollout team}. A benchmark file tests the net move selection and
+cube handling against rollout results (which are the best we have so far,
+except some race cases where we are fortunate to have a one sided database to
+compare against).
+
+You can find the current benchmark files
+@uref{ftp://ftp.demon.nl/pub/games/gnubg/nn-training/benchmarks,here}.
+
+To see how well a specific net does, run:
+
+@samp{scripts/benchmarks/perr.py -W my-net benchmark-file.bm}.
+
+@bye
+
+

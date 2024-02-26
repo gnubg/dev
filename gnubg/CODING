@@ -1,0 +1,86 @@
+Making your own branch of the GNU Backgammon code
+=================================================
+
+Create the branch
+-----------------
+
+On a clean copy of the gnubg sources:
+
+cvs rtag -b branch-xxx gnubg
+cvs rtag branch-point-xxx gnubg
+cvs rtab branch-xxx-merged gnubg
+
+The first creates the branch. The second and third are symbolic tags
+needed for merging later on.
+
+
+You can now switch your working copy onto the branch-xxx with
+ 
+cvs update -r branch-xxx
+
+You're now working on the branch.
+CHeck with "cvs status gnubg.c". It should say something like:
+ 
+===================================================================
+File: gnubg.c           Status: Locally Modified
+
+   Working revision:    1.417
+   Repository revision: 1.417           /cvsroot/gnubg/gnubg/gnubg.c,v
+   Sticky Tag:          branch-xxx (branch: 1.417.x)
+   Sticky Date:         (none)
+   Sticky Options:      (none)
+
+You can now commit your patches with
+
+cvs add <the files you've added>
+cvs ci <the files you've updated and added>
+
+
+Merge changes from main trunk into your branch
+----------------------------------------------
+
+It's basically doing a
+
+cvs update -jbranch-xxx-merged -jHEAD file1 file2 ...
+
+or just
+
+cvs update -jbranch-xxx-merged -jHEAD 
+
+when positioned in your xxx-tree.
+
+After a successful merge you should move the branch-xxx-merged tag to
+the HEAD by issuing:
+
+cvs rtag -F branch-xxx-merged
+
+By moving the tag you can do a merge as often as you like. The "cvs
+rtag" command is substantially faster when issuing it per file.
+
+
+Merge your branch into the main trunk
+-------------------------------------
+
+Check out a copy of the main trunk and then merge the branch with
+
+cvs update -j branch-xxx
+
+Resolve any conflicts and check in the newly merged files (there shouldn't
+be any confilcts if you first merge the latest main trunk changes as shown above).
+
+It's probably a good idea to mark the branch at this point so that further
+changes to the branch can be merged into the trunk with
+
+cvs update -j branch-xxx-mergedwithtrunk -j branch-xxx
+
+
+How to merge bug fix into 0.15 branch
+-------------------------------------
+
+1. Get 0.15 version of file (eg. rel_0_15 of gtkprefs.c)
+	cvs update -rrel_0_15 gtkprefs.c
+2. Merge fix (eg. change 1.136)
+	cvs update -j1.135 -j1.136 gtkprefs.c
+3. Check it in and then change back to head version:
+	cvs ci
+	cvs update -A gtkprefs.c

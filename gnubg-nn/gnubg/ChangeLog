@@ -1,0 +1,8 @@
+Thu Feb 03 17:38:55 2005  Oystein Johansen  <oystein@gnubg.org>
+
+	* bearoffdb.c: Some #ifdefs and mobs for win32.
+
+Mon Jun 21 15:20:55 2004  Joseph Heled  <joseph@gnubg.org>
+
+	* bearoffdb.c: added two sided file based bearoff.
+
