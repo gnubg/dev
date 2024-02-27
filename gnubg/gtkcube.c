@@ -1472,6 +1472,8 @@ GetContent(cubehintdata * pchd)
     else
         GetMoneyCubeInfo(&ci, &pchd->ms);
     
+    g_message("move type: %d",pchd->pmr->mt);
+
     switch (pchd->pmr->mt) {
     case MOVE_DOUBLE:
         fTake = -1;
@@ -1482,7 +1484,7 @@ GetContent(cubehintdata * pchd)
     case MOVE_TAKE:
         fTake = 1;
         break;
-    default:
+    default: //IK: problem: we get here with a regular {ND|move} ("MOVE_NORMAL") when we click on the cube tab
         g_assert_not_reached();
         return NULL;
     }
