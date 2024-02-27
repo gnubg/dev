@@ -7064,16 +7064,6 @@ SetRollouts(gpointer UNUSED(p), guint UNUSED(n), GtkWidget * UNUSED(pwIgnore))
     }
 }
 
-// int copytoclipboard(const char *str) {
-
-//     const char proto_cmd[] = "echo '%s' | pbcopy";
-
-//     char cmd[strlen(str) + strlen(proto_cmd) - 1]; // -2 to remove the length of %s in proto cmd and + 1 for null terminator = -1
-//     sprintf(cmd ,proto_cmd, str);
-
-//     return system(cmd);
-// }
-
 void
 GTKTextWindow(const char *szOutput, const char *title, const dialogtype type, GtkWidget * parent)
 {
@@ -7085,7 +7075,18 @@ GTKTextWindow(const char *szOutput, const char *title, const dialogtype type, Gt
     GtkTextIter iter;
     GtkRequisition req;
 
-    copytoclipboard("copy this to clipboard");
+    /* copying to clipboard
+    https://stackoverflow.com/questions/1264137/how-to-copy-string-to-clipboard-in-c
+    */
+    // const char* output = "Test";
+    const size_t len = strlen(szOutput) + 1;
+    HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len);
+    memcpy(GlobalLock(hMem), szOutput, len);
+    GlobalUnlock(hMem);
+    OpenClipboard(0);
+    EmptyClipboard();
+    SetClipboardData(CF_TEXT, hMem);
+    CloseClipboard();
 
     pwText = gtk_text_view_new();
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(pwText), GTK_WRAP_NONE);
