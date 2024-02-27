@@ -1472,7 +1472,7 @@ GetContent(cubehintdata * pchd)
     else
         GetMoneyCubeInfo(&ci, &pchd->ms);
     
-    g_message("move type: %d",pchd->pmr->mt);
+    // g_message("move type: %d",pchd->pmr->mt);
 
     switch (pchd->pmr->mt) {
     case MOVE_DOUBLE:
