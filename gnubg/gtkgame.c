@@ -7075,6 +7075,20 @@ GTKTextWindow(const char *szOutput, const char *title, const dialogtype type, Gt
     GtkTextIter iter;
     GtkRequisition req;
 
+#ifdef WIN32
+    /* copying to clipboard
+    https://stackoverflow.com/questions/1264137/how-to-copy-string-to-clipboard-in-c
+    */
+    const size_t len = strlen(szOutput) + 1;
+    HGLOBAL hMem = GlobalAlloc(GMEM_MOVEABLE, len);
+    memcpy(GlobalLock(hMem), szOutput, len);
+    GlobalUnlock(hMem);
+    OpenClipboard(0);
+    EmptyClipboard();
+    SetClipboardData(CF_TEXT, hMem);
+    CloseClipboard();
+#endif // Win32
+
     pwText = gtk_text_view_new();
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(pwText), GTK_WRAP_NONE);
     gtk_text_view_set_editable(GTK_TEXT_VIEW(pwText), FALSE);
