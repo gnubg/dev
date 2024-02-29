@@ -1602,7 +1602,9 @@ append_dice_options(optionswidget * pow)
     DiceToggled(NULL, pow);
 }
 
-static priority DefaultPriority = ABOVE_AVERAGE;
+priority DefaultPriority = ABOVE_AVERAGE;
+const char* aszPriority[NUM_PRIORITY] = {N_("Idle"), N_("Below normal"), N_("Normal"), N_("Above normal"), N_("Highest")};
+const char* aszPriorityCommands[NUM_PRIORITY]  = { "19", "10", "0", "-10", "-19" };
 
 static void
 append_other_options(optionswidget * pow)
@@ -1837,14 +1839,11 @@ append_other_options(optionswidget * pow)
                                   " this should be set to the number of logical processing units available"));
 #endif
 
-    // scoreMapColour scoreMapColourDef = ALL;
-    // const int NUM_PRIORITY=5;
-    const char* aszPriority[NUM_PRIORITY] = {N_("Idle"), N_("Below average"), N_("Normal"), N_("Above average"), N_("High")};
-    // static const char* aszScoreMapColourShort[NUM_PRIORITY] = {N_("All"), N_("D vs ND"), N_("D/P vs D/T")};
-    // const char* aszScoreMapColourCommands[NUM_PRIORITY] = { "all", "dnd", "dpdt"}; 
     BuildRadioButtons(pwvbox, pow->pwPriority,
         _("Set GNUBG priority:"), 
-        _("Select what priority to use for the GNUBG process. For example, set a low priority so rollouts do not slow down other applications."), 
+        _("Select what priority to use for the GNUBG process. "
+        "For example, set a low priority so rollouts do not slow down other applications."
+        "(In Linux, you need to start gnubg with \'sudo gnubg\' to give a higher priority.)"), 
         aszPriority, NUM_PRIORITY, DefaultPriority);
 
 
@@ -2249,22 +2248,13 @@ OptionsOK(GtkWidget * pw, optionswidget * pow)
     }
     g_free(newfolder);
 
+    g_message("DefaultPriority:%d",DefaultPriority);
+
     for (i = 0; i < NUM_PRIORITY; ++i){
         if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pow->pwPriority[i])) && DefaultPriority != (priority) i) {
-            if (i==0)
-                CommandSetPriorityIdle(NULL);
-            else if (i==1)
-                CommandSetPriorityBelowNormal(NULL);
-            else if (i==2)
-                CommandSetPriorityNormal(NULL);
-            else if (i==3)
-                CommandSetPriorityAboveNormal(NULL);
-            else if (i==4)
-                CommandSetPriorityHighest(NULL);
-            else
-                g_assert_not_reached();
-            // sprintf(sz, "set scoremapmatchlength %s", aszScoreMapMatchLengthCommands[i]);
-            // UserCommand(sz);
+            g_message("DefaultPriority:%d, i:%d, set priority nice %s",DefaultPriority,i, aszPriorityCommands[i]);
+            sprintf(sz, "set priority nice %s", aszPriorityCommands[i]);
+            UserCommand(sz);
             break;
         } 
     }
@@ -2346,6 +2336,10 @@ OptionsSet(optionswidget * pow)
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pow->pwGotoFirstGame), fGotoFirstGame);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pow->pwGameListStyles), fStyledGamelist);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pow->pwMarkedSamePlayer), fMarkedSamePlayer);  
+
+    for (i = 0; i < NUM_PRIORITY; ++i)
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pow->pwPriority[i]), DefaultPriority == (priority)i); 
+
 }
 
 static void

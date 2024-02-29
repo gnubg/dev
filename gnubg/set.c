@@ -65,6 +65,7 @@
 #if defined(USE_GTK)
 #include "gtklocdefs.h"
 #include "gtkgame.h"
+#include "gtkoptions.h"
 #include "gtkprefs.h"
 #include "gtkchequer.h"
 #include "gtkwindows.h"
@@ -4200,6 +4201,10 @@ SetPriority(int n)
 {
 
 #if defined(HAVE_SETPRIORITY)
+
+    // int pri = getpriority(PRIO_PROCESS, getpid());
+    // g_message("The original priority of process is :%d", pri);
+
     if (setpriority(PRIO_PROCESS, getpid(), n))
         outputerr("setpriority");
     else {
@@ -4227,7 +4232,7 @@ SetPriority(int n)
         tp = THREAD_PRIORITY_BELOW_NORMAL;
         pch = N_("below normal");
     } else {
-        /* Lowest - set to idle prioirty but raise the thread priority
+        /* Lowest - set to idle priority but raise the thread priority
          * to make sure it runs instead of screen savers */
         tp = THREAD_PRIORITY_HIGHEST;
         pp = IDLE_PRIORITY_CLASS;
@@ -4279,14 +4284,59 @@ CommandSetPriorityNice(char *sz)
 {
 
     int n;
+    g_message("priority string:%s",sz);
 
     if ((n = ParseNumber(&sz)) < -20 || n > 20) {
         outputl(_("You must specify a priority between -20 and 20."));
         return;
     }
-
+    for (int i=0; i<NUM_PRIORITY; i++){
+        if (strcmp(sz, aszPriorityCommands[i]) == 0) {
+            DefaultPriority = (priority) i;
+        //     if (i==0)
+        //         CommandSetPriorityIdle(NULL);
+        //     else if (i==1)
+        //         CommandSetPriorityBelowNormal(NULL);
+        //     else if (i==2)
+        //         CommandSetPriorityNormal(NULL);
+        //     else if (i==3)
+        //         CommandSetPriorityAboveNormal(NULL);
+        //     else if (i==4)
+        //         CommandSetPriorityHighest(NULL);
+        //     else
+        //         g_assert_not_reached();
+        //    return; 
+           break;
+        }
+    }
     SetPriority(n);
 }
+
+
+// extern void
+// CommandSetPriority(char* sz)
+// {
+ 
+//     for (int i=0; i<NUM_PRIORITY; i++){
+//         if (strcmp(sz, aszPriorityCommands[i]) == 0) {
+//             DefaultPriority = (priority) i;
+//             if (i==0)
+//                 CommandSetPriorityIdle(NULL);
+//             else if (i==1)
+//                 CommandSetPriorityBelowNormal(NULL);
+//             else if (i==2)
+//                 CommandSetPriorityNormal(NULL);
+//             else if (i==3)
+//                 CommandSetPriorityAboveNormal(NULL);
+//             else if (i==4)
+//                 CommandSetPriorityHighest(NULL);
+//             else
+//                 g_assert_not_reached();
+//            return; 
+//         }
+//     }
+//     outputl(_("Wrong option."));
+// }
 
 extern void
 CommandSetPriorityNormal(char *UNUSED(sz))
