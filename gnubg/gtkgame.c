@@ -3302,7 +3302,7 @@ AddText(GtkWidget* pwBox, char* Text)
 // }
 
 
-static void
+extern void
 BuildRadioButtons(GtkWidget* pwvbox, GtkWidget* apwScoreMapFrame[], const char* frameTitle, const char* frameToolTip, const char* labelStrings[],
     int labelStringsLen, int toggleDefault) { 
     /* Sub-function to build a new box with a new set of labels, with a whole bunch of needed parameters

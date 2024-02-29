@@ -94,6 +94,7 @@ typedef struct {
     GtkAdjustment *padjDelay;
     GtkAdjustment *padjSeed;
     GtkAdjustment *padjThreads;
+    GtkWidget *pwPriority;
     GtkWidget *pwAutoSaveTime;
     GtkWidget *pwAutoSaveRollout;
     GtkWidget *pwAutoSaveAnalysis;
@@ -1602,6 +1603,58 @@ append_dice_options(optionswidget * pow)
 }
 
 static void
+BuildRadioButtons(GtkWidget* pwvbox, GtkWidget* apwScoreMapFrame[], const char* frameTitle, const char* frameToolTip, const char* labelStrings[],
+    int labelStringsLen, int toggleDefault) { 
+    /* Sub-function to build a new box with a new set of labels, with a whole bunch of needed parameters
+
+    - pwvbox ----------
+    | --title----------|
+    | -- pwh2 -------- |
+    | |text | options| |
+    | ---------------- |
+    --------------------
+    */
+    int* pi;
+    int i;
+    // GtkWidget* pwFrame;
+    GtkWidget* pwh2;
+
+    AddText(pwvbox, _(frameTitle));
+
+//     pwFrame = gtk_frame_new(_(frameTitle));
+//     gtk_box_pack_start(GTK_BOX(pwScoreMapBox), pwFrame, vAlignExpand, FALSE, 0);
+//     gtk_widget_set_tooltip_text(pwFrame, _(frameToolTip)); 
+//     gtk_widget_set_sensitive(pwFrame, sensitive);
+
+#if GTK_CHECK_VERSION(3,0,0)
+    pwh2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+#else
+    pwh2 = gtk_hbox_new(FALSE, 8);
+#endif
+//     gtk_container_add(GTK_CONTAINER(pwFrame), pwh2);
+
+    gtk_box_pack_start(GTK_BOX(pwvbox), pwh2, FALSE, FALSE, 0);
+
+    AddText(pwh2, ("   "));
+
+    for (i = 0; i < labelStringsLen; i++) {
+        if (i == 0)
+            apwScoreMapFrame[0] = gtk_radio_button_new_with_label(NULL, _(labelStrings[0])); // First radio button
+        else
+            apwScoreMapFrame[i] = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(apwScoreMapFrame[0]), _(labelStrings[i])); // Associate this to the other radio buttons
+        gtk_box_pack_start(GTK_BOX(pwh2), apwScoreMapFrame[i], FALSE, FALSE, 0);
+        gtk_widget_set_tooltip_text(apwScoreMapFrame[i], _(frameToolTip));    
+        pi = (int*)g_malloc(sizeof(int));
+        *pi = (int)i; // here use "=(int)labelEnum[i];" and put it in the input of the function if needed, while
+             //  defining sth like " int labelEnum[] = { NUMBERS, ENGLISH, BOTH };" before calling the function
+        g_object_set_data_full(G_OBJECT(apwScoreMapFrame[i]), "user_data", pi, g_free);
+        if (toggleDefault == i) // again use "if (DefaultLabel==labelEnum[i])" if needed
+            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(apwScoreMapFrame[i]), 1); //we set this to toggle it on in case it's the default option
+        //g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK((*functionWhenToggled)), psm);
+    }
+}
+
+static void
 append_other_options(optionswidget * pow)
 {
     GtkWidget *pwvbox;
@@ -1688,8 +1741,6 @@ append_other_options(optionswidget * pow)
                                 _("This option enables jumps between moves in the "
                                   "game list window (using the red arrows) to stay within the same player, " 
                                   "thus allowing a player to focus on his own mistakes only"));
-
-
 
 #if GTK_CHECK_VERSION(3,0,0)
     grid = gtk_grid_new();
@@ -1835,6 +1886,11 @@ append_other_options(optionswidget * pow)
                                 _("The number of threads to use in multi-threaded operations,"
                                   " this should be set to the number of logical processing units available"));
 #endif
+
+
+    BuildRadioButtons(pwvbox, pow->pwPriority,_("TEST:"), _("Select what equity to use when deciding to colour the cube ScoreMap"), aszScoreMapColour, NUM_COLOUR, scoreMapColourDef);
+
+
 #if GTK_CHECK_VERSION(3,0,0)
     pwhbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 #else
@@ -1849,8 +1905,7 @@ append_other_options(optionswidget * pow)
     gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pow->pwAutoSaveTime), TRUE);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(pow->pwAutoSaveTime), nAutoSaveTime);
     gtk_widget_set_tooltip_text(pow->pwAutoSaveTime,
-                                _
-                                ("Set the auto save frequency. You must also enable backup during analysis and/or during rollout"));
+                                _("Set the auto save frequency. You must also enable backup during analysis and/or during rollout"));
     gtk_box_pack_start(GTK_BOX(pwhbox), gtk_label_new(_("minute(s)")), FALSE, FALSE, 0);
 
     pow->pwAutoSaveRollout = gtk_check_button_new_with_label(_("Auto save rollouts"));
