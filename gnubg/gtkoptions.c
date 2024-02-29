@@ -1253,9 +1253,9 @@ append_match_options(optionswidget * pow)
 
     /* similar tooltip is used in gtkmet.c:GTKShowMatchEquityTable() */
     gtk_widget_set_tooltip_text(pow->pwCubeInvert,
-                                _("Use the specified match equity table "
+                                _("For non-symmetric tables! Use the specified match equity table "
                                   "around the other way (i.e., swap the players before "
-                                  "looking up equities in the table)."));
+                                  "looking up equities in the table). "));
 
     gtk_widget_set_sensitive(pow->pwLoadMET, fCubeUse);
     gtk_widget_set_sensitive(pow->pwCubeInvert, fCubeUse);
