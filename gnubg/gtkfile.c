@@ -231,7 +231,7 @@ SaveCommon(guint f, gchar * prompt)
     the files. 
     In the line, I just changed TRUE->FALSE.*/
     gchar *fn = GetFilename(TRUE, (f == 1) ? EXPORT_SGF : last_export_type, TRUE);
-        g_message("fn:%s", fn);
+        // g_message("fn:%s", fn);
     gchar *folder = NULL;
     const gchar *mgp_text[3] = { "match", "game", "position" };
 

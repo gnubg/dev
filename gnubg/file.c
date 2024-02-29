@@ -465,10 +465,10 @@ ReadFilePreview(const char *filename)
     return fpd;
 }
 
-/* IK: modified the function to enable a value without extension */
+/* IK: modified the function to enable an output filename value without extension */
 
 extern char *
-GetFilename(int CheckForCurrent, ExportType type, char * extens)
+GetFilename(int CheckForCurrent, ExportType type, int extens)
 {
     char *sz;
 
