@@ -1602,6 +1602,8 @@ append_dice_options(optionswidget * pow)
     DiceToggled(NULL, pow);
 }
 
+static priority DefaultPriority = ABOVE_AVERAGE;
+
 static void
 append_other_options(optionswidget * pow)
 {
@@ -1841,9 +1843,9 @@ append_other_options(optionswidget * pow)
     // static const char* aszScoreMapColourShort[NUM_PRIORITY] = {N_("All"), N_("D vs ND"), N_("D/P vs D/T")};
     // const char* aszScoreMapColourCommands[NUM_PRIORITY] = { "all", "dnd", "dpdt"}; 
     BuildRadioButtons(pwvbox, pow->pwPriority,
-        _("Set the GNUBG priority:"), 
-        _("Select what priority to use for the GNUBG process. Set a low priority so rollouts and analysis don't bother other applications."), 
-        aszPriority, NUM_PRIORITY, 1);
+        _("Set GNUBG priority:"), 
+        _("Select what priority to use for the GNUBG process. For example, set a low priority so rollouts do not slow down other applications."), 
+        aszPriority, NUM_PRIORITY, DefaultPriority);
 
 
 #if GTK_CHECK_VERSION(3,0,0)
@@ -2246,6 +2248,26 @@ OptionsOK(GtkWidget * pw, optionswidget * pow)
         g_free(tmp);
     }
     g_free(newfolder);
+
+    for (i = 0; i < NUM_PRIORITY; ++i){
+        if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pow->pwPriority[i])) && DefaultPriority != (priority) i) {
+            if (i==0)
+                CommandSetPriorityIdle(NULL);
+            else if (i==1)
+                CommandSetPriorityBelowNormal(NULL);
+            else if (i==2)
+                CommandSetPriorityNormal(NULL);
+            else if (i==3)
+                CommandSetPriorityAboveNormal(NULL);
+            else if (i==4)
+                CommandSetPriorityHighest(NULL);
+            else
+                g_assert_not_reached();
+            // sprintf(sz, "set scoremapmatchlength %s", aszScoreMapMatchLengthCommands[i]);
+            // UserCommand(sz);
+            break;
+        } 
+    }
 
     new_browser = gtk_entry_get_text(GTK_ENTRY(pow->pwWebBrowser));
     if (new_browser && (!get_web_browser() || strcmp(new_browser, get_web_browser()))) {
