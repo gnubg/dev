@@ -2248,13 +2248,14 @@ OptionsOK(GtkWidget * pw, optionswidget * pow)
     }
     g_free(newfolder);
 
-    g_message("DefaultPriority:%d",DefaultPriority);
+    // g_message("DefaultPriority:%d",DefaultPriority);
 
     for (i = 0; i < NUM_PRIORITY; ++i){
         if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pow->pwPriority[i])) && DefaultPriority != (priority) i) {
-            g_message("DefaultPriority:%d, i:%d, set priority nice %s",DefaultPriority,i, aszPriorityCommands[i]);
+            // g_message("before: DefaultPriority:%d, i:%d, set priority nice %s",DefaultPriority,i, aszPriorityCommands[i]);
             sprintf(sz, "set priority nice %s", aszPriorityCommands[i]);
             UserCommand(sz);
+            // g_message("after: DefaultPriority:%d, i:%d, set priority nice %s",DefaultPriority,i, aszPriorityCommands[i]);
             break;
         } 
     }
@@ -2336,6 +2337,8 @@ OptionsSet(optionswidget * pow)
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pow->pwGotoFirstGame), fGotoFirstGame);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pow->pwGameListStyles), fStyledGamelist);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pow->pwMarkedSamePlayer), fMarkedSamePlayer);  
+
+            // g_message("DefaultPriority at display:%d",DefaultPriority);
 
     for (i = 0; i < NUM_PRIORITY; ++i)
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pow->pwPriority[i]), DefaultPriority == (priority)i); 

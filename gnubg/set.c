@@ -4284,15 +4284,14 @@ CommandSetPriorityNice(char *sz)
 {
 
     int n;
-    g_message("priority string:%s",sz);
+    // g_message("CommandSetPriorityNice: priority string:%s",sz);
 
-    if ((n = ParseNumber(&sz)) < -20 || n > 20) {
-        outputl(_("You must specify a priority between -20 and 20."));
-        return;
-    }
     for (int i=0; i<NUM_PRIORITY; i++){
+            // g_message("in CommandSetPriorityNice: i=%d, aszPriorityCommands[i]=%s, sz=%s",i, aszPriorityCommands[i],sz);
         if (strcmp(sz, aszPriorityCommands[i]) == 0) {
             DefaultPriority = (priority) i;
+            // g_message("in CommandSetPriorityNice, DefaultPriority:%d, i:%d, set priority nice %s",DefaultPriority,i, aszPriorityCommands[i]);
+
         //     if (i==0)
         //         CommandSetPriorityIdle(NULL);
         //     else if (i==1)
@@ -4308,6 +4307,11 @@ CommandSetPriorityNice(char *sz)
         //    return; 
            break;
         }
+    }
+
+    if ((n = ParseNumber(&sz)) < -20 || n > 20) {
+        outputl(_("You must specify a priority between -20 and 20."));
+        return;
     }
     SetPriority(n);
 }
