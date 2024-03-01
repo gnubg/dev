@@ -32,6 +32,7 @@ typedef struct {
     GtkWidget *pwEvalPly;       /* predefined eval buttons */
     GtkWidget *pwRolloutPresets;        /* predefined Rollout buttons */
     GtkWidget *pwShow;          /* button for showing moves */
+    GtkWidget *pwMWC;           /* note: pwDetails is extern variable, see below*/           
     GtkWidget *pwTempMap;       /* button for showing temperature map */
     GtkWidget *pwCmark;         /* button for marking */
     GtkWidget *pwScoreMap;      /* button for showing move score map */
@@ -43,6 +44,7 @@ typedef struct {
     unsigned int *piHighlight;
     int fDetails;
     int hist;
+    int evalAtMoney;        /* whether evalAtMoney is toggled */
 } hintdata;
 
 extern GtkWidget *CreateMoveList(moverecord * pmr,
