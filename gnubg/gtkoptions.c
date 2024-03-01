@@ -1602,9 +1602,9 @@ append_dice_options(optionswidget * pow)
     DiceToggled(NULL, pow);
 }
 
-priority DefaultPriority = ABOVE_AVERAGE;
-const char* aszPriority[NUM_PRIORITY] = {N_("Idle"), N_("Below normal"), N_("Normal"), N_("Above normal"), N_("Highest")};
-const char* aszPriorityCommands[NUM_PRIORITY]  = { "19", "10", "0", "-10", "-19" };
+priority DefaultPriority = BELOW_AVERAGE;
+const char* aszPriority[NUM_PRIORITY] = { N_("Idle"), N_("Below normal"), N_("Normal"), N_("Above normal"), N_("High"), N_("Realtime")};
+const char* aszPriorityCommands[NUM_PRIORITY]  = { "19", "10", "0", "-10", "-19", "-20"};
 
 static void
 append_other_options(optionswidget * pow)
@@ -1843,7 +1843,12 @@ append_other_options(optionswidget * pow)
         _("Set GNUBG priority:"), 
         _("Select what priority to use for the GNUBG process. "
         "For example, set a low priority so rollouts do not slow down other applications."
-        "(In Linux, you need to start gnubg with \'sudo gnubg\' to give a higher priority.)"), 
+#if defined(HAVE_SETPRIORITY)
+        "In Linux, you need to start gnubg with \'sudo gnubg\' to assign a higher priority."
+#elif WIN32
+        "In Windows, you need to start gnubg with administrator rights to assign a realtime priority."
+#endif
+        ), 
         aszPriority, NUM_PRIORITY, DefaultPriority);
 
 

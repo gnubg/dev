@@ -4219,17 +4219,21 @@ SetPriority(int n)
 
     if (n < -19) {
         tp = THREAD_PRIORITY_TIME_CRITICAL;
+        pp = REALTIME_PRIORITY_CLASS; // IK: in Windows, only set it to high, not realtime, not sure why
         pch = N_("time critical");
     } else if (n < -10) {
         tp = THREAD_PRIORITY_HIGHEST;
+        pp = HIGH_PRIORITY_CLASS;
         pch = N_("highest");
     } else if (n < 0) {
         tp = THREAD_PRIORITY_ABOVE_NORMAL;
+        pp = ABOVE_NORMAL_PRIORITY_CLASS;
         pch = N_("above normal");
     } else if (!n) {
         pch = N_("normal");
     } else if (n < 19) {
         tp = THREAD_PRIORITY_BELOW_NORMAL;
+        pp = BELOW_NORMAL_PRIORITY_CLASS;
         pch = N_("below normal");
     } else {
         /* Lowest - set to idle priority but raise the thread priority
@@ -4242,6 +4246,7 @@ SetPriority(int n)
     if (SetThreadPriority(GetCurrentThread(), tp)
         && SetPriorityClass(GetCurrentProcess(), pp)) {
         outputf(_("Priority of program set to: %s\n"), pch);
+        // outputerrf(_("Priority of program set to: %s\n"), pch);
         nThreadPriority = n;
     } else
         outputerrf(_("Changing priority failed (trying to set priority " "%s)\n"), pch);
@@ -4284,13 +4289,13 @@ CommandSetPriorityNice(char *sz)
 {
 
     int n;
-    // g_message("CommandSetPriorityNice: priority string:%s",sz);
+    // outputerrf("CommandSetPriorityNice: priority string:%s",sz);
 
     for (int i=0; i<NUM_PRIORITY; i++){
-            // g_message("in CommandSetPriorityNice: i=%d, aszPriorityCommands[i]=%s, sz=%s",i, aszPriorityCommands[i],sz);
+            //g_message("in CommandSetPriorityNice: i=%d, aszPriorityCommands[i]=%s, sz=%s",i, aszPriorityCommands[i],sz);
         if (strcmp(sz, aszPriorityCommands[i]) == 0) {
             DefaultPriority = (priority) i;
-            // g_message("in CommandSetPriorityNice, DefaultPriority:%d, i:%d, set priority nice %s",DefaultPriority,i, aszPriorityCommands[i]);
+            // outputerrf("in CommandSetPriorityNice, DefaultPriority:%d, i:%d, set priority nice %s",DefaultPriority,i, aszPriorityCommands[i]);
 
         //     if (i==0)
         //         CommandSetPriorityIdle(NULL);
