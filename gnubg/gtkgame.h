@@ -210,4 +210,8 @@ extern void DeletePosition(void) ;
 // extern GtkWidget *pwQuiz;
 extern int skipDoubleHint; 
 
+extern void
+BuildRadioButtons(GtkWidget* pwvbox, GtkWidget* apwScoreMapFrame[], const char* frameTitle, const char* frameToolTip, const char* labelStrings[],
+    int labelStringsLen, int toggleDefault);
+
 #endif

@@ -136,7 +136,7 @@ and come back, it works again. It may be a movelist construction issue.
 //#include "gtkoptions.h"  
 
 
-/*         GLOBAL *EXTERN) VARIABLES           */
+/*         GLOBAL (EXTERN) VARIABLES           */
 scoreMapPly scoreMapPlyDefault = TWO_PLY; //default -> TWO_PLY at the end 
 const char* aszScoreMapPly[NUM_PLY] = {N_("0-ply"), N_("1-ply"), N_("2-ply"), N_("3-ply"), N_("4-ply") };
 const char* aszScoreMapPlyCommands[NUM_PLY] = { "0", "1", "2", "3", "4" };

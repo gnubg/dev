@@ -94,6 +94,7 @@ typedef struct {
     GtkAdjustment *padjDelay;
     GtkAdjustment *padjSeed;
     GtkAdjustment *padjThreads;
+    GtkWidget *pwPriority[NUM_PRIORITY];
     GtkWidget *pwAutoSaveTime;
     GtkWidget *pwAutoSaveRollout;
     GtkWidget *pwAutoSaveAnalysis;
@@ -1601,6 +1602,10 @@ append_dice_options(optionswidget * pow)
     DiceToggled(NULL, pow);
 }
 
+priority DefaultPriority = BELOW_NORMAL;
+const char* aszPriority[NUM_PRIORITY] = { N_("Idle"), N_("Below normal"), N_("Normal"), N_("Above normal"), N_("High"), N_("Realtime")};
+const char* aszPriorityCommands[NUM_PRIORITY]  = { "19", "10", "0", "-10", "-19", "-20"};
+
 static void
 append_other_options(optionswidget * pow)
 {
@@ -1688,8 +1693,6 @@ append_other_options(optionswidget * pow)
                                 _("This option enables jumps between moves in the "
                                   "game list window (using the red arrows) to stay within the same player, " 
                                   "thus allowing a player to focus on his own mistakes only"));
-
-
 
 #if GTK_CHECK_VERSION(3,0,0)
     grid = gtk_grid_new();
@@ -1835,6 +1838,22 @@ append_other_options(optionswidget * pow)
                                 _("The number of threads to use in multi-threaded operations,"
                                   " this should be set to the number of logical processing units available"));
 #endif
+
+#if defined(HAVE_SETPRIORITY) || WIN32
+    BuildRadioButtons(pwvbox, pow->pwPriority,
+        _("Set GNUBG process priority:"), 
+        _("Select what priority to use for the GNUBG process. "
+        "For example, set a low priority so rollouts do not slow down other applications. "
+#if defined(HAVE_SETPRIORITY)
+        "Careful! In Linux, you can only change priority within the assigned user limits. "
+        "To change these, edit \'/etc/security/limits.conf\' with sudo rights. "
+#elif WIN32
+        "In Windows, you need to start gnubg with administrator rights to assign a realtime priority."
+#endif
+        ), 
+        aszPriority, NUM_PRIORITY, DefaultPriority);
+#endif
+
 #if GTK_CHECK_VERSION(3,0,0)
     pwhbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 #else
@@ -1849,8 +1868,7 @@ append_other_options(optionswidget * pow)
     gtk_spin_button_set_numeric(GTK_SPIN_BUTTON(pow->pwAutoSaveTime), TRUE);
     gtk_spin_button_set_value(GTK_SPIN_BUTTON(pow->pwAutoSaveTime), nAutoSaveTime);
     gtk_widget_set_tooltip_text(pow->pwAutoSaveTime,
-                                _
-                                ("Set the auto save frequency. You must also enable backup during analysis and/or during rollout"));
+                                _("Set the auto save frequency. You must also enable backup during analysis and/or during rollout"));
     gtk_box_pack_start(GTK_BOX(pwhbox), gtk_label_new(_("minute(s)")), FALSE, FALSE, 0);
 
     pow->pwAutoSaveRollout = gtk_check_button_new_with_label(_("Auto save rollouts"));
@@ -2237,6 +2255,18 @@ OptionsOK(GtkWidget * pw, optionswidget * pow)
     }
     g_free(newfolder);
 
+    // g_message("DefaultPriority:%d",DefaultPriority);
+
+    for (i = 0; i < NUM_PRIORITY; ++i){
+        if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pow->pwPriority[i])) && DefaultPriority != (priority) i) {
+            // g_message("before: DefaultPriority:%d, i:%d, set priority nice %s",DefaultPriority,i, aszPriorityCommands[i]);
+            sprintf(sz, "set priority nice %s", aszPriorityCommands[i]);
+            UserCommand(sz);
+            // g_message("after: DefaultPriority:%d, i:%d, set priority nice %s",DefaultPriority,i, aszPriorityCommands[i]);
+            break;
+        } 
+    }
+
     new_browser = gtk_entry_get_text(GTK_ENTRY(pow->pwWebBrowser));
     if (new_browser && (!get_web_browser() || strcmp(new_browser, get_web_browser()))) {
         tmp = g_strdup_printf("set browser \"%s\"", new_browser);
@@ -2314,6 +2344,12 @@ OptionsSet(optionswidget * pow)
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pow->pwGotoFirstGame), fGotoFirstGame);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pow->pwGameListStyles), fStyledGamelist);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pow->pwMarkedSamePlayer), fMarkedSamePlayer);  
+
+            // g_message("DefaultPriority at display:%d",DefaultPriority);
+
+    for (i = 0; i < NUM_PRIORITY; ++i)
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pow->pwPriority[i]), DefaultPriority == (priority)i); 
+
 }
 
 static void
