@@ -525,6 +525,7 @@ CreateMoveListTools(hintdata * phd)
     GtkWidget *pwTempMap = gtk_button_new_with_label(_("TM"));
     GtkWidget *pwCmark = gtk_button_new_with_label(_("Cmark"));
     GtkWidget *pwScoreMap = gtk_button_new_with_label(_("ScoreMap"));     
+    GtkWidget *pwMoneyEval = gtk_button_new_with_label(_("$"));     
     int i;
 
     pwDetails = phd->fDetails ? NULL : gtk_toggle_button_new_with_label(_("Details"));
@@ -539,6 +540,7 @@ CreateMoveListTools(hintdata * phd)
     phd->pwTempMap = pwTempMap;
     phd->pwCmark = pwCmark;
     phd->pwScoreMap = pwScoreMap;
+    phd->pwMoneyEval = pwMoneyEval;
 
 #if GTK_CHECK_VERSION(3,0,0)
     gtk_style_context_add_class(gtk_widget_get_style_context(pwEval), "gnubg-analysis-button");
@@ -719,6 +721,8 @@ CreateMoveListTools(hintdata * phd)
     gtk_grid_attach(GTK_GRID(pwTools), pwCmark, 5, 1, 1, 1);
 
     gtk_grid_attach(GTK_GRID(pwTools), pwScoreMap, 6, 1, 1, 1);
+
+    gtk_grid_attach(GTK_GRID(pwTools), pwMoneyEval, 7, 1, 1, 1);
 #else
     gtk_table_attach(GTK_TABLE(pwTools), pwMove, 3, 4, 1, 2,
                      (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
@@ -730,6 +734,9 @@ CreateMoveListTools(hintdata * phd)
                      (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
 
     gtk_table_attach(GTK_TABLE(pwTools), pwScoreMap, 6, 7, 1, 2,
+                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0); 
+
+    gtk_table_attach(GTK_TABLE(pwTools), pwMoneyEval, 7, 8, 1, 2,
                      (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0); 
 #endif
 
@@ -751,6 +758,8 @@ CreateMoveListTools(hintdata * phd)
     gtk_widget_set_sensitive(pwMove, !fBackgroundAnalysisRunning);
     gtk_widget_set_sensitive(pwCopy, !fBackgroundAnalysisRunning);
     gtk_widget_set_sensitive(pwScoreMap, !fBackgroundAnalysisRunning);
+    /* the Money Eval button is not available at money play since it doesn't help there */
+    gtk_widget_set_sensitive(pwMoneyEval, ms.nMatchTo && !fBackgroundAnalysisRunning);
 
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pwMWC), fOutputMWC);
 
@@ -769,6 +778,7 @@ CreateMoveListTools(hintdata * phd)
     g_signal_connect(G_OBJECT(pwCopy), "clicked", G_CALLBACK(MoveListCopy), phd);
     g_signal_connect(G_OBJECT(pwTempMap), "clicked", G_CALLBACK(MoveListTempMapClicked), phd);
     g_signal_connect(G_OBJECT(pwScoreMap), "clicked", G_CALLBACK(MoveListScoreMapClicked), phd);
+    g_signal_connect(G_OBJECT(pwMoneyEval), "toggled", G_CALLBACK(MoveListShowToggledClicked),phd); //MoveListMoneyEvalClicked), phd);
     g_signal_connect(G_OBJECT(pwCmark), "clicked", G_CALLBACK(MoveListCmarkClicked), phd);
     if (!phd->fDetails)
         g_signal_connect(G_OBJECT(pwDetails), "clicked", G_CALLBACK(MoveListDetailsClicked), phd);
@@ -798,6 +808,8 @@ CreateMoveListTools(hintdata * phd)
     gtk_widget_set_tooltip_text(pwTempMap, _("Show Sho Sengoku Temperature Map of position" " after selected move"));
 
     gtk_widget_set_tooltip_text(pwScoreMap, _("Show map of best moves at different scores"));
+
+    gtk_widget_set_tooltip_text(pwMoneyEval, _("Evaluate moves independently of score"));
 
     // gtk_widget_set_tooltip_text(pwAutoRollout, 
     //         _("AutoRollout: after an eval, automatically rollout (1) the closest moves and "
@@ -860,8 +872,10 @@ CheckHintButtons(hintdata * phd)
     // gtk_widget_set_sensitive(phd->pwAutoRollout, phd->fButtonsValid && !fBackgroundAnalysisRunning);
 
     bd = BOARD(pwBoard)->board_data;
-    gtk_widget_set_sensitive(phd->pwScoreMap, (bd->diceShown == DICE_ON_BOARD) && !fBackgroundAnalysisRunning);
+    //why is the following condition different from the other lines?
+    gtk_widget_set_sensitive(phd->pwScoreMap, (bd->diceShown == DICE_ON_BOARD) && !fBackgroundAnalysisRunning); 
     // gtk_widget_set_sensitive(phd->pwAutoRollout, !fBackgroundAnalysisRunning);
+    gtk_widget_set_sensitive(phd->pwMoneyEval, (bd->diceShown == DICE_ON_BOARD) && !fBackgroundAnalysisRunning); 
 
     return c;
 }

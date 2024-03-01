@@ -35,6 +35,7 @@ typedef struct {
     GtkWidget *pwTempMap;       /* button for showing temperature map */
     GtkWidget *pwCmark;         /* button for marking */
     GtkWidget *pwScoreMap;      /* button for showing move score map */
+    GtkWidget *pwMoneyEval;      /* button for evaluating move independently of score */
     moverecord *pmr;
     movelist *pml;
     int fButtonsValid;
