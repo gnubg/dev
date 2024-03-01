@@ -24,6 +24,7 @@
 text even in smaller screens (without cutting the arrows on the top right)
 - corrected wrong cube "Copy" values for no-double cases
 - gnubg now automatically copies the "Copy" values to the clipboard in Windows
+- gnubg now allows to set the process priority in the options
 
 03/2023: Isaac Keslassy: to check GNUBG updates, we now make it opt-in rather 
 than opt-out: a month after starting GNUBG, the user is asked whether to check 
