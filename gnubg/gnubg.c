@@ -3540,6 +3540,7 @@ SaveMiscSettings(FILE * pf)
     fprintf(pf, "set output errorratefactor %s\n",
             g_ascii_formatd(buf, G_ASCII_DTOSTR_BUF_SIZE, "%f", rErrorRateFactor));
     fprintf(pf, "set priority nice %d\n", nThreadPriority);
+        // g_message ("save settings: set priority nice %d",nThreadPriority);
     fprintf(pf, "set prompt %s\n", szPrompt);
     fprintf(pf, "set ratingoffset %s\n", g_ascii_formatd(buf, G_ASCII_DTOSTR_BUF_SIZE, "%f", rRatingOffset));
 

@@ -1602,7 +1602,7 @@ append_dice_options(optionswidget * pow)
     DiceToggled(NULL, pow);
 }
 
-priority DefaultPriority = BELOW_AVERAGE;
+priority DefaultPriority = BELOW_NORMAL;
 const char* aszPriority[NUM_PRIORITY] = { N_("Idle"), N_("Below normal"), N_("Normal"), N_("Above normal"), N_("High"), N_("Realtime")};
 const char* aszPriorityCommands[NUM_PRIORITY]  = { "19", "10", "0", "-10", "-19", "-20"};
 
@@ -1839,18 +1839,20 @@ append_other_options(optionswidget * pow)
                                   " this should be set to the number of logical processing units available"));
 #endif
 
+#if defined(HAVE_SETPRIORITY) || WIN32
     BuildRadioButtons(pwvbox, pow->pwPriority,
-        _("Set GNUBG priority:"), 
+        _("Set GNUBG process priority:"), 
         _("Select what priority to use for the GNUBG process. "
-        "For example, set a low priority so rollouts do not slow down other applications."
+        "For example, set a low priority so rollouts do not slow down other applications. "
 #if defined(HAVE_SETPRIORITY)
-        "In Linux, you need to start gnubg with \'sudo gnubg\' to assign a higher priority."
+        "Careful! In Linux, you can only change priority within the assigned user limits. "
+        "To change these, edit \'/etc/security/limits.conf\' with sudo rights. "
 #elif WIN32
         "In Windows, you need to start gnubg with administrator rights to assign a realtime priority."
 #endif
         ), 
         aszPriority, NUM_PRIORITY, DefaultPriority);
-
+#endif
 
 #if GTK_CHECK_VERSION(3,0,0)
     pwhbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);

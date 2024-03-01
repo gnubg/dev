@@ -4205,11 +4205,14 @@ SetPriority(int n)
     // int pri = getpriority(PRIO_PROCESS, getpid());
     // g_message("The original priority of process is :%d", pri);
 
-    if (setpriority(PRIO_PROCESS, getpid(), n))
+    if (setpriority(PRIO_PROCESS, getpid(), n)) {
         outputerr("setpriority");
+        // g_message ("part 1: nThreadPriority is at %d",nThreadPriority);
+    }
     else {
         outputf(_("Scheduling priority set to %d.\n"), n);
         nThreadPriority = n;
+        // g_message ("part 2: nThreadPriority set to %d",nThreadPriority);
     }
 #elif WIN32
     /* tp - thread priority, pp - process priority */
@@ -4254,6 +4257,9 @@ SetPriority(int n)
     (void) n;                   /* suppress unused parameter compiler warning */
     outputerrf(_("Priority changes are not supported on this platform.\n"));
 #endif                          /* HAVE_SETPRIORITY */
+    // g_message ("nThreadPriority set to %d",nThreadPriority);
+    // UserCommand2("save settings");
+
 }
 
 extern void
@@ -4291,34 +4297,50 @@ CommandSetPriorityNice(char *sz)
     int n;
     // outputerrf("CommandSetPriorityNice: priority string:%s",sz);
 
-    for (int i=0; i<NUM_PRIORITY; i++){
-            //g_message("in CommandSetPriorityNice: i=%d, aszPriorityCommands[i]=%s, sz=%s",i, aszPriorityCommands[i],sz);
-        if (strcmp(sz, aszPriorityCommands[i]) == 0) {
-            DefaultPriority = (priority) i;
-            // outputerrf("in CommandSetPriorityNice, DefaultPriority:%d, i:%d, set priority nice %s",DefaultPriority,i, aszPriorityCommands[i]);
+    // for (int i=0; i<NUM_PRIORITY; i++){
+    //         //g_message("in CommandSetPriorityNice: i=%d, aszPriorityCommands[i]=%s, sz=%s",i, aszPriorityCommands[i],sz);
+    //     if (strcmp(sz, aszPriorityCommands[i]) == 0) {
+    //         DefaultPriority = (priority) i;
+    //         // outputerrf("in CommandSetPriorityNice, DefaultPriority:%d, i:%d, set priority nice %s",DefaultPriority,i, aszPriorityCommands[i]);
 
-        //     if (i==0)
-        //         CommandSetPriorityIdle(NULL);
-        //     else if (i==1)
-        //         CommandSetPriorityBelowNormal(NULL);
-        //     else if (i==2)
-        //         CommandSetPriorityNormal(NULL);
-        //     else if (i==3)
-        //         CommandSetPriorityAboveNormal(NULL);
-        //     else if (i==4)
-        //         CommandSetPriorityHighest(NULL);
-        //     else
-        //         g_assert_not_reached();
-        //    return; 
-           break;
-        }
-    }
+    //     //     if (i==0)
+    //     //         CommandSetPriorityIdle(NULL);
+    //     //     else if (i==1)
+    //     //         CommandSetPriorityBelowNormal(NULL);
+    //     //     else if (i==2)
+    //     //         CommandSetPriorityNormal(NULL);
+    //     //     else if (i==3)
+    //     //         CommandSetPriorityAboveNormal(NULL);
+    //     //     else if (i==4)
+    //     //         CommandSetPriorityHighest(NULL);
+    //     //     else
+    //     //         g_assert_not_reached();
+    //     //    return; 
+    //        break;
+    //     }
+    // }
 
     if ((n = ParseNumber(&sz)) < -20 || n > 20) {
         outputl(_("You must specify a priority between -20 and 20."));
         return;
     }
+
+    if (n < -19) {
+        DefaultPriority = (priority) REALTIME;
+    } else if (n < -10) {
+        DefaultPriority = (priority) HIGH;
+    } else if (n < 0) {
+        DefaultPriority = (priority) ABOVE_NORMAL;
+    } else if (!n) {
+        DefaultPriority = (priority) NORMAL;
+    } else if (n < 19) {
+        DefaultPriority = (priority) BELOW_NORMAL;
+    } else {
+        DefaultPriority = (priority) IDLE;
+    }
+
     SetPriority(n);
+    // g_message("in CommandSetPriorityNice: SetPriority(%d)", n);
 }
 
 

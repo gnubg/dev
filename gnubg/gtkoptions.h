@@ -26,7 +26,7 @@ extern void GTKSound(void);
 extern void GTKCommandEditKeyNames(GtkWidget * UNUSED(pw), GtkWidget * pwParent);
 
 typedef enum {
-    IDLE, BELOW_AVERAGE, NORMAL, ABOVE_AVERAGE, HIGH, REALTIME, NUM_PRIORITY
+    IDLE, BELOW_NORMAL, NORMAL, ABOVE_NORMAL, HIGH, REALTIME, NUM_PRIORITY
 } priority;
 extern priority DefaultPriority;
 extern const char* aszPriority[NUM_PRIORITY];
