@@ -207,7 +207,7 @@ MoveListUpdate(const hintdata * phd)
      * the move list. */
     g_assert(ms.fMove == 0 || ms.fMove == 1);
 
-    if (!phd->pmr->evalAtMoney)
+    if (!phd->pmr->evalMoveAtMoney)
         GetMatchStateCubeInfo(&ci, &ms);
     else
         GetMoneyCubeInfo(&ci, &ms);
@@ -252,7 +252,7 @@ MoveListUpdate(const hintdata * phd)
         }
 
         highlight_sz = (phd->piHighlight && *phd->piHighlight == i) ? "*" : "";
-        moneyEval_sz = (phd->pmr->evalAtMoney) ? "$" : "";
+        moneyEval_sz = (phd->pmr->evalMoveAtMoney) ? "$" : "";
 
         if (rankKnown)
             sprintf(sz, "%s%s%s%u", moneyEval_sz,pml->amMoves[i].cmark ? "+" : "", highlight_sz, i + 1);

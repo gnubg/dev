@@ -817,7 +817,7 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
             break;
 
         rChequerSkill = 0.0f;
-        if (!pmr->evalAtMoney)
+        if (!pmr->evalMoveAtMoney)
             GetMatchStateCubeInfo(&ci, pms);
         else
             GetMoneyCubeInfo(&ci, pms);
@@ -827,7 +827,7 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
         if (!is_initial_position && fAnalyseCube && pmgi->fCubeUse && GetDPEq(NULL, NULL, &ci)) {
             float arDouble[NUM_CUBEFUL_OUTPUTS];
 
-            if (cmp_evalsetup(pesCube, &pmr->CubeDecPtr->esDouble) > 0 || pmr->evalAtMoney) {
+            if (cmp_evalsetup(pesCube, &pmr->CubeDecPtr->esDouble) > 0 || pmr->evalMoveAtMoney) {
                 MT_Release();
                 if (GeneralCubeDecision(aarOutput, aarStdDev, NULL,
                                         (ConstTanBoard) pms->anBoard, &ci, pesCube, NULL, NULL) < 0)
@@ -894,7 +894,7 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
             ApplyMove(anBoardMove, pmr->n.anMove, FALSE);
             PositionKey((ConstTanBoard) anBoardMove, &key);
 
-            if (cmp_evalsetup(pesChequer, &pmr->esChequer) > 0  || pmr->evalAtMoney) {
+            if (cmp_evalsetup(pesChequer, &pmr->esChequer) > 0  || pmr->evalMoveAtMoney) {
 
                 if (pmr->ml.cMoves) {
                     // g_message("g_free:pmr->ml.cMoves=%d",pmr->ml.cMoves);

@@ -2502,7 +2502,7 @@ hint_move(char *sz, gboolean show, procrecorddata * procdatarec)
     if (!ms.anDice[0])
         return;
 
-    // if (!phd->pmr->evalAtMoney)
+    // if (!phd->pmr->evalMoveAtMoney)
     GetMatchStateCubeInfo(&ci, &ms);
     // else
     //     GetMoneyCubeInfo(&ci, &ms);

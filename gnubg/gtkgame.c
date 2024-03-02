@@ -1366,7 +1366,7 @@ SetAnnotation(moverecord * pmr)
 
             /* Skill for cube */
 
-            if (!pmr->evalAtMoney)
+            if (!pmr->evalMoveAtMoney)
                 GetMatchStateCubeInfo(&ci, &ms);
             else
                 GetMoneyCubeInfo(&ci, &ms);

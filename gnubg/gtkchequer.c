@@ -291,13 +291,13 @@ MoveListCmarkClicked(GtkWidget * UNUSED(pw), hintdata * phd)
 // /* Called by GTK when the money eval button is toggled. Should only be possible during match play.
 // */
 //     g_assert(pchd->ms.nMatchTo);
-//     pchd->evalAtMoney = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
+//     pchd->evalMoveAtMoney = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
 
 //     //we want to hide (resp. unhide) the MWC and cmark buttons when money eval is toggled
-//     gtk_widget_set_sensitive(pchd->pwMWC, !pchd->evalAtMoney); 
-//     gtk_widget_set_sensitive(pchd->pwCmark, !pchd->evalAtMoney); 
+//     gtk_widget_set_sensitive(pchd->pwMWC, !pchd->evalMoveAtMoney); 
+//     gtk_widget_set_sensitive(pchd->pwCmark, !pchd->evalMoveAtMoney); 
 
-//     if (pchd->evalAtMoney && (pchd->pmr->MoneyCubeDecPtr==NULL)) // Test if money eval has been toggled before for this move record
+//     if (pchd->evalMoveAtMoney && (pchd->pmr->MoneyCubeDecPtr==NULL)) // Test if money eval has been toggled before for this move record
 //         EvalCube(pchd, &GetEvalCube()->ec); // If not, eval at current settings - this forces MoneyCubeDecPtr to be created.
 //     else
 //         UpdateCubeAnalysis(pchd);            
@@ -319,21 +319,21 @@ MoveListCmarkClicked(GtkWidget * UNUSED(pw), hintdata * phd)
 static void
 MoveListMoneyEval(GtkWidget * pw, hintdata * phd)
 {
-    g_assert(phd->ms.nMatchTo);
-    phd->pmr->evalAtMoney = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pw), phd->pmr->evalAtMoney);
+    // g_assert(phd->ms.nMatchTo);
+    phd->pmr->evalMoveAtMoney = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
+    // gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pw), phd->pmr->evalMoveAtMoney);
 
 
     //we want to hide (resp. unhide) the MWC and cmark buttons when money eval is toggled
-    gtk_widget_set_sensitive(phd->pwMWC, !phd->pmr->evalAtMoney); 
-    gtk_widget_set_sensitive(phd->pwCmark, !phd->pmr->evalAtMoney); 
+    gtk_widget_set_sensitive(phd->pwMWC, !phd->pmr->evalMoveAtMoney); 
+    gtk_widget_set_sensitive(phd->pwCmark, !phd->pmr->evalMoveAtMoney); 
 
-//     if (pchd->evalAtMoney && (pchd->pmr->MoneyCubeDecPtr==NULL)) // Test if money eval has been toggled before for this move record
+//     if (pchd->evalMoveAtMoney && (pchd->pmr->MoneyCubeDecPtr==NULL)) // Test if money eval has been toggled before for this move record
 //         EvalCube(pchd, &GetEvalCube()->ec); // If not, eval at current settings - this forces MoneyCubeDecPtr to be created.
 //     else
 //         UpdateCubeAnalysis(pchd);            
 
-    CommandAnalyseMoveAux(FALSE,phd->pmr->evalAtMoney);
+    CommandAnalyseMoveAux(FALSE,phd->pmr->evalMoveAtMoney);
 
     /* Make sure display is up to date */
     // MoveListUpdate(phd);
@@ -375,7 +375,7 @@ EvalMoves(hintdata * phd, evalcontext * pec)
     if (!plSelList)
         return;
 
-    // if (!phd->pmr->evalAtMoney)
+    // if (!phd->pmr->evalMoveAtMoney)
     GetMatchStateCubeInfo(&ci, &ms);
     // else
     //     GetMoneyCubeInfo(&ci, &ms);
@@ -824,7 +824,7 @@ CreateMoveListTools(hintdata * phd)
     gtk_widget_set_sensitive(pwMoneyEval, ms.nMatchTo && !fBackgroundAnalysisRunning);
 
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pwMWC), fOutputMWC);
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pwMoneyEval), phd->pmr->evalAtMoney);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pwMoneyEval), phd->pmr->evalMoveAtMoney);
 
     if (pwDetails)
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pwDetails), showMoveListDetail);
@@ -843,7 +843,7 @@ CreateMoveListTools(hintdata * phd)
     g_signal_connect(G_OBJECT(pwScoreMap), "clicked", G_CALLBACK(MoveListScoreMapClicked), phd);
     g_signal_connect(G_OBJECT(pwMoneyEval), "toggled", G_CALLBACK(MoveListMoneyEval), phd);
     g_signal_connect(G_OBJECT(pwCmark), "clicked", G_CALLBACK(MoveListCmarkClicked), phd);
-    if (!phd->fDetails)
+    if (!phd->fDetails) /* pwDetails is a toggle button => why "clicked" and not "toggled"? */
         g_signal_connect(G_OBJECT(pwDetails), "clicked", G_CALLBACK(MoveListDetailsClicked), phd);
 
     /* tool tips */
@@ -966,7 +966,6 @@ CreateMoveList(moverecord * pmr, const int fButtonsValid, const int fDestroyOnMo
     phd->pwMove = NULL;
     phd->fDetails = fDetails;
     phd->hist = hist;
-    phd->pmr->evalAtMoney=FALSE;
 
     mlt = CreateMoveListTools(phd);
     MoveListCreate(phd);

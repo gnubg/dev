@@ -44,6 +44,7 @@ typedef struct {
     unsigned int *piHighlight;
     int fDetails;
     int hist;
+    // int evalMoveAtMoney; /* whether we use the eval in a hypothetical money game */
 } hintdata;
 
 extern GtkWidget *CreateMoveList(moverecord * pmr,

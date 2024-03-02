@@ -211,7 +211,7 @@ typedef struct {
     xmovesetcubeval scv;        /* setting cube */
     xmovesetcubepos scp;        /* setting cube owner */
     xmwc mwc;   /* added for easy access */
-    int evalAtMoney; /* whether we use the eval in a hypothetical money game */
+    int evalMoveAtMoney; /* whether we use the eval in a hypothetical money game. */
 } moverecord;
 
 

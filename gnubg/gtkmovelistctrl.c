@@ -396,13 +396,13 @@ custom_cell_renderer_movelist_render(GtkCellRenderer * cell,
     if (pFontCol)
         gdk_cairo_set_source_color(cr, pFontCol);
 
-    g_message("movelist-ctrl");
+    // g_message("movelist-ctrl");
 
 
     /* First line of control */
     cmark_sz = cellprogress->pml->cmark ? "+" : "";
     highlight_sz = (phd->piHighlight && cellprogress->rank - 1 == *phd->piHighlight) ? "*" : "";
-    moneyEval_sz = (phd->pmr->evalAtMoney) ? "$" : "";
+    moneyEval_sz = (phd->pmr->evalMoveAtMoney) ? "$" : "";
     if (cellprogress->rank > 0)
         sprintf(buf, "%s%u%s%s", moneyEval_sz, cellprogress->rank, cmark_sz, highlight_sz);
     else
