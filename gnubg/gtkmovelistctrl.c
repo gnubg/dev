@@ -374,7 +374,12 @@ custom_cell_renderer_movelist_render(GtkCellRenderer * cell,
     const char *highlight_sz;
     const char *moneyEval_sz;
     cubeinfo ci;
-    GetMatchStateCubeInfo(&ci, &ms);
+    
+    if (!phd->pmr->evalMoveAtMoney)
+        GetMatchStateCubeInfo(&ci, &ms);
+    else
+        GetMoneyCubeInfo(&ci, &ms);
+
     /*lint --e(641) */
     selected = (flags & GTK_CELL_RENDERER_SELECTED) && gtk_widget_has_focus(widget);
 

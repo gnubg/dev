@@ -2878,7 +2878,7 @@ cmark_cube_rollout(moverecord * pmr, gboolean destroy)
         return 0;
 
     pes = setup_cube_rollout(&pmr->CubeDecPtr->esDouble, pmr, aarOutput, aarStdDev);
-
+    g_message("cmark_cube_rollout");
     GetMatchStateCubeInfo(&ci, &ms);
     FormatCubePositions(&ci, asz);
 
