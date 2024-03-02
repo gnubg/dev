@@ -213,7 +213,7 @@ MoveListUpdate(const hintdata * phd)
         GetMoneyCubeInfo(&ci, &ms);
 
     rBest = pml->amMoves[0].rScore;
-    g_message("movelistupdate: rBest=%f",rBest);
+    // g_message("movelistupdate: rBest=%f",rBest);
 
     if (!showWLTree)
         gtk_tree_view_column_set_title(gtk_tree_view_get_column(GTK_TREE_VIEW(phd->pwMoves), col),
@@ -254,6 +254,8 @@ MoveListUpdate(const hintdata * phd)
         highlight_sz = (phd->piHighlight && *phd->piHighlight == i) ? "*" : "";
         moneyEval_sz = (phd->pmr->evalMoveAtMoney) ? "$" : "";
 
+        /* IK: unclear where this is used, since the displayed order is different.
+        See gtkmovelistctrl.c for the correct order of elements.*/
         if (rankKnown)
             sprintf(sz, "%s%s%s%u", moneyEval_sz,pml->amMoves[i].cmark ? "+" : "", highlight_sz, i + 1);
         else
