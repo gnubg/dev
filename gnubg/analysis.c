@@ -2122,7 +2122,11 @@ cmark_move_rollout(moverecord * pmr, gboolean destroy)
     asz = (char (*)[FORMATEDMOVESIZE]) g_malloc(FORMATEDMOVESIZE * c);
     if (pmr->n.iMove != UINT_MAX)
         CopyKey(pmr->ml.amMoves[pmr->n.iMove].key, key);
-    GetMatchStateCubeInfo(&ci, &ms);
+
+    if (pmr->evalMoveAtMoney)
+        GetMatchStateCubeInfo(&ci, &ms);
+    else
+        GetMoneyCubeInfo(&ci, &ms);
 
     for (pl = list, j = 0; pl; pl = g_slist_next(pl), j++) {
         gint i = GPOINTER_TO_INT(pl->data);

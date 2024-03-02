@@ -114,7 +114,10 @@ MoveListRolloutClicked(GtkWidget * pw, hintdata * phd)
         return;
     }
 
-    GetMatchStateCubeInfo(&ci, &ms);
+    if (!phd->pmr->evalMoveAtMoney)
+        GetMatchStateCubeInfo(&ci, &ms);
+    else
+        GetMoneyCubeInfo(&ci, &ms);
 
     c = g_list_length(plSelList);
 
@@ -299,8 +302,8 @@ MoveListMoneyEval(GtkWidget * pw, hintdata * phd)
 
     /* switch between ml for regular play and ml for evalMoveAtMoney*/
     PermuteMoveList(&phd->pmr->ml,&phd->pmr->mlOld);
-    if(phd->piHighlight)
-        g_message("piHighlight:%u",*phd->piHighlight);
+    // if(phd->piHighlight)
+        // g_message("piHighlight:%u",*phd->piHighlight);
     // /* also permute piHighlight and piHighlightOld*/
     // if(phd->pmr->mlOldIsValid && phd->piHighlightOld) {
     //     unsigned int temp=*phd->piHighlight;
@@ -321,7 +324,7 @@ MoveListMoneyEval(GtkWidget * pw, hintdata * phd)
     /* if it's the 1st time we switch to evalMoveAtMoney, we analyze it. We don't it later. */
     // if(!phd->pmr->mlOldIsValid) { 
         // g_assert(phd->pmr->evalMoveAtMoney);
-        CommandAnalyseMoveAux(FALSE,phd->pmr->evalMoveAtMoney);
+    CommandAnalyseMoveAux(FALSE,phd->pmr->evalMoveAtMoney);
     // } 
 
     /* Make sure display is up to date */

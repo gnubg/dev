@@ -1367,7 +1367,7 @@ RolloutGeneral(ConstTanBoard * apBoard,
 
         if ((pes->et != EVAL_ROLLOUT) || (prc->nGamesDone == 0)) {
     // g_message("11");
-            /* later the saved context may to be stored with the move, so cubeful/cubeless must be made
+            /* later the saved context may be stored with the move, so cubeful/cubeless must be made
              * consistent */
             rcRolloutSave.fCubeful = rcRolloutSave.aecCubeTrunc.fCubeful =
                 rcRolloutSave.aecChequerTrunc.fCubeful = (fCubeRollout || rcRolloutSave.fCubeful);
