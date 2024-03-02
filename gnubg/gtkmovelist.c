@@ -184,6 +184,9 @@ MoveListUpdate(const hintdata * phd)
     int col = phd->fDetails ? 8 : 2;
     int showWLTree = showMoveListDetail && !phd->fDetails;
 
+    // if(phd->fDestroyOnMove && phd->pwMoneyEval)
+
+
     int offset = (phd->fDetails) ? 0 : MIN_COLUMN_COUNT - DETAIL_COLUMN_COUNT;
     GtkTreeIter iter;
     GtkListStore *store;

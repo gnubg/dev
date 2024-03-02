@@ -801,8 +801,15 @@ CreateMoveListTools(hintdata * phd)
     gtk_widget_set_sensitive(pwCopy, FALSE);
     gtk_widget_set_sensitive(pwTempMap, FALSE);
 
-    /* We want to disable particularly when we are in the middle of running an analysis
-    in the background*/
+    /* 
+    1. We want to disable particularly when we are in the middle of running an analysis
+    in the background
+    2. Careful! The movelist is somehow regenerated 3 times(!). 
+    So when we're in the hint window, at the start it looks like we are outside the hint window (2x), 
+    then the 3rd time we finally discover we are inside.
+    That's why the true final gtk_widget_set_sensitive condition seems to be in CheckHintButtons().
+    Check there as well.
+    */
     gtk_widget_set_sensitive(pwMWC, ms.nMatchTo && !fBackgroundAnalysisRunning);
     gtk_widget_set_sensitive(pwRollout, !fBackgroundAnalysisRunning);
     // gtk_widget_set_sensitive(pwAutoRollout, !fBackgroundAnalysisRunning);
@@ -813,8 +820,9 @@ CreateMoveListTools(hintdata * phd)
     // gtk_widget_set_sensitive(pwMove, !fBackgroundAnalysisRunning);
     // gtk_widget_set_sensitive(pwCopy, !fBackgroundAnalysisRunning);
     gtk_widget_set_sensitive(pwScoreMap, !fBackgroundAnalysisRunning);
-    /* the Money Eval button is not available at money play since it doesn't help there */
-    gtk_widget_set_sensitive(pwMoneyEval, ms.nMatchTo && !fBackgroundAnalysisRunning);
+    /* the Money Eval button is not available at money play since it doesn't help there.
+    Also we want to disable it in the hint window. */
+    gtk_widget_set_sensitive(pwMoneyEval, ms.nMatchTo && !fBackgroundAnalysisRunning && !phd->fDestroyOnMove);
 
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pwMWC), fOutputMWC);
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pwMoneyEval), phd->pmr->evalMoveAtMoney);
@@ -931,7 +939,8 @@ CheckHintButtons(hintdata * phd)
     //why is the following condition different from the other lines?
     gtk_widget_set_sensitive(phd->pwScoreMap, (bd->diceShown == DICE_ON_BOARD) && !fBackgroundAnalysisRunning); 
     // gtk_widget_set_sensitive(phd->pwAutoRollout, !fBackgroundAnalysisRunning);
-    gtk_widget_set_sensitive(phd->pwMoneyEval, (bd->diceShown == DICE_ON_BOARD) && !fBackgroundAnalysisRunning); 
+    /* */
+    gtk_widget_set_sensitive(phd->pwMoneyEval, ms.nMatchTo && !fBackgroundAnalysisRunning && !phd->fDestroyOnMove); 
 
     return c;
 }

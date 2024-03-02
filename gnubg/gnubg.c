@@ -2502,14 +2502,14 @@ hint_move(char *sz, gboolean show, procrecorddata * procdatarec)
     if (!ms.anDice[0])
         return;
 
+    pmr = get_current_moverecord(&hist);
+    if (!pmr)
+        return;
+
     if (!pmr->evalMoveAtMoney)
         GetMatchStateCubeInfo(&ci, &ms);
     else
         GetMoneyCubeInfo(&ci, &ms);
-
-    pmr = get_current_moverecord(&hist);
-    if (!pmr)
-        return;
 
     if (pmr->esChequer.et == EVAL_NONE) {
         fd.pml = &ml;
