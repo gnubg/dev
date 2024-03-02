@@ -567,7 +567,7 @@ CreateMoveListTools(hintdata * phd)
     GtkWidget *pwMove = gtk_button_new_with_label(Q_("verb|Move"));
     GtkWidget *pwShow = gtk_toggle_button_new_with_label(_("Show"));
     GtkWidget *pwCopy = gtk_button_new_with_label(_("Copy"));
-    GtkWidget *pwTempMap = gtk_button_new_with_label(_("TM"));
+    GtkWidget *pwTempMap = gtk_button_new_with_label(_("Temp"));
     GtkWidget *pwCmark = gtk_button_new_with_label(_("Cmark"));
     GtkWidget *pwScoreMap = gtk_button_new_with_label(_("ScoreMap"));     
     GtkWidget *pwMoneyEval = gtk_toggle_button_new_with_label(_("$"));     
@@ -682,6 +682,8 @@ CreateMoveListTools(hintdata * phd)
 
     gtk_grid_attach(GTK_GRID(pwTools), pwTempMap, 6, 0, 1, 1);
 
+    gtk_grid_attach(GTK_GRID(pwTools), pwMoneyEval, 7, 0, 1, 1);    
+
     /*2nd row*/
     gtk_grid_attach(GTK_GRID(pwTools), pwRollout, 0, 1, 1, 1);
 
@@ -699,6 +701,9 @@ CreateMoveListTools(hintdata * phd)
 
     gtk_table_attach(GTK_TABLE(pwTools), pwTempMap, 6, 7, 0, 1,
                      (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
+
+    gtk_table_attach(GTK_TABLE(pwTools), pwMoneyEval, 7, 8, 0, 1,
+                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0); 
 
     /*2nd row*/
 
@@ -766,9 +771,8 @@ CreateMoveListTools(hintdata * phd)
 
     gtk_grid_attach(GTK_GRID(pwTools), pwCmark, 5, 1, 1, 1);
 
-    gtk_grid_attach(GTK_GRID(pwTools), pwScoreMap, 6, 1, 1, 1);
+    gtk_grid_attach(GTK_GRID(pwTools), pwScoreMap, 6, 1, 2, 1);
 
-    gtk_grid_attach(GTK_GRID(pwTools), pwMoneyEval, 7, 1, 1, 1);
 #else
     gtk_table_attach(GTK_TABLE(pwTools), pwMove, 3, 4, 1, 2,
                      (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
@@ -779,16 +783,13 @@ CreateMoveListTools(hintdata * phd)
     gtk_table_attach(GTK_TABLE(pwTools), pwCmark, 5, 6, 1, 2,
                      (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0);
 
-    gtk_table_attach(GTK_TABLE(pwTools), pwScoreMap, 6, 7, 1, 2,
-                     (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0); 
-
-    gtk_table_attach(GTK_TABLE(pwTools), pwMoneyEval, 7, 8, 1, 2,
+    gtk_table_attach(GTK_TABLE(pwTools), pwScoreMap, 6, 8, 1, 2,
                      (GtkAttachOptions) (GTK_FILL), (GtkAttachOptions) (0), 0, 0); 
 #endif
 
             // g_message("GTK chequer: fBackgroundAnalysisRunning=%d",fBackgroundAnalysisRunning);
     /* some buttons are always disabled anyway */
-        gtk_widget_set_sensitive(pwMove, FALSE);
+    gtk_widget_set_sensitive(pwMove, FALSE);
     gtk_widget_set_sensitive(pwCopy, FALSE);
     gtk_widget_set_sensitive(pwTempMap, FALSE);
 
@@ -801,8 +802,8 @@ CreateMoveListTools(hintdata * phd)
     // gtk_widget_set_sensitive(pwAutoRollout, !fBackgroundAnalysisRunning);
     gtk_widget_set_sensitive(pwEval, !fBackgroundAnalysisRunning);
     gtk_widget_set_sensitive(pwEvalSettings, !fBackgroundAnalysisRunning);
-    gtk_widget_set_sensitive(pwMove, !fBackgroundAnalysisRunning);
-    gtk_widget_set_sensitive(pwCopy, !fBackgroundAnalysisRunning);
+    // gtk_widget_set_sensitive(pwMove, !fBackgroundAnalysisRunning);
+    // gtk_widget_set_sensitive(pwCopy, !fBackgroundAnalysisRunning);
     gtk_widget_set_sensitive(pwScoreMap, !fBackgroundAnalysisRunning);
     /* the Money Eval button is not available at money play since it doesn't help there */
     gtk_widget_set_sensitive(pwMoneyEval, ms.nMatchTo && !fBackgroundAnalysisRunning);
