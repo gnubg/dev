@@ -5089,7 +5089,15 @@ CopyMoveList(movelist * pmlDest, const movelist * pmlSrc)
 
 }
 
+extern void
+PermuteMoveList(movelist * pmlA, movelist * pmlB)
+{
+    movelist mlAux;
+    CopyMoveList(&mlAux,pmlA);
+    CopyMoveList(pmlA,pmlB);
+    CopyMoveList(pmlB,&mlAux);
 
+}
 
 /*
  * is this a close cubedecision?

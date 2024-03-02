@@ -191,8 +191,10 @@ typedef struct {
     evalsetup esChequer;
     /* evaluation of the moves */
     movelist ml;
-    /* hypothetical evaluation of the moves at money */
-    movelist mlAtMoney;    
+    /* alternative movelist, used when we switch from a regular evaluation to an
+    hypothetical evaluation of the moves at money */
+    movelist mlOld;    
+    int mlOldIsValid; /* set when we start switching and can re-use mlOld. */
     /* cube analysis (shared between MOVE_NORMAL and MOVE_DOUBLE) */
     /* 0 in match play, even numbers are doubles, raccoons
      * odd numbers are beavers, aardvarken, etc. */
@@ -212,6 +214,7 @@ typedef struct {
     xmovesetcubepos scp;        /* setting cube owner */
     xmwc mwc;   /* added for easy access */
     int evalMoveAtMoney; /* whether we use the eval in a hypothetical money game. */
+    // int forceNewEval; /* set when we toggle evalMoveAtMoney. */
 } moverecord;
 
 

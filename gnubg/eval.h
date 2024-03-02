@@ -517,6 +517,9 @@ EXP_LOCK_FUN(int, ScoreMove, NNState * nnStates, move * pm, const cubeinfo * pci
 extern void
  CopyMoveList(movelist * pmlDest, const movelist * pmlSrc);
 
+extern void
+ PermuteMoveList(movelist * pmlDest, movelist * pmlSrc);
+
 extern int
  isCloseCubedecision(const float arDouble[]);
 

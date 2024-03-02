@@ -817,6 +817,8 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
             break;
 
         rChequerSkill = 0.0f;
+        g_message("AnalyzeMove: atMoney=%d",pmr->evalMoveAtMoney);
+
         if (!pmr->evalMoveAtMoney)
             GetMatchStateCubeInfo(&ci, pms);
         else
@@ -827,7 +829,7 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
         if (!is_initial_position && fAnalyseCube && pmgi->fCubeUse && GetDPEq(NULL, NULL, &ci)) {
             float arDouble[NUM_CUBEFUL_OUTPUTS];
 
-            if (cmp_evalsetup(pesCube, &pmr->CubeDecPtr->esDouble) > 0 || pmr->evalMoveAtMoney) {
+            if (cmp_evalsetup(pesCube, &pmr->CubeDecPtr->esDouble) > 0) {
                 MT_Release();
                 if (GeneralCubeDecision(aarOutput, aarStdDev, NULL,
                                         (ConstTanBoard) pms->anBoard, &ci, pesCube, NULL, NULL) < 0)
@@ -894,7 +896,7 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
             ApplyMove(anBoardMove, pmr->n.anMove, FALSE);
             PositionKey((ConstTanBoard) anBoardMove, &key);
 
-            if (cmp_evalsetup(pesChequer, &pmr->esChequer) > 0  || pmr->evalMoveAtMoney) {
+            if (cmp_evalsetup(pesChequer, &pmr->esChequer) > 0  || (!pmr->mlOldIsValid) ){
 
                 if (pmr->ml.cMoves) {
                     // g_message("g_free:pmr->ml.cMoves=%d",pmr->ml.cMoves);
@@ -915,7 +917,17 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
                         return -1;
                     }
                     MT_Exclusive();
-                    CopyMoveList(&pmr->ml, &ml); /*! clang+LeakSanitizer complain about an unfreed malloc...*/
+
+                            g_message("AnalyzeMove: copying movelist");
+                    // if (!pmr->evalMoveAtMoney)
+                        CopyMoveList(&pmr->ml, &ml); /*! clang+LeakSanitizer complain about an unfreed malloc...*/
+                    // else
+                    //     CopyMoveList(&pmr->mlAtMoney, &ml); /*! clang+LeakSanitizer complain about an unfreed malloc...*/
+
+                    /* it's the last and only time we analyze this move for evalMoveAtMoney using this method */
+                    if (pmr->evalMoveAtMoney && (!pmr->mlOldIsValid))
+                        pmr->mlOldIsValid=TRUE;
+
                     if (ml.cMoves){
                         g_free(ml.amMoves);
                     }
@@ -2156,6 +2168,8 @@ AnalyzeMove(0) is usual, AnalyzeMove(1) functions as a preliminary in background
 extern void
 CommandAnalyseMoveAux(int backgroundFlag, int atMoney)
 {
+    g_message("CommandAnalyseMoveAux: atMoney=%d",atMoney);
+
     if (!CheckGameExists())
         return;
 
@@ -2179,7 +2193,6 @@ CommandAnalyseMoveAux(int backgroundFlag, int atMoney)
             md.pms->nMatchTo=0;
             md.pms->fJacoby=fJacoby;
         }
-
 
         if (backgroundFlag)
             RunAsyncProcess((AsyncFun) asyncAnalyzeMove, &md, _("Preparing background analysis"));

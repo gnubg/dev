@@ -285,37 +285,6 @@ MoveListCmarkClicked(GtkWidget * UNUSED(pw), hintdata * phd)
     MoveListUpdate(phd);
 }
 
-// static void
-// CubeAnalysisMoneyEval(GtkWidget *pw, cubehintdata *pchd) 
-// {
-// /* Called by GTK when the money eval button is toggled. Should only be possible during match play.
-// */
-//     g_assert(pchd->ms.nMatchTo);
-//     pchd->evalMoveAtMoney = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
-
-//     //we want to hide (resp. unhide) the MWC and cmark buttons when money eval is toggled
-//     gtk_widget_set_sensitive(pchd->pwMWC, !pchd->evalMoveAtMoney); 
-//     gtk_widget_set_sensitive(pchd->pwCmark, !pchd->evalMoveAtMoney); 
-
-//     if (pchd->evalMoveAtMoney && (pchd->pmr->MoneyCubeDecPtr==NULL)) // Test if money eval has been toggled before for this move record
-//         EvalCube(pchd, &GetEvalCube()->ec); // If not, eval at current settings - this forces MoneyCubeDecPtr to be created.
-//     else
-//         UpdateCubeAnalysis(pchd);            
-// }
-
-// static void
-// MoveListEvalPly(GtkWidget * pw, hintdata * phd)
-// {
-//     char *szPly = (char *) g_object_get_data(G_OBJECT(pw), "user_data");
-//     evalcontext ec = { TRUE, 0, TRUE, TRUE, 0.0, FALSE };
-//     /* Reset interrupt flag */
-//     fInterrupt = FALSE;
-
-//     ec.nPlies = atoi(szPly);
-
-//     EvalMoves(phd, &ec);
-// }
-
 static void
 MoveListMoneyEval(GtkWidget * pw, hintdata * phd)
 {
@@ -323,8 +292,10 @@ MoveListMoneyEval(GtkWidget * pw, hintdata * phd)
     phd->pmr->evalMoveAtMoney = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
     // gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pw), phd->pmr->evalMoveAtMoney);
 
+    /* switch between ml for regular play and ml for evalMoveAtMoney*/
+    PermuteMoveList(&phd->pmr->ml,&phd->pmr->mlOld);
 
-    //we want to hide (resp. unhide) the MWC and cmark buttons when money eval is toggled
+    /* we want to hide (resp. unhide) the MWC and cmark buttons when money eval is toggled */
     gtk_widget_set_sensitive(phd->pwMWC, !phd->pmr->evalMoveAtMoney); 
     gtk_widget_set_sensitive(phd->pwCmark, !phd->pmr->evalMoveAtMoney); 
 
@@ -333,7 +304,11 @@ MoveListMoneyEval(GtkWidget * pw, hintdata * phd)
 //     else
 //         UpdateCubeAnalysis(pchd);            
 
-    CommandAnalyseMoveAux(FALSE,phd->pmr->evalMoveAtMoney);
+    /* if it's the 1st time we switch to evalMoveAtMoney, we analyze it. We don't it later. */
+    if(!phd->pmr->mlOldIsValid) { 
+        g_assert(phd->pmr->evalMoveAtMoney);
+        CommandAnalyseMoveAux(FALSE,phd->pmr->evalMoveAtMoney);
+    } 
 
     /* Make sure display is up to date */
     // MoveListUpdate(phd);
