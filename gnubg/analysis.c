@@ -2123,7 +2123,8 @@ cmark_move_rollout(moverecord * pmr, gboolean destroy)
     if (pmr->n.iMove != UINT_MAX)
         CopyKey(pmr->ml.amMoves[pmr->n.iMove].key, key);
 
-    if (pmr->evalMoveAtMoney)
+    g_message("cmark_move_rollout: pmr->evalMoveAtMoney=%d",pmr->evalMoveAtMoney);
+    if (!pmr->evalMoveAtMoney)
         GetMatchStateCubeInfo(&ci, &ms);
     else
         GetMoneyCubeInfo(&ci, &ms);
