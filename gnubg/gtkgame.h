@@ -214,4 +214,6 @@ extern void
 BuildRadioButtons(GtkWidget* pwvbox, GtkWidget* apwScoreMapFrame[], const char* frameTitle, const char* frameToolTip, const char* labelStrings[],
     int labelStringsLen, int toggleDefault);
 
+extern void GetMoneyCubeInfo(cubeinfo * pci, const matchstate * pms);
+
 #endif

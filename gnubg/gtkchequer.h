@@ -44,7 +44,6 @@ typedef struct {
     unsigned int *piHighlight;
     int fDetails;
     int hist;
-    int evalAtMoney;        /* whether evalAtMoney is toggled */
 } hintdata;
 
 extern GtkWidget *CreateMoveList(moverecord * pmr,

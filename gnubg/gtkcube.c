@@ -248,7 +248,7 @@ OutputPercentsTable(const float ar[])
 }
 
 static void
-GetMoneyCubeInfo(cubeinfo * pci, const matchstate * pms) {
+GetMoneyCubeInfoInCubeTab(cubeinfo * pci, const matchstate * pms) {
 /* Fills pci with cube info for a money game, i.e., same as given match state except with nMatchTo=0. */
     matchstate moneyms = *pms; // Copy
     moneyms.nMatchTo=0;
@@ -293,7 +293,7 @@ TakeAnalysis(cubehintdata * pchd)
     if (!pchd->evalAtMoney)
         GetMatchStateCubeInfo(&ci, &pchd->ms);
     else
-        GetMoneyCubeInfo(&ci, &pchd->ms);
+        GetMoneyCubeInfoInCubeTab(&ci, &pchd->ms);
 
   
     cd = FindCubeDecision(arDouble, cdec->aarOutput, &ci); 
@@ -757,7 +757,7 @@ CubeAnalysis(cubehintdata * pchd)
     if (!pchd->evalAtMoney)
         GetMatchStateCubeInfo(&ci, &pchd->ms);
     else
-        GetMoneyCubeInfo(&ci, &pchd->ms);
+        GetMoneyCubeInfoInCubeTab(&ci, &pchd->ms);
 
     //  FindCubeDecision(arDouble, aarOutput, pci) is defined in eval.c:
     //  extern cubedecision FindCubeDecision(float arDouble[], float aarOutput[][NUM_ROLLOUT_OUTPUTS], const cubeinfo * pci)
@@ -1268,7 +1268,7 @@ CubeAnalysisRollout(GtkWidget * pw, cubehintdata * pchd)
     if (!pchd->evalAtMoney)
         GetMatchStateCubeInfo(&ci, &pchd->ms);
     else 
-        GetMoneyCubeInfo(&ci, &pchd->ms);
+        GetMoneyCubeInfoInCubeTab(&ci, &pchd->ms);
 
     FormatCubePositions(&ci, asz);
     GTKSetCurrentParent(pw);
@@ -1326,7 +1326,7 @@ EvalCube(cubehintdata * pchd, const evalcontext * pec)
     if (!pchd->evalAtMoney)
         GetMatchStateCubeInfo(&ci, &pchd->ms);
     else
-        GetMoneyCubeInfo(&ci, &pchd->ms);
+        GetMoneyCubeInfoInCubeTab(&ci, &pchd->ms);
 
     dd.pboard = (ConstTanBoard) pchd->ms.anBoard;
     dd.pci = &ci;
@@ -1470,7 +1470,7 @@ GetContent(cubehintdata * pchd)
     if(!pchd->evalAtMoney)
         GetMatchStateCubeInfo(&ci, &pchd->ms);
     else
-        GetMoneyCubeInfo(&ci, &pchd->ms);
+        GetMoneyCubeInfoInCubeTab(&ci, &pchd->ms);
     
     // g_message("move type: %d, player: %d",pchd->pmr->mt, pchd->pmr->fPlayer);
 

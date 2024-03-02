@@ -372,6 +372,7 @@ custom_cell_renderer_movelist_render(GtkCellRenderer * cell,
     PangoRectangle logical_rect;
     const char *cmark_sz;
     const char *highlight_sz;
+    const char *moneyEval_sz;
     cubeinfo ci;
     GetMatchStateCubeInfo(&ci, &ms);
     /*lint --e(641) */
@@ -395,13 +396,17 @@ custom_cell_renderer_movelist_render(GtkCellRenderer * cell,
     if (pFontCol)
         gdk_cairo_set_source_color(cr, pFontCol);
 
+    g_message("movelist-ctrl");
+
+
     /* First line of control */
     cmark_sz = cellprogress->pml->cmark ? "+" : "";
     highlight_sz = (phd->piHighlight && cellprogress->rank - 1 == *phd->piHighlight) ? "*" : "";
+    moneyEval_sz = (phd->pmr->evalAtMoney) ? "$" : "";
     if (cellprogress->rank > 0)
-        sprintf(buf, "%u%s%s", cellprogress->rank, cmark_sz, highlight_sz);
+        sprintf(buf, "%s%u%s%s", moneyEval_sz, cellprogress->rank, cmark_sz, highlight_sz);
     else
-        sprintf(buf, "??%s%s", cmark_sz, highlight_sz);
+        sprintf(buf, "%s??%s%s", moneyEval_sz, cmark_sz, highlight_sz);
 
     pango_layout_set_text(layout, buf, -1);
     pango_layout_get_pixel_extents(layout, NULL, &logical_rect);

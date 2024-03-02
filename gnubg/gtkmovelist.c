@@ -207,9 +207,13 @@ MoveListUpdate(const hintdata * phd)
      * the move list. */
     g_assert(ms.fMove == 0 || ms.fMove == 1);
 
-    GetMatchStateCubeInfo(&ci, &ms);
+    if (!phd->pmr->evalAtMoney)
+        GetMatchStateCubeInfo(&ci, &ms);
+    else
+        GetMoneyCubeInfo(&ci, &ms);
+
     rBest = pml->amMoves[0].rScore;
-    // g_message("rBest=%f",rBest);
+    g_message("movelistupdate: rBest=%f",rBest);
 
     if (!showWLTree)
         gtk_tree_view_column_set_title(gtk_tree_view_get_column(GTK_TREE_VIEW(phd->pwMoves), col),
@@ -219,6 +223,7 @@ MoveListUpdate(const hintdata * phd)
         float *ar = pml->amMoves[i].arEvalMove;
         int rankKnown;
         const char *highlight_sz;
+        const char *moneyEval_sz;
 
         if (showWLTree)
             gtk_list_store_set(store, &iter, 0, pml->amMoves + i, -1);
@@ -247,11 +252,12 @@ MoveListUpdate(const hintdata * phd)
         }
 
         highlight_sz = (phd->piHighlight && *phd->piHighlight == i) ? "*" : "";
+        moneyEval_sz = (phd->pmr->evalAtMoney) ? "$" : "";
 
         if (rankKnown)
-            sprintf(sz, "%s%s%u", pml->amMoves[i].cmark ? "+" : "", highlight_sz, i + 1);
+            sprintf(sz, "%s%s%s%u", moneyEval_sz,pml->amMoves[i].cmark ? "+" : "", highlight_sz, i + 1);
         else
-            sprintf(sz, "%s%s??", pml->amMoves[i].cmark ? "+" : "", highlight_sz);
+            sprintf(sz, "%s%s%s??", moneyEval_sz,pml->amMoves[i].cmark ? "+" : "", highlight_sz);
 
         if (showWLTree) {
             gtk_list_store_set(store, &iter, 1, rankKnown ? (int) i + 1 : -1, -1);

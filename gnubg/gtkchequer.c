@@ -320,19 +320,23 @@ static void
 MoveListMoneyEval(GtkWidget * pw, hintdata * phd)
 {
     g_assert(phd->ms.nMatchTo);
-    phd->evalAtMoney = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
+    phd->pmr->evalAtMoney = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pw), phd->pmr->evalAtMoney);
+
 
     //we want to hide (resp. unhide) the MWC and cmark buttons when money eval is toggled
-    gtk_widget_set_sensitive(phd->pwMWC, !phd->evalAtMoney); 
-    gtk_widget_set_sensitive(phd->pwCmark, !phd->evalAtMoney); 
+    gtk_widget_set_sensitive(phd->pwMWC, !phd->pmr->evalAtMoney); 
+    gtk_widget_set_sensitive(phd->pwCmark, !phd->pmr->evalAtMoney); 
 
 //     if (pchd->evalAtMoney && (pchd->pmr->MoneyCubeDecPtr==NULL)) // Test if money eval has been toggled before for this move record
 //         EvalCube(pchd, &GetEvalCube()->ec); // If not, eval at current settings - this forces MoneyCubeDecPtr to be created.
 //     else
 //         UpdateCubeAnalysis(pchd);            
 
+    CommandAnalyseMoveAux(FALSE,phd->pmr->evalAtMoney);
+
     /* Make sure display is up to date */
-    MoveListUpdate(phd);
+    // MoveListUpdate(phd);
     SetAnnotation(pmrCurAnn);
 
 }
@@ -356,6 +360,7 @@ MoveListMWC(GtkWidget * pw, hintdata * phd)
     /* Make sure display is up to date */
     MoveListUpdate(phd);
     SetAnnotation(pmrCurAnn);
+        // ChangeGame(NULL);
 
 }
 
@@ -370,7 +375,10 @@ EvalMoves(hintdata * phd, evalcontext * pec)
     if (!plSelList)
         return;
 
+    // if (!phd->pmr->evalAtMoney)
     GetMatchStateCubeInfo(&ci, &ms);
+    // else
+    //     GetMoneyCubeInfo(&ci, &ms);
 
     for (pl = plSelList; pl; pl = pl->next) {
         scoreData sd;
@@ -384,7 +392,7 @@ EvalMoves(hintdata * phd, evalcontext * pec)
         }
 
         /* Calling RefreshMoveList here requires some extra work, as
-         * it may reorder moves */
+         * it may reorder moves [RefreshMoveList is called later] */
         MoveListUpdate(phd);
     }
     MoveListFreeSelectionList(plSelList);
@@ -607,6 +615,7 @@ CreateMoveListTools(hintdata * phd)
     gtk_style_context_add_class(gtk_widget_get_style_context(pwCopy), "gnubg-analysis-button");
     gtk_style_context_add_class(gtk_widget_get_style_context(pwTempMap), "gnubg-analysis-button");
     gtk_style_context_add_class(gtk_widget_get_style_context(pwCmark), "gnubg-analysis-button");
+    gtk_style_context_add_class(gtk_widget_get_style_context(pwMoneyEval), "gnubg-analysis-button");
 #endif
 
     /* toolbox on the left with buttons for eval, rollout and more */
@@ -815,6 +824,7 @@ CreateMoveListTools(hintdata * phd)
     gtk_widget_set_sensitive(pwMoneyEval, ms.nMatchTo && !fBackgroundAnalysisRunning);
 
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pwMWC), fOutputMWC);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pwMoneyEval), phd->pmr->evalAtMoney);
 
     if (pwDetails)
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pwDetails), showMoveListDetail);
@@ -956,7 +966,7 @@ CreateMoveList(moverecord * pmr, const int fButtonsValid, const int fDestroyOnMo
     phd->pwMove = NULL;
     phd->fDetails = fDetails;
     phd->hist = hist;
-    phd->evalAtMoney=FALSE;
+    phd->pmr->evalAtMoney=FALSE;
 
     mlt = CreateMoveListTools(phd);
     MoveListCreate(phd);

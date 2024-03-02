@@ -145,5 +145,5 @@ extern int MatchAnalysed(void);
 extern float LuckAnalysis(const TanBoard anBoard, int n0, int n1, matchstate * pms);
 extern lucktype Luck(float r);
 
-extern void CommandAnalyseMoveAux(int backgroundFlag);
+extern void CommandAnalyseMoveAux(int backgroundFlag, int atMoney);
 #endif

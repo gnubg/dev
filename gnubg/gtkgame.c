@@ -1366,7 +1366,11 @@ SetAnnotation(moverecord * pmr)
 
             /* Skill for cube */
 
-            GetMatchStateCubeInfo(&ci, &ms);
+            if (!pmr->evalAtMoney)
+                GetMatchStateCubeInfo(&ci, &ms);
+            else
+                GetMoneyCubeInfo(&ci, &ms);
+
             if (GetDPEq(NULL, NULL, &ci)) {
 #if GTK_CHECK_VERSION(3,0,0)
                 gtk_grid_attach(GTK_GRID(pwBox),
@@ -10240,3 +10244,13 @@ display_is_2d(const renderdata* prd)
 	return (fdt == DT_2D ? TRUE : FALSE);
 }
 #endif
+
+
+extern void
+GetMoneyCubeInfo(cubeinfo * pci, const matchstate * pms) {
+/* Fills pci with cube info for a money game, i.e., same as given match state except with nMatchTo=0. */
+    matchstate moneyms = *pms; // Copy
+    moneyms.nMatchTo=0;
+    moneyms.fJacoby=fJacoby;
+    GetMatchStateCubeInfo(pci, &moneyms);
+}

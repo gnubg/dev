@@ -977,7 +977,7 @@ GTKAnalyzeCurrent(void)
         CommandFirstGame(NULL);
         CommandFirstMove(NULL);
         //UserCommand("gotofirstgame on");
-        CommandAnalyseMoveAux(1);
+        CommandAnalyseMoveAux(TRUE, FALSE);
         // StatusBarMessage("preparing background analysis");
         // UserCommand("analyse move");
     }

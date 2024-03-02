@@ -817,14 +817,17 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
             break;
 
         rChequerSkill = 0.0f;
-        GetMatchStateCubeInfo(&ci, pms);
+        if (!pmr->evalAtMoney)
+            GetMatchStateCubeInfo(&ci, pms);
+        else
+            GetMoneyCubeInfo(&ci, pms);
 
         /* cube action? */
 
         if (!is_initial_position && fAnalyseCube && pmgi->fCubeUse && GetDPEq(NULL, NULL, &ci)) {
             float arDouble[NUM_CUBEFUL_OUTPUTS];
 
-            if (cmp_evalsetup(pesCube, &pmr->CubeDecPtr->esDouble) > 0) {
+            if (cmp_evalsetup(pesCube, &pmr->CubeDecPtr->esDouble) > 0 || pmr->evalAtMoney) {
                 MT_Release();
                 if (GeneralCubeDecision(aarOutput, aarStdDev, NULL,
                                         (ConstTanBoard) pms->anBoard, &ci, pesCube, NULL, NULL) < 0)
@@ -891,7 +894,7 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
             ApplyMove(anBoardMove, pmr->n.anMove, FALSE);
             PositionKey((ConstTanBoard) anBoardMove, &key);
 
-            if (cmp_evalsetup(pesChequer, &pmr->esChequer) > 0) {
+            if (cmp_evalsetup(pesChequer, &pmr->esChequer) > 0  || pmr->evalAtMoney) {
 
                 if (pmr->ml.cMoves) {
                     // g_message("g_free:pmr->ml.cMoves=%d",pmr->ml.cMoves);
@@ -2151,7 +2154,7 @@ AnalyzeMove(0) is usual, AnalyzeMove(1) functions as a preliminary in background
 */
 
 extern void
-CommandAnalyseMoveAux(int backgroundFlag)
+CommandAnalyseMoveAux(int backgroundFlag, int atMoney)
 {
     if (!CheckGameExists())
         return;
@@ -2172,6 +2175,12 @@ CommandAnalyseMoveAux(int backgroundFlag)
         md.pesChequer = &esAnalysisChequer;
         md.pesCube = &esAnalysisCube;
         md.aamf = aamfAnalysis;
+        if(atMoney){
+            md.pms->nMatchTo=0;
+            md.pms->fJacoby=fJacoby;
+        }
+
+
         if (backgroundFlag)
             RunAsyncProcess((AsyncFun) asyncAnalyzeMove, &md, _("Preparing background analysis"));
         else
@@ -2196,7 +2205,7 @@ CommandAnalyseMoveAux(int backgroundFlag)
 extern void
 CommandAnalyseMove(char *UNUSED(sz))
 {
-    CommandAnalyseMoveAux(0);
+    CommandAnalyseMoveAux(FALSE, FALSE);
 }
 
 static void
