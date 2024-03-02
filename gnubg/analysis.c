@@ -896,7 +896,9 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
             ApplyMove(anBoardMove, pmr->n.anMove, FALSE);
             PositionKey((ConstTanBoard) anBoardMove, &key);
 
-            if (cmp_evalsetup(pesChequer, &pmr->esChequer) > 0  || (!pmr->mlOldIsValid) ){
+            /* the first time we hypothetically evaluate a move AtMoney, we want to make sure
+            we go throguh the evaluation */
+            if (cmp_evalsetup(pesChequer, &pmr->esChequer) > 0  || (pmr->evalMoveAtMoney && (!pmr->mlOldIsValid)) ){
 
                 if (pmr->ml.cMoves) {
                     // g_message("g_free:pmr->ml.cMoves=%d",pmr->ml.cMoves);

@@ -294,6 +294,15 @@ MoveListMoneyEval(GtkWidget * pw, hintdata * phd)
 
     /* switch between ml for regular play and ml for evalMoveAtMoney*/
     PermuteMoveList(&phd->pmr->ml,&phd->pmr->mlOld);
+    if(phd->piHighlight)
+        g_message("piHighlight:%u",*phd->piHighlight);
+    // /* also permute piHighlight and piHighlightOld*/
+    // if(phd->pmr->mlOldIsValid && phd->piHighlightOld) {
+    //     unsigned int temp=*phd->piHighlight;
+    //     *phd->piHighlight=*phd->piHighlightOld;
+    //     *phd->piHighlightOld=temp;
+    // } else
+    //     *phd->piHighlightOld=*phd->piHighlight;
 
     /* we want to hide (resp. unhide) the MWC and cmark buttons when money eval is toggled */
     gtk_widget_set_sensitive(phd->pwMWC, !phd->pmr->evalMoveAtMoney); 
@@ -305,10 +314,10 @@ MoveListMoneyEval(GtkWidget * pw, hintdata * phd)
 //         UpdateCubeAnalysis(pchd);            
 
     /* if it's the 1st time we switch to evalMoveAtMoney, we analyze it. We don't it later. */
-    if(!phd->pmr->mlOldIsValid) { 
-        g_assert(phd->pmr->evalMoveAtMoney);
+    // if(!phd->pmr->mlOldIsValid) { 
+        // g_assert(phd->pmr->evalMoveAtMoney);
         CommandAnalyseMoveAux(FALSE,phd->pmr->evalMoveAtMoney);
-    } 
+    // } 
 
     /* Make sure display is up to date */
     // MoveListUpdate(phd);

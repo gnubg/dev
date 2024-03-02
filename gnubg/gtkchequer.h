@@ -42,6 +42,7 @@ typedef struct {
     int fButtonsValid;
     int fDestroyOnMove;
     unsigned int *piHighlight;
+    // unsigned int *piHighlightOld;
     int fDetails;
     int hist;
     // int evalMoveAtMoney; /* whether we use the eval in a hypothetical money game */
