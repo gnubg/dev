@@ -817,7 +817,7 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
             break;
 
         rChequerSkill = 0.0f;
-        g_message("AnalyzeMove: atMoney=%d",pmr->evalMoveAtMoney);
+        // g_message("AnalyzeMove: atMoney=%d",pmr->evalMoveAtMoney);
 
         if (!pmr->evalMoveAtMoney)
             GetMatchStateCubeInfo(&ci, pms);
@@ -920,7 +920,7 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
                     }
                     MT_Exclusive();
 
-                            g_message("AnalyzeMove: copying movelist");
+                            // g_message("AnalyzeMove: copying movelist");
                     // if (!pmr->evalMoveAtMoney)
                         CopyMoveList(&pmr->ml, &ml); /*! clang+LeakSanitizer complain about an unfreed malloc...*/
                     // else
@@ -2170,7 +2170,7 @@ AnalyzeMove(0) is usual, AnalyzeMove(1) functions as a preliminary in background
 extern void
 CommandAnalyseMoveAux(int backgroundFlag, int atMoney)
 {
-    g_message("CommandAnalyseMoveAux: atMoney=%d",atMoney);
+    // g_message("CommandAnalyseMoveAux: atMoney=%d",atMoney);
 
     if (!CheckGameExists())
         return;

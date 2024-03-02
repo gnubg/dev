@@ -364,10 +364,10 @@ EvalMoves(hintdata * phd, evalcontext * pec)
     if (!plSelList)
         return;
 
-    // if (!phd->pmr->evalMoveAtMoney)
-    GetMatchStateCubeInfo(&ci, &ms);
-    // else
-    //     GetMoneyCubeInfo(&ci, &ms);
+    if (!phd->pmr->evalMoveAtMoney)
+        GetMatchStateCubeInfo(&ci, &ms);
+    else
+        GetMoneyCubeInfo(&ci, &ms);
 
     for (pl = plSelList; pl; pl = pl->next) {
         scoreData sd;
