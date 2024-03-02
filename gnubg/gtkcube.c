@@ -1571,10 +1571,10 @@ CreateCubeAnalysisTools(cubehintdata * pchd)
     GtkWidget *pwRolloutSettings = gtk_button_new_with_label(_("..."));
     GtkWidget *pwMWC = pchd->pwMWC = gtk_toggle_button_new_with_label(_("MWC"));
     GtkWidget *pwCopy = gtk_button_new_with_label(_("Copy"));
-    GtkWidget *pwTempMap = gtk_button_new_with_label(_("Temp. Map"));
+    GtkWidget *pwTempMap = gtk_button_new_with_label(_("Temp"));
     GtkWidget *pwCmark = pchd->pwCmark = gtk_toggle_button_new_with_label(_("Cmark"));
-    GtkWidget *pwMoneyEval = gtk_toggle_button_new_with_label(_("Money Eval"));   
-    GtkWidget *pwScoreMap = gtk_button_new_with_label(_("ScoreMap"));     
+    GtkWidget *pwMoneyEval = gtk_toggle_button_new_with_label(_("$"));   
+    GtkWidget *pwScoreMap = gtk_button_new_with_label(_("Score"));     
     GtkWidget *pw;
     int i;
 

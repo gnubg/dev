@@ -569,9 +569,9 @@ CreateMoveListTools(hintdata * phd)
     GtkWidget *pwCopy = gtk_button_new_with_label(_("Copy"));
     GtkWidget *pwTempMap = gtk_button_new_with_label(_("Temp"));
     GtkWidget *pwCmark = gtk_button_new_with_label(_("Cmark"));
-    GtkWidget *pwScoreMap = gtk_button_new_with_label(_("ScoreMap"));     
+    GtkWidget *pwScoreMap = gtk_button_new_with_label(_("Score"));     
     GtkWidget *pwMoneyEval = gtk_toggle_button_new_with_label(_("$"));     
-    pwDetails = phd->fDetails ? NULL : gtk_toggle_button_new_with_label(_("Details"));
+    pwDetails = phd->fDetails ? NULL : gtk_toggle_button_new_with_label(_("Details")); /* not in the hint window */
 
     phd->pwRollout = pwRollout;
     // phd->pwAutoRollout = pwAutoRollout;
