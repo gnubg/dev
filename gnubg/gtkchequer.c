@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2002-2003 Joern Thyssen <jthyssen@dk.ibm.com>
- * Copyright (C) 2002-2023 the AUTHORS
+ * Copyright (C) 2002-2024 the AUTHORS
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,11 @@
  *
  * $Id: gtkchequer.c,v 1.136 2023/03/07 22:29:54 plm Exp $
  */
+
+/* March 2024: Isaac Keslassy: 
+    new functionality with a button performing an eval of the move decisions
+    in Money Play
+*/
 
 #include "config.h"
 

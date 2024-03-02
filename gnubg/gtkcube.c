@@ -37,10 +37,10 @@
 #include "format.h"
 #include "gtklocdefs.h"
 
-//  -------------------------------------------------------------------------
-//   new functionality with a button performing an Eval in Money Play	    |
-//      (i.e. hypothetical eval independent of score)			            |
-//  -------------------------------------------------------------------------
+/* 2023: Aaron Tikuisis and Isaac Keslassy: 
+        new functionality with a button performing an eval in Money Play	    
+        (i.e. hypothetical eval independent of score)			            
+*/
 
 /* Notes:
 - One minor problem is left: When running a rollout in MoneyEval, the "JSDs" column displays "NaN"
