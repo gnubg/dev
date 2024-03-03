@@ -524,8 +524,6 @@ static void CreateHistoryWindow (void)  //GtkWidget* pwParent) {
 #if GTK_CHECK_VERSION(3,0,0)
     GtkWidget * window;
 
-    // window setup
-    // window = (GtkWindow*)gtk_window_new(GTK_WINDOW_TOPLEVEL);
     /* careful: GTK3 only here, not GTK2! */
     window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
     gtk_window_set_default_size (GTK_WINDOW(window), WIDTH, HEIGHT);
@@ -549,13 +547,8 @@ static void CreateHistoryWindow (void)  //GtkWidget* pwParent) {
     gtk_widget_show_all(window);
 #else
     GtkWidget *window;
-    // GtkWidget *da;
     GtkWidget *helpButton;
-    // window = GTKCreateDialog(_("History plot"), DT_INFO, pwDBStatDialog, DIALOG_FLAG_MODAL | DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
-    window = GTKCreateDialog(_("History plot"), DT_INFO, pwDBStatDialog, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
-    //pwDBStatDialog = GTKCreateDialog(_("GNU Backgammon - Credits"), DT_INFO, pwParent, DIALOG_FLAG_MODAL, NULL, NULL);
-    // window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
-    //window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+    window = GTKCreateDialog(_("History plot"), DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
     gtk_window_set_default_size (GTK_WINDOW (window), WIDTH, HEIGHT);
     gtk_window_set_title (GTK_WINDOW (window), plotTitle);
 
@@ -572,6 +565,9 @@ static void CreateHistoryWindow (void)  //GtkWidget* pwParent) {
     g_signal_connect(G_OBJECT(da), "expose-event", G_CALLBACK (DrawHistoryPlot), NULL);
 
     gtk_widget_show_all (window);
+    /* GTKRunDialog(window); */ /* <-- this leads to a blackhole: we can only use this window once (because of its 
+                                calling the gtk_main() function)*/
+
 #endif
 }
 
@@ -1639,8 +1635,13 @@ GtkShowRelational(gpointer UNUSED(p), guint UNUSED(n), GtkWidget * UNUSED(pw))
     // if (pwDBStatDialog && gtk_widget_get_toplevel(pwDBStatDialog))
     //     gtk_widget_destroy(gtk_widget_get_toplevel(pwDBStatDialog));
 
+    // if (pwDBStatDialog) {
+    //     gtk_widget_destroy(pwDBStatDialog);
+    //     pwDBStatDialog = NULL;
+    // }
+
     pwDBStatDialog = GTKCreateDialog(_("GNU Backgammon - Database"),
-            DT_INFO, NULL, DIALOG_FLAG_NONE, NULL, NULL);
+            DT_INFO, NULL, DIALOG_FLAG_NONE, G_CALLBACK(gtk_widget_destroy), NULL);
             // DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
             // DT_INFO, NULL, DIALOG_FLAG_MODAL | DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
 
