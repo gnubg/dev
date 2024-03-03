@@ -897,7 +897,8 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
             PositionKey((ConstTanBoard) anBoardMove, &key);
 
             /* the first time we hypothetically evaluate a move AtMoney, we want to make sure
-            we go throguh the evaluation */
+            we go through the evaluation, even though the eval strength is not higher than in a regular
+            eval */
             if (cmp_evalsetup(pesChequer, &pmr->esChequer) > 0  || (pmr->evalMoveAtMoney && (!pmr->mlOldIsValid)) ){
 
                 if (pmr->ml.cMoves) {
@@ -987,37 +988,41 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
                     pmr->ml.amMoves[0].cmark = CMARK_NONE;
             }
             
-            for (pmr->n.iMove = 0; pmr->n.iMove < pmr->ml.cMoves; pmr->n.iMove++)
-                if (EqualKeys(key, pmr->ml.amMoves[pmr->n.iMove].key)) {
-                    rChequerSkill = pmr->ml.amMoves[pmr->n.iMove].rScore - pmr->ml.amMoves[0].rScore;
+            if (!pmr->evalMoveAtMoney){
+                for (pmr->n.iMove = 0; pmr->n.iMove < pmr->ml.cMoves; pmr->n.iMove++) {
+                    if (EqualKeys(key, pmr->ml.amMoves[pmr->n.iMove].key)) {
+                        rChequerSkill = pmr->ml.amMoves[pmr->n.iMove].rScore - pmr->ml.amMoves[0].rScore;
 
-#if defined(USE_GTK)    
-                    if(fQuizAutoAdd && rChequerSkill<-arSkillLevel[QuizSkill] 
-                            &&(!(fQuizOnePlayer && pms->fTurn==0))) {
-                        // g_message("rChequerSkill %f<-arSkillLevel[QuizSkill] %f",rChequerSkill,-arSkillLevel[QuizSkill] );
-                        sprintf(q.position, "%s:%s", 
-                                PositionID(pms->anBoard), 
-                                MatchID((unsigned int *) pmr->anDice, pms->fTurn, pms->fResigned,
-                                    pms->fDoubled, ci.fMove, ci.fCubeOwner, ci.fCrawford, ci.nMatchTo,
-                                    ci.anScore, ci.nCube, ci.fJacoby, pms->gs) );
-                        // sprintf(q.position, "%s:%s", PositionID(pms->anBoard), MatchIDFromMatchState(pms)); //wrong, doesn't use the dice
-                        // g_message("%s vs.......", q.position);
-                        // g_message("%s",g_strdup(MatchID((unsigned int *) pmr->anDice, pms->fTurn, pms->fResigned,
-                        //          pms->fDoubled, ci.fMove, ci.fCubeOwner, ci.fCrawford, ci.nMatchTo,
-                        //          ci.anScore, ci.nCube, ci.fJacoby, pms->gs)));
-                        q.ewmaError=-rChequerSkill;
-                        q.lastSeen=(long int) (time(NULL));
-                        q.player=pms->fTurn;
-                        q.set=QUIZ_M;                        
-                        AutoAddQuizPosition(q,QUIZ_MOVE);  
+    #if defined(USE_GTK)    
+                        if(fQuizAutoAdd && rChequerSkill<-arSkillLevel[QuizSkill] 
+                                &&(!(fQuizOnePlayer && pms->fTurn==0))) {
+                            // g_message("rChequerSkill %f<-arSkillLevel[QuizSkill] %f",rChequerSkill,-arSkillLevel[QuizSkill] );
+                            sprintf(q.position, "%s:%s", 
+                                    PositionID(pms->anBoard), 
+                                    MatchID((unsigned int *) pmr->anDice, pms->fTurn, pms->fResigned,
+                                        pms->fDoubled, ci.fMove, ci.fCubeOwner, ci.fCrawford, ci.nMatchTo,
+                                        ci.anScore, ci.nCube, ci.fJacoby, pms->gs) );
+                            // sprintf(q.position, "%s:%s", PositionID(pms->anBoard), MatchIDFromMatchState(pms)); //wrong, doesn't use the dice
+                            // g_message("%s vs.......", q.position);
+                            // g_message("%s",g_strdup(MatchID((unsigned int *) pmr->anDice, pms->fTurn, pms->fResigned,
+                            //          pms->fDoubled, ci.fMove, ci.fCubeOwner, ci.fCrawford, ci.nMatchTo,
+                            //          ci.anScore, ci.nCube, ci.fJacoby, pms->gs)));
+                            q.ewmaError=-rChequerSkill;
+                            q.lastSeen=(long int) (time(NULL));
+                            q.player=pms->fTurn;
+                            q.set=QUIZ_M;                        
+                            AutoAddQuizPosition(q,QUIZ_MOVE);  
+                        }
+    #endif                    
+                        /* keep mwc in data structure -- unless it was computed for an hypothetical money game */
+
+                            pmr->mwc.mwcMove= eq2mwc(pmr->ml.amMoves[pmr->n.iMove].rScore, &ci);
+                            pmr->mwc.mwcBestMove= eq2mwc(pmr->ml.amMoves[0].rScore, &ci);
+                            // g_message("pmr->mwc.mwcMove=%f",pmr->mwc.mwcMove);
+                        break;
                     }
-#endif                    
-                     /* keep mwc in data structure */
-                    pmr->mwc.mwcMove= eq2mwc(pmr->ml.amMoves[pmr->n.iMove].rScore, &ci);
-                    pmr->mwc.mwcBestMove= eq2mwc(pmr->ml.amMoves[0].rScore, &ci);
-                    break;
                 }
-
+            }
             pmr->n.stMove = Skill(rChequerSkill);
             pmr->esChequer = *pesChequer;
         }

@@ -175,7 +175,8 @@ matchstate ms = {
     VARIATION_STANDARD,         /*bgv */
     TRUE,                       /* fCubeUse */
     TRUE,                       /* fJacoby */
-    GAME_NONE                   /* gs */
+    GAME_NONE,                  /* gs */
+    0                           /* fEvalAtMoney */ 
 };
 
 ConstTanBoard
