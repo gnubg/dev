@@ -1363,7 +1363,6 @@ SetAnnotation(moverecord * pmr)
             /* make sure they are synchronized */
             ms.fEvalAtMoney=pmr->evalMoveAtMoney;
 
-
             ms.fMove = ms.fTurn = pmr->fPlayer;
 
             /*

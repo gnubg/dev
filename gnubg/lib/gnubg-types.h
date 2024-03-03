@@ -58,7 +58,12 @@ typedef struct {
     int fCubeUse;
     int fJacoby;
     gamestate gs;
-    int fEvalAtMoney;       /* indicate that we are in a hypothetical money mode (used in rollouts) */
+    int fEvalAtMoney;       /* Indicates that we are in a hypothetical money mode.
+                             * It is introduced because rollouts do not have access
+                             * to the hintdata (phd)/cubehintdata (pchd) or the 
+                             * moverecord (pmr), yet need to understand that they are
+                             * (hypothetically) in a money game.
+                             */
 } matchstate;
 
 typedef union {
