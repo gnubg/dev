@@ -37,14 +37,12 @@
 #include "format.h"
 #include "gtklocdefs.h"
 
-/* 2023: Aaron Tikuisis and Isaac Keslassy: 
-        new functionality with a button performing an eval in Money Play	    
-        (i.e. hypothetical eval independent of score)			            
-*/
-
-/* Notes:
-- One minor problem is left: When running a rollout in MoneyEval, the "JSDs" column displays "NaN"
-*/
+/* 3/2024: Isaac Keslassy: corrected a display bug in rollouts in Money Eval for cube
+ *  
+ *  2023: Aaron Tikuisis and Isaac Keslassy: 
+ *        new functionality with a button performing an eval in Money Play	    
+ *        (i.e. hypothetical eval independent of score)			            
+ */
 
 typedef struct {
     GtkWidget *pwFrame;         /* the table */
@@ -1501,7 +1499,7 @@ CubeAnalysisMoneyEval(GtkWidget *pw, cubehintdata *pchd)
 /* Called by GTK when the money eval button is toggled. Should only be possible during match play.
 */
     g_assert(pchd->ms.nMatchTo);
-    pchd->evalAtMoney = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
+    ms.fEvalAtMoney = pchd->evalAtMoney = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
 
     //we want to hide (resp. unhide) the MWC and cmark buttons when money eval is toggled
     gtk_widget_set_sensitive(pchd->pwMWC, !pchd->evalAtMoney); 

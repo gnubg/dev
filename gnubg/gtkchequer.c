@@ -19,8 +19,8 @@
  */
 
 /* March 2024: Isaac Keslassy: 
-    new functionality with a button performing an eval of the move decisions
-    in Money Play
+ *   new functionality with a button performing an eval of the move decisions
+ *   in Money Play
 */
 
 #include "config.h"
