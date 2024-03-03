@@ -280,6 +280,7 @@ GameListSelectRow(GtkTreeView * tree_view, gpointer UNUSED(p))
 extern void
 GL_SetNames(void)
 {
+    g_message("GL_SetNames");
     gtk_tree_view_column_set_title(gtk_tree_view_get_column(GTK_TREE_VIEW(pwGameList), 1), ap[0].szName);
     gtk_tree_view_column_set_title(gtk_tree_view_get_column(GTK_TREE_VIEW(pwGameList), 2), ap[1].szName);
 }
