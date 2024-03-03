@@ -748,7 +748,10 @@ CubeAnalysis(cubehintdata * pchd)
 
 // g_message("in CubeAnalysis, qdecision=%d",qDecision);
 
-
+    /* make sure they are synchronized */
+    ms.fEvalAtMoney=pchd->evalAtMoney;
+    // g_message("ms.fEvalAtMoney=%d",ms.fEvalAtMoney);
+    
     if (pes->et == EVAL_NONE)
         return NULL;
 
@@ -1177,6 +1180,11 @@ It is called after something in pchd has changed, e.g., eval at different ply.
 
     // g_message("in UpdateCubeAnalysis,pchd->did_double=%d",pchd->did_double);
 
+    /* make sure they are synchronized */
+    ms.fEvalAtMoney=pchd->evalAtMoney;
+    // g_message("ms.fEvalAtMoney=%d",ms.fEvalAtMoney);
+
+
     if(!pchd->evalAtMoney) 
         find_skills(pchd->pmr, &pchd->ms, pchd->did_double, pchd->did_take);//gnubg.c / backgammon.h: 
     // Don't find skills for hypothetical money decision, because this is not relevant.
@@ -1237,6 +1245,10 @@ CubeAnalysisRollout(GtkWidget * pw, cubehintdata * pchd)
     evalsetup *pes;
     char asz[2][FORMATEDMOVESIZE];
     void *p;
+
+    /* make sure they are synchronized */
+    ms.fEvalAtMoney=pchd->evalAtMoney;
+    // g_message("ms.fEvalAtMoney=%d",ms.fEvalAtMoney);
 
 #if 0
     if (cdec==NULL) { // Should not happen, but just in case
@@ -1408,6 +1420,11 @@ Note: settings are stored as commands in a file.
     gchar *file = NULL;
     gchar *path = NULL;
     gchar *command = NULL;
+
+    /* make sure they are synchronized */
+    ms.fEvalAtMoney=pchd->evalAtMoney;
+    // g_message("ms.fEvalAtMoney=%d",ms.fEvalAtMoney);
+
 
     preset = (const gchar *) g_object_get_data(G_OBJECT(pw), "user_data");
     file = g_strdup_printf("%s.rol", preset);

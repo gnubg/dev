@@ -1342,6 +1342,7 @@ SetAnnotation(moverecord * pmr)
             gtk_text_buffer_set_text(buffer, pmr->sz, -1);
             fAutoCommentaryChange = FALSE;
         }
+            // g_message("general:ms.fEvalAtMoney=%d",ms.fEvalAtMoney);
 
         switch (pmr->mt) {
         case MOVE_NORMAL:
@@ -1465,7 +1466,7 @@ SetAnnotation(moverecord * pmr)
             break;
 
         case MOVE_DOUBLE:
-
+            // g_message("double:ms.fEvalAtMoney=%d",ms.fEvalAtMoney);
             dt = DoubleType(ms.fDoubled, ms.fMove, ms.fTurn);
 
 #if GTK_CHECK_VERSION(3,0,0)

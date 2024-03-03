@@ -940,7 +940,7 @@ check_jsds(int *active)
 {
     int alt;
     float v, s, denominator;
-
+    // g_message("rollout: ms.fEvalAtMoney=%d",ms.fEvalAtMoney);
     for (alt = 0; alt < ro_alternatives; ++alt) {
 
         /* 1) For each move, calculate the cubeful (or cubeless if that's what we're doing)
