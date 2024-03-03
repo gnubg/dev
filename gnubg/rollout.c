@@ -950,18 +950,24 @@ check_jsds(int *active)
         if (prc->fCubeful) {
             v = aarMu[alt][OUTPUT_CUBEFUL_EQUITY];
             s = aarSigma[alt][OUTPUT_CUBEFUL_EQUITY];
-
+            // g_message("vbefore=%f",v);
             /* if we're doing a cube rollout, we need aciLocal[0] for generating the
-             * equity. If we're doing moves, we use the cubeinfo that goes with this move. */
-            if (ms.nMatchTo && !fOutputMWC) {
+             * equity. If we're doing moves, we use the cubeinfo that goes with this move. 
+             * Note: The test below checks if we are not in a money game. When we are in 
+             * a match but want to rollout a hypothetical evaluation as if we were in a money
+             * game, we need to lie and tell the rollout that we are in a money game. 
+             */
+            if (ms.nMatchTo && !fOutputMWC && !ms.fEvalAtMoney) {
                 v = mwc2eq(v, &aciLocal[(ro_fCubeRollout ? 0 : alt)]);
                 s = se_mwc2eq(s, &aciLocal[(ro_fCubeRollout ? 0 : alt)]);
+            // g_message("vafter=%f",v);
+
             }
         } else {
             v = aarMu[alt][OUTPUT_EQUITY];
             s = aarSigma[alt][OUTPUT_EQUITY];
 
-            if (ms.nMatchTo && fOutputMWC) {
+            if (ms.nMatchTo && fOutputMWC && !ms.fEvalAtMoney) {
                 v = eq2mwc(v, &aciLocal[(ro_fCubeRollout ? 0 : alt)]);
                 s = se_eq2mwc(s, &aciLocal[(ro_fCubeRollout ? 0 : alt)]);
 
@@ -981,12 +987,15 @@ check_jsds(int *active)
         v = ajiJSD[0].rEquity;
         s = ajiJSD[0].rJSD;
         s *= s;
+        // g_message("ajiJSD[0].rJSD=%f,ajiJSD[0].rEquity=%f", ajiJSD[0].rJSD,ajiJSD[0].rEquity);
+
         for (alt = ro_alternatives - 1; alt > 0; --alt) {
 
             ajiJSD[alt].nRank = alt;
             ajiJSD[alt].rEquity = v - ajiJSD[alt].rEquity;
 
             denominator = sqrtf(s + ajiJSD[alt].rJSD * ajiJSD[alt].rJSD);
+            // g_message("denominator=%f", denominator);
 
             if (denominator < 1e-8f)
                 denominator = 1e-8f;

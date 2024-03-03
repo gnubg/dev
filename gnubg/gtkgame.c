@@ -1313,6 +1313,7 @@ SetAnnotation(moverecord * pmr)
 
     pmrAnnotation = pmr;
 
+
     /* FIXME optimise by ignoring set if pmr is unchanged */
 
     if (pwAnalysis) {
@@ -1357,6 +1358,10 @@ SetAnnotation(moverecord * pmr)
             pwBox = gtk_table_new(2, 3, TRUE);
 #endif
             gtk_box_pack_start(GTK_BOX(pwAnalysis), pwBox, FALSE, FALSE, 4);
+
+            /* make sure they are synchronized */
+            ms.fEvalAtMoney=pmr->evalMoveAtMoney;
+
 
             ms.fMove = ms.fTurn = pmr->fPlayer;
 

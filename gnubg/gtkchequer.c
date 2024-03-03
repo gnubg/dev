@@ -297,7 +297,7 @@ static void
 MoveListMoneyEval(GtkWidget * pw, hintdata * phd)
 {
     // g_assert(phd->ms.nMatchTo);
-    phd->pmr->evalMoveAtMoney = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
+    ms.fEvalAtMoney = phd->pmr->evalMoveAtMoney = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
     // gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pw), phd->pmr->evalMoveAtMoney);
 
     /* switch between ml for regular play and ml for evalMoveAtMoney*/

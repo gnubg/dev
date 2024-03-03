@@ -58,6 +58,7 @@ typedef struct {
     int fCubeUse;
     int fJacoby;
     gamestate gs;
+    int fEvalAtMoney;       /* indicate that we are in a hypothetical money mode (used in rollouts) */
 } matchstate;
 
 typedef union {
