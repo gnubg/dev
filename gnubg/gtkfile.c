@@ -229,12 +229,13 @@ SaveCommon(guint f, gchar * prompt)
     we would expect a new (filename) title for the new match, not the same title as the old match. 
     Keeping the same title also prevented us from distinguishing between the matches when saving 
     the files. 
-    In the line, I just changed TRUE->FALSE.*/
+    The first variable is TRUE: we check for an existing filename before assiging a new one.
+    */
     gchar *fn = GetFilename(TRUE, (f == 1) ? EXPORT_SGF : last_export_type, TRUE);
         // g_message("fn:%s", fn);
+
     gchar *folder = NULL;
     const gchar *mgp_text[3] = { "match", "game", "position" };
-
     
     // if (f == 1) /* the "last_save_folder" was reset above, so what's the point of this next line??? */
     //     folder = last_save_folder ? last_save_folder : default_sgf_folder;
@@ -916,7 +917,7 @@ static void GTKAutoSave(void)
     gchar *cmd = NULL;
     gchar *save = NULL;
     
-// g_message("default_import_folder %s\n", default_import_folder);
+    // g_message("default_import_folder %s\n", default_import_folder);
 
 
     // // if (default_import_folder && (*default_import_folder))

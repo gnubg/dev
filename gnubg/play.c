@@ -2946,6 +2946,21 @@ SetMatchDate(matchinfo * pmi)
     }
 }
 
+static void NewMatchName(void)
+{
+    szCurrentFileName = GetFilename(FALSE, EXPORT_SGF, FALSE);    
+    if (!(szCurrentFolder && *szCurrentFolder)) {
+        szCurrentFolder = g_strdup( (default_sgf_folder && (*default_sgf_folder)) ? default_sgf_folder : ".");
+    }
+#if defined(USE_GTK)
+    if (fX) {
+        gchar *title = g_strdup_printf("%s (%s)", _("GNU Backgammon"), szCurrentFileName);
+        gtk_window_set_title(GTK_WINDOW(pwMain), title);
+        g_free(title);
+    }
+#endif
+}
+
 extern void
 CommandNewMatch(char *sz)
 {
@@ -2993,17 +3008,19 @@ CommandNewMatch(char *sz)
 
     /* Let's say we open a match between A and B, then click on the "New" button to play a match against Gnubg.
     Then the filename should be Me_vs_gnubg_date, not A_vs_B_OldDate. */
-    szCurrentFileName = GetFilename(FALSE, EXPORT_SGF, FALSE);    
-    if (!(szCurrentFolder && *szCurrentFolder)) {
-        szCurrentFolder = g_strdup( (default_sgf_folder && (*default_sgf_folder)) ? default_sgf_folder : ".");
-    }
-#if defined(USE_GTK)
-    if (fX) {
-        gchar *title = g_strdup_printf("%s (%s)", _("GNU Backgammon"), szCurrentFileName);
-        gtk_window_set_title(GTK_WINDOW(pwMain), title);
-        g_free(title);
-    }
-#endif
+    NewMatchName();
+
+//     szCurrentFileName = GetFilename(FALSE, EXPORT_SGF, FALSE);    
+//     if (!(szCurrentFolder && *szCurrentFolder)) {
+//         szCurrentFolder = g_strdup( (default_sgf_folder && (*default_sgf_folder)) ? default_sgf_folder : ".");
+//     }
+// #if defined(USE_GTK)
+//     if (fX) {
+//         gchar *title = g_strdup_printf("%s (%s)", _("GNU Backgammon"), szCurrentFileName);
+//         gtk_window_set_title(GTK_WINDOW(pwMain), title);
+//         g_free(title);
+//     }
+// #endif
 
     UpdateSetting(&ms.nMatchTo);
     UpdateSetting(&ms.fTurn);
@@ -3054,10 +3071,11 @@ CommandNewSession(char *sz)
 
     /* Let's say we open a match between A and B, then click on the "New" button to play a match against Gnubg.
     Then the filename should be Me_vs_gnubg_date, not A_vs_B_OldDate. */
-    szCurrentFileName = GetFilename(FALSE, EXPORT_SGF, FALSE); 
-    if (!(szCurrentFolder && *szCurrentFolder)) {
-        szCurrentFolder = g_strdup( (default_sgf_folder && (*default_sgf_folder)) ? default_sgf_folder : ".");
-    }
+    NewMatchName();
+    // szCurrentFileName = GetFilename(FALSE, EXPORT_SGF, FALSE); 
+    // if (!(szCurrentFolder && *szCurrentFolder)) {
+    //     szCurrentFolder = g_strdup( (default_sgf_folder && (*default_sgf_folder)) ? default_sgf_folder : ".");
+    // }
 
     UpdateSetting(&ms.nMatchTo);
     UpdateSetting(&ms.fTurn);
