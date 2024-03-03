@@ -1718,7 +1718,7 @@ CommandSetKeyNames(char *sz)
 extern void
 CommandSetDefaultNames(char *sz)
 {
-    g_message("in CommandSetDefaultNames");
+    // g_message("in CommandSetDefaultNames");
     char *names[2] = { NextToken(&sz), NextToken(&sz) };
     int i;
 

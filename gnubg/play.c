@@ -3047,60 +3047,6 @@ CommandNewMatch(char *sz)
     }
 
     NewMatchOrSession(TRUE, n);
-
-//     if (!get_input_discard())
-//         return;
-
-// #if defined (USE_GTK)
-//     if (fX)
-//         GTKClearMoveRecord();
-// #endif
-
-//     FreeMatch();
-//     ClearMatch();
-
-//     strcpy(ap[0].szName, default_names[0]);
-//     strcpy(ap[1].szName, default_names[1]);
-//     plLastMove = NULL;
-
-//     ms.nMatchTo = n;
-//     ms.bgv = bgvDefault;
-//     ms.fCubeUse = fCubeUse;
-//     ms.fJacoby = fJacoby;
-
-//     SetMatchDate(&mi);
-
-//     /* Let's say we open a match between A and B, then click on the "New" button to play a match against Gnubg.
-//     Then the filename should be Me_vs_gnubg_date, not A_vs_B_OldDate. */
-//     NewMatchName();
-
-// //     szCurrentFileName = GetFilename(FALSE, EXPORT_SGF, FALSE);    
-// //     if (!(szCurrentFolder && *szCurrentFolder)) {
-// //         szCurrentFolder = g_strdup( (default_sgf_folder && (*default_sgf_folder)) ? default_sgf_folder : ".");
-// //     }
-// // #if defined(USE_GTK)
-// //     if (fX) {
-// //         gchar *title = g_strdup_printf("%s (%s)", _("GNU Backgammon"), szCurrentFileName);
-// //         gtk_window_set_title(GTK_WINDOW(pwMain), title);
-// //         g_free(title);
-// //     }
-// // #endif
-
-//     UpdateSetting(&ms.nMatchTo);
-//     UpdateSetting(&ms.fTurn);
-//     UpdateSetting(&ms.fCrawford);
-//     UpdateSetting(&ms.fJacoby);
-//     UpdateSetting(&ms.gs);
-
-//     if(!fInQuizMode && !fQuietNewMatch)  
-//         outputf(ngettext("A new %d point match has been started.\n", "A new %d points match has been started.\n", n), n);
-
-// #if defined (USE_GTK)
-//     if (fX)
-//         GTKSet(ap);
-// #endif
-
-//     CommandNewGame(NULL);
 }
 
 /* What's the difference between a session and a match? -> it looks like a session is for a money game without
@@ -3108,14 +3054,6 @@ a defined length (CommandNewMatch redirects to here for n=0) */
 extern void
 CommandNewSession(char *sz)
 {
-//     if (!get_input_discard())
-//         return;
-
-// #if defined (USE_GTK)
-//     if (fX)
-//         GTKClearMoveRecord();
-// #endif
-
     if (sz == NULL)
 	nSessionLen = LONG_MAX;
     else {
@@ -3125,41 +3063,6 @@ CommandNewSession(char *sz)
     }
     /* Assuming a session is for n=0 only: */
     NewMatchOrSession(FALSE, 0);
-
-
-//     FreeMatch();
-//     ClearMatch();
-
-//     ms.bgv = bgvDefault;
-//     ms.fCubeUse = fCubeUse;
-//     ms.fJacoby = fJacoby;
-//     plLastMove = NULL;
-
-//     SetMatchDate(&mi);
-
-//     /* Let's say we open a match between A and B, then click on the "New" button to play a match against Gnubg.
-//     Then the filename should be Me_vs_gnubg_date, not A_vs_B_OldDate. */
-//     NewMatchName();
-//     // szCurrentFileName = GetFilename(FALSE, EXPORT_SGF, FALSE); 
-//     // if (!(szCurrentFolder && *szCurrentFolder)) {
-//     //     szCurrentFolder = g_strdup( (default_sgf_folder && (*default_sgf_folder)) ? default_sgf_folder : ".");
-//     // }
-
-//     UpdateSetting(&ms.nMatchTo);
-//     UpdateSetting(&ms.fTurn);
-//     UpdateSetting(&ms.fCrawford);
-//     UpdateSetting(&ms.fJacoby);
-//     UpdateSetting(&ms.gs);
-
-//     if(!fInQuizMode && !fQuietNewMatch)  
-//         outputl(_("A new session has been started."));
-
-// #if defined (USE_GTK)
-//     if (fX)
-//         ShowBoard();
-// #endif
-
-//     CommandNewGame(NULL);
 }
 
 extern void

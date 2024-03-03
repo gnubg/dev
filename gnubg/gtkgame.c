@@ -5764,7 +5764,7 @@ UpdatePlayerSettings(newwidget * pnw)
     /* apply the default names chosen by the user, not the names used in the random previous match */
     strcpy(ap[0].szName, default_names[0]);
     strcpy(ap[1].szName, default_names[1]);
-    g_message("names: %s / %s",ap[0].szName,default_names[0]);
+    // g_message("names: %s / %s",ap[0].szName,default_names[0]);
 
 
     if ((fManDice) && (rngCurrent != RNG_MANUAL))
