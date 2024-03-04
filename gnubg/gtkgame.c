@@ -9430,7 +9430,9 @@ void DrawMWC (void)  //GtkWidget* pwParent) {
     GtkWidget *helpButton;
     //window = GTKCreateDialog(_("MWC plot"), DT_INFO, pwParent, DIALOG_FLAG_MODAL | DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
     //window = GTKCreateDialog(_("GNU Backgammon - Credits"), DT_INFO, pwParent, DIALOG_FLAG_MODAL, NULL, NULL);
-    window = GTKCreateDialog("", DT_INFO, pwStatDialog, DIALOG_FLAG_MODAL, G_CALLBACK(gtk_widget_destroy), NULL);
+    /* not putting the correct parent, seems to be OK*/
+    window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MODAL, G_CALLBACK(gtk_widget_destroy), NULL);
+    // window = GTKCreateDialog("", DT_INFO, pwStatDialog, DIALOG_FLAG_MODAL, G_CALLBACK(gtk_widget_destroy), NULL);
     // window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
     // window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, G_CALLBACK(gtk_widget_destroy), NULL);
     //window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
