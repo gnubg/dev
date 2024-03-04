@@ -64,8 +64,8 @@ typedef struct {
 int cubeTempMapAtMoney = 0;   
 int cubeTempMapJacoby = 0;     
 
-// Text to display when using MoneyEval
-static const char *MONEY_EVAL_TEXT=N_("(Hypothetical money game)");
+// // Text to display when using MoneyEval
+// static const char *MONEY_EVAL_TEXT=N_("(Hypothetical money game)");
 
 // here we can set an initial default preference for Jacoby -- else we use the system preference fJacoby
 #define UNDEF (-1000) // Different from TRUE
@@ -297,8 +297,8 @@ TakeAnalysis(cubehintdata * pchd)
     cd = FindCubeDecision(arDouble, cdec->aarOutput, &ci); 
     
     /* header */
-
-    sz = g_strdup_printf("%s %s", _("Take analysis"), pchd->evalAtMoney ? Q_(MONEY_EVAL_TEXT) : "");
+    sz = g_strdup_printf("%s", pchd->evalAtMoney ? _("$ Money eval: take analysis") : _("Take analysis"));    
+    // sz = g_strdup_printf("%s %s", _("Take analysis"), pchd->evalAtMoney ? Q_(MONEY_EVAL_TEXT) : "");
     pwFrame = gtk_frame_new(sz);
     g_free(sz);
     gtk_container_set_border_width(GTK_CONTAINER(pwFrame), 8);
@@ -464,8 +464,7 @@ TakeAnalysis(cubehintdata * pchd)
     for (i = 0; i < 2; i++) {
 
         /* numbering */
-
-        sz = g_strdup_printf("%d.", i + 1);
+        sz = g_strdup_printf("%s%d.", pchd->evalAtMoney?"$":"" ,i + 1);
         pw = gtk_label_new(sz);
 #if GTK_CHECK_VERSION(3,0,0)
         gtk_widget_set_halign(pw, GTK_ALIGN_START);
@@ -793,7 +792,8 @@ CubeAnalysis(cubehintdata * pchd)
 
     /* header */
 
-    sz = g_strdup_printf("%s %s", _("Cube analysis"), pchd->evalAtMoney ? Q_(MONEY_EVAL_TEXT) : "");
+    sz = g_strdup_printf("%s", pchd->evalAtMoney ? _("$ Money eval: cube analysis") : _("Cube analysis"));
+    // sz = g_strdup_printf("%s %s", _("Cube analysis"), pchd->evalAtMoney ? Q_(MONEY_EVAL_TEXT) : "");
     pwFrame = gtk_frame_new(sz);
     g_free(sz);
     gtk_container_set_border_width(GTK_CONTAINER(pwFrame), 8);
@@ -931,8 +931,7 @@ GTK_FILL, GTK_EXPAND | GTK_FILL, 8, 4);
     for (i = 0; i < 3; i++) {
 
         /* numbering */
-
-        sz = g_strdup_printf("%d.", i + 1);
+        sz = g_strdup_printf("%s%d.", pchd->evalAtMoney?"$":"" ,i + 1);
         pw = gtk_label_new(sz);
 #if GTK_CHECK_VERSION(3,0,0)
         gtk_widget_set_halign(pw, GTK_ALIGN_START);
@@ -1490,7 +1489,8 @@ GetContent(cubehintdata * pchd)
     // g_message("move type: %d, player: %d",pchd->pmr->mt, pchd->pmr->fPlayer);
 
     switch (pchd->pmr->mt) {
-    case MOVE_NORMAL:    
+    case MOVE_NORMAL:    /*[added, we used to get to the final assert with a regular {ND|move} ("MOVE_NORMAL") 
+                            when we click on the cube tab] */
     case MOVE_DOUBLE:
         fTake = -1;
         break;
@@ -1500,12 +1500,12 @@ GetContent(cubehintdata * pchd)
     case MOVE_TAKE:
         fTake = 1;
         break;
-    default: //IK: problem: we get here with a regular {ND|move} ("MOVE_NORMAL") when we click on the cube tab
+    default: 
         g_assert_not_reached();
         return NULL;
     }
 
-    pc = OutputCubeAnalysis(cdec->aarOutput, cdec->aarStdDev, &cdec->esDouble, &ci, fTake);
+    pc = OutputCubeAnalysis(cdec->aarOutput, cdec->aarStdDev, &cdec->esDouble, &ci, fTake, pchd->evalAtMoney);
 
     return pc;
 }

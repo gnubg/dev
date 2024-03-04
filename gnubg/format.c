@@ -812,7 +812,7 @@ OutputCubeAnalysisFull(float aarOutput[2][NUM_ROLLOUT_OUTPUTS],
 
     }
 
-    strcat(sz, OutputCubeAnalysis(aarOutput, aarStdDev, pes, pci, fTake));
+    strcat(sz, OutputCubeAnalysis(aarOutput, aarStdDev, pes, pci, fTake, FALSE));
 
     return sz;
 
@@ -820,9 +820,10 @@ OutputCubeAnalysisFull(float aarOutput[2][NUM_ROLLOUT_OUTPUTS],
 
 extern char *
 OutputCubeAnalysis(float aarOutput[2][NUM_ROLLOUT_OUTPUTS],
-                   float aarStdDev[2][NUM_ROLLOUT_OUTPUTS], const evalsetup * pes, const cubeinfo * pci, int fTake)
+                   float aarStdDev[2][NUM_ROLLOUT_OUTPUTS], const evalsetup * pes, const cubeinfo * pci, 
+                   int fTake, int fEvalCubeAtMoney)
 {
-
+    // g_message("fEvalCubeAtMoney=%d",fEvalCubeAtMoney);
     static char sz[4096];
     int i;
     float arDouble[4];
@@ -840,8 +841,11 @@ OutputCubeAnalysis(float aarOutput[2][NUM_ROLLOUT_OUTPUTS],
     FindCubeDecision(arDouble, aarOutput, pci);
 
     /* header */
+    if (!fEvalCubeAtMoney)
+        sprintf(sz, "\n%s\n", _("Cube analysis"));
+    else
+        sprintf(sz, "\n%s\n", _("$ Money eval: cube analysis"));
 
-    sprintf(sz, "\n%s\n", _("Cube analysis"));
 
     /* ply & cubeless equity */
 
@@ -901,6 +905,8 @@ OutputCubeAnalysis(float aarOutput[2][NUM_ROLLOUT_OUTPUTS],
     getCubeDecisionOrdering(ai, arDouble, aarOutput, pci);
 
     for (i = 0; i < 3; i++) {
+        if (fEvalCubeAtMoney)
+            strcat(sz, "$");
 
         sprintf(strchr(sz, 0), "%d. %-20s", i + 1, gettext(aszCube[ai[i]]));
 
@@ -1256,7 +1262,7 @@ DumpPosition(const TanBoard anBoard, char *szOutput,
         es.ec = *pec;
 
         strcat(szOutput, "\n\n");
-        strcat(szOutput, OutputCubeAnalysis(aarOutput, NULL, &es, pci, -1));
+        strcat(szOutput, OutputCubeAnalysis(aarOutput, NULL, &es, pci, -1, FALSE));
 
     }
 

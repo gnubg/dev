@@ -1386,7 +1386,7 @@ DisplayCubeAnalysis(float aarOutput[2][NUM_ROLLOUT_OUTPUTS],
 
     GetMatchStateCubeInfo(&ci, &ms);
 
-    outputl(OutputCubeAnalysis(aarOutput, aarStdDev, pes, &ci, -1));
+    outputl(OutputCubeAnalysis(aarOutput, aarStdDev, pes, &ci, -1, FALSE));
 }
 
 extern char *
@@ -2452,7 +2452,7 @@ hint_double(int show, int did_double)
     }
 #endif
     outputl(OutputCubeAnalysis
-            (pmr->CubeDecPtr->aarOutput, pmr->CubeDecPtr->aarStdDev, &pmr->CubeDecPtr->esDouble, &ci, -1));
+            (pmr->CubeDecPtr->aarOutput, pmr->CubeDecPtr->aarStdDev, &pmr->CubeDecPtr->esDouble, &ci, -1, FALSE));
     // g_message("hint_double end: did_double=%d, movetype=%d",did_double, pmr->mt);
 
 }
@@ -2493,7 +2493,7 @@ hint_take(int show, int did_take)
 #endif
 
     outputl(OutputCubeAnalysis
-            (pmr->CubeDecPtr->aarOutput, pmr->CubeDecPtr->aarStdDev, &pmr->CubeDecPtr->esDouble, &ci, 1));
+            (pmr->CubeDecPtr->aarOutput, pmr->CubeDecPtr->aarStdDev, &pmr->CubeDecPtr->esDouble, &ci, 1, FALSE));
 }
 
 extern void

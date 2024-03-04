@@ -349,7 +349,7 @@ PrintLaTeXCubeAnalysis(FILE * pf, const matchstate * pms, int fPlayer,
 
     /* FIXME use center and tabular environment instead of verbatim */
     fputs("{\\begin{quote}\\footnotesize\\begin{verbatim}\n", pf);
-    fputs(OutputCubeAnalysis(aarOutput, aarStdDev, pes, &ci, fTake), pf);
+    fputs(OutputCubeAnalysis(aarOutput, aarStdDev, pes, &ci, fTake, FALSE), pf);
     fputs("\\end{verbatim}\\end{quote}}\n", pf);
 }
 

@@ -59,7 +59,8 @@ extern char *OutputCubeAnalysisFull(float aarOutput[2][NUM_ROLLOUT_OUTPUTS],
                                     int fDouble, int fTake, skilltype stDouble, skilltype stTake);
 
 extern char *OutputCubeAnalysis(float aarOutput[2][NUM_ROLLOUT_OUTPUTS],
-                                float aarStdDev[2][NUM_ROLLOUT_OUTPUTS], const evalsetup * pes, const cubeinfo * pci, int fTake);
+                                float aarStdDev[2][NUM_ROLLOUT_OUTPUTS], const evalsetup * pes, const cubeinfo * pci, 
+                                int fTake, int fEvalCubeAtMoney);
 
 extern char *OutputMoneyEquity(const float ar[], const int f);
 
