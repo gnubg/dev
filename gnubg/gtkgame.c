@@ -9402,7 +9402,6 @@ red (negative) and green (positive) arrows. It is centered at 50\% for convenien
 
 void DrawMWC (void)  //GtkWidget* pwParent) {
 {
-
 #if GTK_CHECK_VERSION(3,0,0)
     /* careful: GTK3, not GTK2*/
     GtkWindow * window; 
@@ -9431,7 +9430,8 @@ void DrawMWC (void)  //GtkWidget* pwParent) {
     // window = GTKCreateDialog(_("MWC plot"), DT_INFO, pwParent, DIALOG_FLAG_MODAL | DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
     //pwDialog = GTKCreateDialog(_("GNU Backgammon - Credits"), DT_INFO, pwParent, DIALOG_FLAG_MODAL, NULL, NULL);
     // window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
-    window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, G_CALLBACK(gtk_widget_destroy), NULL);
+    window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MODAL, G_CALLBACK(gtk_widget_destroy), NULL);
+    // window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, G_CALLBACK(gtk_widget_destroy), NULL);
     //window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_default_size (GTK_WINDOW (window), WIDTH, HEIGHT);
     char plotTitle[300];
@@ -9463,7 +9463,8 @@ void DrawMWC (void)  //GtkWidget* pwParent) {
     // g_signal_connect(G_OBJECT(da), "destroy", G_CALLBACK(gtk_main_quit), NULL);
  //   g_signal_connect(G_OBJECT(da), "destroy", G_CALLBACK(CloseWindow), window);        
 // g_message("2");
-    gtk_widget_show_all (window);
+    // gtk_widget_show_all (window);
+    GTKRunDialog(window);
 #endif    
 // g_message("3");
     // /*run these 4 lines if needed:*/
@@ -9627,7 +9628,7 @@ GTKDumpStatcontext(int game)
     /* the 3D graph seems buggy and makes gnubg crash, removing for now */
 
 #if defined(USE_BOARD3D)
-    int graph3d=0;
+    int graph3d=1;
     int i;
     GtkWidget *pw;
     listOLD *pl;
@@ -9666,8 +9667,8 @@ GTKDumpStatcontext(int game)
     // pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MODAL, NULL, NULL);
     // pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_NONE, NULL, NULL);
     // pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_NONE, G_CALLBACK(StatOK), NULL);
-    // pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MODAL, G_CALLBACK(gtk_widget_destroy), NULL);
-    pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_NONE, G_CALLBACK(gtk_widget_destroy), NULL);
+    pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MODAL, G_CALLBACK(gtk_widget_destroy), NULL);
+    // pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_NONE, G_CALLBACK(gtk_widget_destroy), NULL);
      //GTKCreateDialog(_("About GNU Backgammon"), DT_CUSTOM, NULL, DIALOG_FLAG_MODAL | DIALOG_FLAG_CLOSEBUTTON, NULL,
      //    NULL);
 
@@ -9799,8 +9800,8 @@ GTKDumpStatcontext(int game)
 
     g_signal_connect(pwStatDialog, "map", G_CALLBACK(stat_dialog_map), pwUsePanels);
 
-    gtk_widget_show_all (pwStatDialog);
-    // GTKRunDialog(pwStatDialog); // <-- causes issues! see above
+    // gtk_widget_show_all (pwStatDialog);
+    GTKRunDialog(pwStatDialog); 
 
 #if defined(USE_BOARD3D)
     if (graph3d) {
