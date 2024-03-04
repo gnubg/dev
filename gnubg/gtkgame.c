@@ -9427,6 +9427,13 @@ void DrawMWC (void)  //GtkWidget* pwParent) {
     GtkWidget *window;
     // GtkWidget *da;
     GtkWidget *helpButton;
+
+    /* See the statistics windows for an explanation of the issues here.
+     * For now the solution seems to work. Also here we specify "NULL" in
+     * the GTKCreateDialog rather than checking whether there is a parent, 
+     * something to consider if there are issues in the future.
+     */
+
     // window = GTKCreateDialog(_("MWC plot"), DT_INFO, pwParent, DIALOG_FLAG_MODAL | DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
     //pwDialog = GTKCreateDialog(_("GNU Backgammon - Credits"), DT_INFO, pwParent, DIALOG_FLAG_MODAL, NULL, NULL);
     // window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
@@ -9639,21 +9646,17 @@ GTKDumpStatcontext(int game)
     }
 #endif
     
-    /* V1: made non-modal so we can close the MWC-plot window after opening it
-    ...else there are all sorts of problems when closing, including
-    gnubg closing the main window.
-    Also, a user may want to look at the moves while checking the plot.
-    V2: this causes issues, like a button being unavailable once it's clicked once.
-    Back to modal. 
-    V3: problem: 
-     - if stats are non-modal: black hole, cannot call the function twice. 
-            interestingly, if mwc is modal, the 2nd time we call stats, nothing appears; 
-            but then when we call mwc and close it, the stats window appears alone!
-     - if stats are modal:  
-         - modal (mwc) on modal (stats) =>crash upon closing; 
-         - non-modal (mwc) on modal (stats): does not close, need to close the modal first.
-    Solution: it was all because of the "GTKRunDialog" at the end, which becomes blocking.
-    Removing it solves everything.
+    /* Here we had many issues. This statistics window calls the MWC window. 
+     * - Making both non-modal was causing crashes when closing them. 
+     * - Making both modal was causing a "blackhole" whereby we could open 
+     *   the stats window once but not twice
+     * - Using different modalities causes usability problems
+     * - A solution was found by making both non-modal, but replacing here
+     *   the "GTKRunDialog()" at the end by "gtk_widget_show_all()".
+     * - Alas, it turns out it prevents the graph from displaying.
+     * - Finally (for now), another solution consists of making both
+     *   windows modal, and using "GTKRunDialog()" in both. Not sure why,
+     *   but it finally works.
      */
     // if (pwStatDialog && gtk_widget_get_toplevel(pwStatDialog)){
     //     g_message("in cond");
