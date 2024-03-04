@@ -9627,15 +9627,11 @@ GTKDumpStatcontext(int game)
     /* the 3D graph seems buggy and makes gnubg crash, removing for now */
 
 #if defined(USE_BOARD3D)
-    int graph3d=0;
     int i;
     GtkWidget *pw;
     listOLD *pl;
     GraphData* gd;
-    if (graph3d) {
- 
-        gd = CreateGraphData();
-    }
+    gd = CreateGraphData();
 #endif
     
     /* V1: made non-modal so we can close the MWC-plot window after opening it
@@ -9717,28 +9713,27 @@ GTKDumpStatcontext(int game)
     gtk_container_add(GTK_CONTAINER(DialogArea(pwStatDialog, DA_MAIN)), pvbox);
 
 #if defined(USE_BOARD3D)
-    if (graph3d) {
-        SetNumGames(gd, numStatGames);
 
-        // g_message("3d");
-        pl = lMatch.plNext;
-        for (i = 0; i < numStatGames; i++) {
-            listOLD *plg = pl->p;
-            moverecord *mr = plg->plNext->p;
-            xmovegameinfo *pmgi = &mr->g;
-            AddGameData(gd, i, &pmgi->sc);
-            pl = pl->plNext;
-        }
-        /* Total values */
-        AddGameData(gd, i, &scMatch);
+    SetNumGames(gd, numStatGames);
 
-        pw = StatGraph(gd);
-        if (pw != NULL) {
-            gtk_notebook_append_page(GTK_NOTEBOOK(pwNotebook), pw, gtk_label_new(_("Graph")));
-            gtk_widget_set_tooltip_text(pw, _("This graph shows the total error rates per game for each player."
-                                            " The games are along the bottom and the error rates up the side."
-                                            " Chequer error in green, cube error in blue."));
-        }
+    // g_message("3d");
+    pl = lMatch.plNext;
+    for (i = 0; i < numStatGames; i++) {
+        listOLD *plg = pl->p;
+        moverecord *mr = plg->plNext->p;
+        xmovegameinfo *pmgi = &mr->g;
+        AddGameData(gd, i, &pmgi->sc);
+        pl = pl->plNext;
+    }
+    /* Total values */
+    AddGameData(gd, i, &scMatch);
+
+    pw = StatGraph(gd);
+    if (pw != NULL) {
+        gtk_notebook_append_page(GTK_NOTEBOOK(pwNotebook), pw, gtk_label_new(_("Graph")));
+        gtk_widget_set_tooltip_text(pw, _("This graph shows the total error rates per game for each player."
+                                        " The games are along the bottom and the error rates up the side."
+                                        " Chequer error in green, cube error in blue."));
     }
 #endif
     // //pwPlot = ComputeMWC();
@@ -9799,13 +9794,11 @@ GTKDumpStatcontext(int game)
 
     g_signal_connect(pwStatDialog, "map", G_CALLBACK(stat_dialog_map), pwUsePanels);
 
-    gtk_widget_show_all (pwStatDialog);
-    // GTKRunDialog(pwStatDialog); // <-- causes issues! see above
+    //gtk_widget_show_all (pwStatDialog);
+    GTKRunDialog(pwStatDialog); // <-- causes issues! see above
 
 #if defined(USE_BOARD3D)
-    if (graph3d) {
-        TidyGraphData(gd);
-    }
+    TidyGraphData(gd);
 #endif
 }
 
