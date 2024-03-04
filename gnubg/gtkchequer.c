@@ -298,6 +298,8 @@ MoveListMoneyEval(GtkWidget * pw, hintdata * phd)
 {
     // g_assert(phd->ms.nMatchTo);
     ms.fEvalAtMoney = phd->pmr->evalMoveAtMoney = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
+        // g_message("MoveListMoneyEval: ms.fEvalAtMoney=%d, phd->pmr->evalMoveAtMoney=%d",ms.fEvalAtMoney,phd->pmr->evalMoveAtMoney);
+
     // gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pw), phd->pmr->evalMoveAtMoney);
 
     /* switch between ml for regular play and ml for evalMoveAtMoney*/
@@ -490,6 +492,8 @@ MoveListCopyData(hintdata * phd)
     GList *plSelList = MoveListGetSelectionList(phd);
     c = g_list_length(plSelList);
 
+    // g_message("movelistcopydata: ms.fEvalAtMoney=%d",ms.fEvalAtMoney);
+
     an = (int *) g_malloc(c * sizeof(an[0]));
     /* TODO: This needs to be cleaned up since the maximum number of
      * lines or length of a string can vary depending on settings */
@@ -554,6 +558,10 @@ GtkWidget *pwDetails;
 static void
 MoveListCopy(GtkWidget * UNUSED(pw), hintdata * phd)
 {
+    // g_message("MoveListCopy: ms.fEvalAtMoney=%d, phd->pmr->evalMoveAtMoney=%d",ms.fEvalAtMoney,phd->pmr->evalMoveAtMoney);
+    /* update the ms indicator of eval at money, because later we don't have access to the pmr */
+    ms.fEvalAtMoney = phd->pmr->evalMoveAtMoney;
+    
     char *pc = MoveListCopyData(phd);
     if (pc) {
         GTKTextWindow(pc, _("Move details"), DT_INFO, NULL);

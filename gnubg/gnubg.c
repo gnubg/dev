@@ -1866,24 +1866,34 @@ FormatMoveHint(char *sz, const matchstate * pms, movelist * pml,
     float *ar, *arStdDev;
     float rEq, rEqTop;
 
-    GetMatchStateCubeInfo(&ci, pms);
+    // g_message("pms->fEvalAtMoney=%d",pms->fEvalAtMoney);
+
+    if (!pms->fEvalAtMoney)
+        GetMatchStateCubeInfo(&ci, &ms);
+    else
+        GetMoneyCubeInfo(&ci, &ms);
 
     strcpy(sz, "");
 
     /* number */
-
-    if (i && !fRankKnown)
-        strcat(sz, "   ??  ");
-    else
-        sprintf(strchr(sz, 0), " %4i. ", i + 1);
-
+    if (!pms->fEvalAtMoney) {
+        if (i && !fRankKnown)
+            strcat(sz, "   ??  ");
+        else
+            sprintf(strchr(sz, 0), " %4i. ", i + 1);
+    } else{
+        if (i && !fRankKnown)
+            strcat(sz, "   $??  ");
+        else
+            sprintf(strchr(sz, 0), " $%4i. ", i + 1);        
+    }
     /* eval */
 
     sprintf(strchr(sz, 0),
             "%-14s   %-28s %s: ",
             FormatEval(szTemp, &pml->amMoves[i].esMove),
             FormatMove(szMove, pms->anBoard,
-                       pml->amMoves[i].anMove), (!pms->nMatchTo || !fOutputMWC) ? _("Eq.") : _("MWC"));
+                       pml->amMoves[i].anMove), (!pms->nMatchTo || pms->fEvalAtMoney || !fOutputMWC) ? _("Eq.") : _("MWC"));
 
     /* equity or mwc for move */
 
