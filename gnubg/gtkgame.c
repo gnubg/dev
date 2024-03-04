@@ -9463,10 +9463,11 @@ void DrawMWC (void)  //GtkWidget* pwParent) {
 
     // g_signal_connect(G_OBJECT(da), "destroy", G_CALLBACK(gtk_main_quit), NULL);
  //   g_signal_connect(G_OBJECT(da), "destroy", G_CALLBACK(CloseWindow), window);        
-// g_message("2");
-    gtk_widget_show_all (window);
+ g_message("2");
+    // gtk_widget_show_all (window);
+        GTKRunDialog(window);
 #endif    
-// g_message("3");
+ g_message("3");
     // /*run these 4 lines if needed:*/
     //  gtk_widget_set_can_focus(window,TRUE);
     //  if(pwStatDialog)
@@ -9598,13 +9599,13 @@ void PlotMWCTrigger(gpointer UNUSED(p), guint UNUSED(n), GtkWidget * UNUSED(pw))
 /* ***************************************************************************** */
 
  static void StatOK (GtkWidget * pw, gpointer * UNUSED(p)) {
+     g_message("I'm in destroy");
 
-     // gtk_widget_destroy(gtk_widget_get_toplevel(pw));
-     outputerrf("I'm in destroy");
+     gtk_widget_destroy(gtk_widget_get_toplevel(pw));
      if (pw) {//should always be the case
          gtk_widget_destroy(pw);
          pw = NULL;
-         outputerrf("I'm in the loop");
+        //  outputerrf("I'm in the loop");
      }
      // gtk_widget_destroy(gtk_widget_get_toplevel(pwStatDialog));
      // gtk_widget_destroy(pwNotebook); 
@@ -9670,8 +9671,9 @@ GTKDumpStatcontext(int game)
     // pwStatDialog=NULL;
     // pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MODAL, NULL, NULL);
     // pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_NONE, NULL, NULL);
-    //pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_NONE, G_CALLBACK(StatOK), NULL);
-     pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MODAL, G_CALLBACK(gtk_widget_destroy), NULL);
+    pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MODAL, G_CALLBACK(StatOK), NULL);
+    // pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_NONE, G_CALLBACK(StatOK), NULL);
+    //  pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MODAL, G_CALLBACK(gtk_widget_destroy), NULL);
     // pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_NONE, G_CALLBACK(gtk_widget_destroy), NULL);
      //GTKCreateDialog(_("About GNU Backgammon"), DT_CUSTOM, NULL, DIALOG_FLAG_MODAL | DIALOG_FLAG_CLOSEBUTTON, NULL,
      //    NULL);
