@@ -9428,10 +9428,11 @@ void DrawMWC (void)  //GtkWidget* pwParent) {
     GtkWidget *window;
     // GtkWidget *da;
     GtkWidget *helpButton;
-    // window = GTKCreateDialog(_("MWC plot"), DT_INFO, pwParent, DIALOG_FLAG_MODAL | DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
-    //pwDialog = GTKCreateDialog(_("GNU Backgammon - Credits"), DT_INFO, pwParent, DIALOG_FLAG_MODAL, NULL, NULL);
+    //window = GTKCreateDialog(_("MWC plot"), DT_INFO, pwParent, DIALOG_FLAG_MODAL | DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
+    //window = GTKCreateDialog(_("GNU Backgammon - Credits"), DT_INFO, pwParent, DIALOG_FLAG_MODAL, NULL, NULL);
+    window = GTKCreateDialog("", DT_INFO, pwStatDialog, DIALOG_FLAG_MODAL, G_CALLBACK(gtk_widget_destroy), NULL);
     // window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
-    window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, G_CALLBACK(gtk_widget_destroy), NULL);
+    // window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, G_CALLBACK(gtk_widget_destroy), NULL);
     //window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
     gtk_window_set_default_size (GTK_WINDOW (window), WIDTH, HEIGHT);
     char plotTitle[300];
@@ -9596,26 +9597,34 @@ void PlotMWCTrigger(gpointer UNUSED(p), guint UNUSED(n), GtkWidget * UNUSED(pw))
 
 /* ***************************************************************************** */
 
-// static void StatOK (GtkWidget * pw, gpointer * UNUSED(p)) {
+ static void StatOK (GtkWidget * pw, gpointer * UNUSED(p)) {
 
-//     gtk_widget_destroy(gtk_widget_get_toplevel(pw));
-//     // gtk_widget_destroy(gtk_widget_get_toplevel(pwStatDialog));
-//     // gtk_widget_destroy(pwNotebook); 
-//     // gtk_widget_destroy(pwStatDialog);
-//     // GTK_WINDOW(pwStatDialog)
-//     // pwStatDialog=NULL;
+     // gtk_widget_destroy(gtk_widget_get_toplevel(pw));
+     outputerrf("I'm in destroy");
+     if (pw) {//should always be the case
+         gtk_widget_destroy(pw);
+         pw = NULL;
+         outputerrf("I'm in the loop");
+     }
+     // gtk_widget_destroy(gtk_widget_get_toplevel(pwStatDialog));
+     // gtk_widget_destroy(pwNotebook); 
+     
+     // GTK_WINDOW(pwStatDialog)
+     // pwStatDialog=NULL;
 
-//     // getWindowGeometry(WINDOW_HINT);
-//     // DestroyPanel(WINDOW_HINT);
-//     // SetPanelWidget(WINDOW_HINT, NULL);
+     // getWindowGeometry(WINDOW_HINT);
+     // DestroyPanel(WINDOW_HINT);
+     // SetPanelWidget(WINDOW_HINT, NULL);
 
-// //     DetailedAnalysisOK(GtkWidget * pw, AnalysisDetails * pDetails)
-// // {
-// //     EvalOK(pDetails->pwChequer, pDetails->pwChequer);
-// //     EvalOK(pDetails->pwCube, pDetails->pwCube);
-// //     gtk_widget_destroy(gtk_widget_get_toplevel(pw));
-// // }
-// }
+ //     DetailedAnalysisOK(GtkWidget * pw, AnalysisDetails * pDetails)
+ // {
+ //     EvalOK(pDetails->pwChequer, pDetails->pwChequer);
+ //     EvalOK(pDetails->pwCube, pDetails->pwCube);
+ //     gtk_widget_destroy(gtk_widget_get_toplevel(pw));
+ // }
+ }
+
+
 
 extern void
 GTKDumpStatcontext(int game)
@@ -9654,19 +9663,19 @@ GTKDumpStatcontext(int game)
     //     g_message("in cond");
     //     gtk_widget_destroy(gtk_widget_get_toplevel(pwStatDialog));
     // }
-    // // if (pwStatDialog){
-    // //     g_message("in cond2");
-    // //     gtk_widget_destroy(pwStatDialog);
-    // // }
+      //if (pwStatDialog){
+      //    g_message("in cond2");
+      //    gtk_widget_destroy(pwStatDialog);
+      //}
     // pwStatDialog=NULL;
     // pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MODAL, NULL, NULL);
     // pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_NONE, NULL, NULL);
-    // pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_NONE, G_CALLBACK(StatOK), NULL);
-    // pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MODAL, G_CALLBACK(gtk_widget_destroy), NULL);
-    pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_NONE, G_CALLBACK(gtk_widget_destroy), NULL);
+    //pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_NONE, G_CALLBACK(StatOK), NULL);
+     pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MODAL, G_CALLBACK(gtk_widget_destroy), NULL);
+    // pwStatDialog = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_NONE, G_CALLBACK(gtk_widget_destroy), NULL);
      //GTKCreateDialog(_("About GNU Backgammon"), DT_CUSTOM, NULL, DIALOG_FLAG_MODAL | DIALOG_FLAG_CLOSEBUTTON, NULL,
      //    NULL);
-
+ if (1) {
     if (!fAutoDB) {
         gtk_container_add(GTK_CONTAINER(DialogArea(pwStatDialog, DA_BUTTONS)),
                         addToDbButton = gtk_button_new_with_label(_("Add to DB")));
@@ -9678,122 +9687,122 @@ GTKDumpStatcontext(int game)
         g_signal_connect(mwcButton, "clicked", G_CALLBACK(PlotMWCTrigger), NULL);
     }
 
-    pwNotebook = gtk_notebook_new();
-    gtk_notebook_set_scrollable(GTK_NOTEBOOK(pwNotebook), TRUE);
-    gtk_notebook_popup_disable(GTK_NOTEBOOK(pwNotebook));
+        pwNotebook = gtk_notebook_new();
+        gtk_notebook_set_scrollable(GTK_NOTEBOOK(pwNotebook), TRUE);
+        gtk_notebook_popup_disable(GTK_NOTEBOOK(pwNotebook));
 
 #if GTK_CHECK_VERSION(3,0,0)
-    pvbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+        pvbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 #else
-    pvbox = gtk_vbox_new(FALSE, 0);
+        pvbox = gtk_vbox_new(FALSE, 0);
 #endif
-    gtk_box_pack_start(GTK_BOX(pvbox), pwNotebook, TRUE, TRUE, 0);
+        gtk_box_pack_start(GTK_BOX(pvbox), pwNotebook, TRUE, TRUE, 0);
 
-    gtk_notebook_append_page(GTK_NOTEBOOK(pwNotebook), statViews[FORMATGS_OVERALL] = CreateList(),
-                             gtk_label_new(_("Overall")));
+        gtk_notebook_append_page(GTK_NOTEBOOK(pwNotebook), statViews[FORMATGS_OVERALL] = CreateList(),
+            gtk_label_new(_("Overall")));
 
-    gtk_notebook_append_page(GTK_NOTEBOOK(pwNotebook), statViews[FORMATGS_CHEQUER] = CreateList(),
-                             gtk_label_new(_("Chequer play")));
+        gtk_notebook_append_page(GTK_NOTEBOOK(pwNotebook), statViews[FORMATGS_CHEQUER] = CreateList(),
+            gtk_label_new(_("Chequer play")));
 
-    gtk_notebook_append_page(GTK_NOTEBOOK(pwNotebook), statViews[FORMATGS_CUBE] = CreateList(),
-                             gtk_label_new(_("Cube decisions")));
+        gtk_notebook_append_page(GTK_NOTEBOOK(pwNotebook), statViews[FORMATGS_CUBE] = CreateList(),
+            gtk_label_new(_("Cube decisions")));
 
-    gtk_notebook_append_page(GTK_NOTEBOOK(pwNotebook), statViews[FORMATGS_LUCK] = CreateList(),
-                             gtk_label_new(_("Luck")));
+        gtk_notebook_append_page(GTK_NOTEBOOK(pwNotebook), statViews[FORMATGS_LUCK] = CreateList(),
+            gtk_label_new(_("Luck")));
 
-    statView = CreateList();
+        statView = CreateList();
 
-    pswList = gtk_scrolled_window_new(NULL, NULL);
-    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(pswList), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-    gtk_container_add(GTK_CONTAINER(pswList), statView);
+        pswList = gtk_scrolled_window_new(NULL, NULL);
+        gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(pswList), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+        gtk_container_add(GTK_CONTAINER(pswList), statView);
 
-    gtk_box_pack_start(GTK_BOX(pvbox), pswList, TRUE, TRUE, 0);
+        gtk_box_pack_start(GTK_BOX(pvbox), pswList, TRUE, TRUE, 0);
 
-    navi_combo = AddNavigation(pvbox);
-    gtk_container_add(GTK_CONTAINER(DialogArea(pwStatDialog, DA_MAIN)), pvbox);
+        navi_combo = AddNavigation(pvbox);
+        gtk_container_add(GTK_CONTAINER(DialogArea(pwStatDialog, DA_MAIN)), pvbox);
 
 #if defined(USE_BOARD3D)
 
-    SetNumGames(gd, numStatGames);
+        SetNumGames(gd, numStatGames);
 
-    // g_message("3d");
-    pl = lMatch.plNext;
-    for (i = 0; i < numStatGames; i++) {
-        listOLD *plg = pl->p;
-        moverecord *mr = plg->plNext->p;
-        xmovegameinfo *pmgi = &mr->g;
-        AddGameData(gd, i, &pmgi->sc);
-        pl = pl->plNext;
-    }
-    /* Total values */
-    AddGameData(gd, i, &scMatch);
+        // g_message("3d");
+        pl = lMatch.plNext;
+        for (i = 0; i < numStatGames; i++) {
+            listOLD* plg = pl->p;
+            moverecord* mr = plg->plNext->p;
+            xmovegameinfo* pmgi = &mr->g;
+            AddGameData(gd, i, &pmgi->sc);
+            pl = pl->plNext;
+        }
+        /* Total values */
+        AddGameData(gd, i, &scMatch);
 
-    pw = StatGraph(gd);
-    if (pw != NULL) {
-        gtk_notebook_append_page(GTK_NOTEBOOK(pwNotebook), pw, gtk_label_new(_("Graph")));
-        gtk_widget_set_tooltip_text(pw, _("This graph shows the total error rates per game for each player."
-                                        " The games are along the bottom and the error rates up the side."
-                                        " Chequer error in green, cube error in blue."));
-    }
+        pw = StatGraph(gd);
+        if (pw != NULL) {
+            gtk_notebook_append_page(GTK_NOTEBOOK(pwNotebook), pw, gtk_label_new(_("Graph")));
+            gtk_widget_set_tooltip_text(pw, _("This graph shows the total error rates per game for each player."
+                " The games are along the bottom and the error rates up the side."
+                " Chequer error in green, cube error in blue."));
+        }
 #endif
-    // //pwPlot = ComputeMWC();
-    // gtk_notebook_append_page(GTK_NOTEBOOK(pwNotebook), pwPlot,
-    //                          gtk_label_new(_("Match Winning Chances")));
-    // ComputeMWC(pwPlot);
+        // //pwPlot = ComputeMWC();
+        // gtk_notebook_append_page(GTK_NOTEBOOK(pwNotebook), pwPlot,
+        //                          gtk_label_new(_("Match Winning Chances")));
+        // ComputeMWC(pwPlot);
 
-    pwUsePanels = gtk_check_button_new_with_label(_("Split statistics into panels"));
-    gtk_widget_set_tooltip_text(pwUsePanels, _("Show data in a single list or split into several panels"));
-    gtk_box_pack_start(GTK_BOX(pvbox), pwUsePanels, FALSE, FALSE, 0);
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pwUsePanels), fGUIUseStatsPanel);
-    g_signal_connect(G_OBJECT(pwUsePanels), "toggled", G_CALLBACK(toggle_fGUIUseStatsPanel), NULL);
+        pwUsePanels = gtk_check_button_new_with_label(_("Split statistics into panels"));
+        gtk_widget_set_tooltip_text(pwUsePanels, _("Show data in a single list or split into several panels"));
+        gtk_box_pack_start(GTK_BOX(pvbox), pwUsePanels, FALSE, FALSE, 0);
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pwUsePanels), fGUIUseStatsPanel);
+        g_signal_connect(G_OBJECT(pwUsePanels), "toggled", G_CALLBACK(toggle_fGUIUseStatsPanel), NULL);
 
-    /* list view (selections) */
-    copyMenu = gtk_menu_new();
+        /* list view (selections) */
+        copyMenu = gtk_menu_new();
 
-    menu_item = gtk_menu_item_new_with_label(_("Copy selection"));
-    gtk_menu_shell_append(GTK_MENU_SHELL(copyMenu), menu_item);
-    gtk_widget_show(menu_item);
-    g_signal_connect(G_OBJECT(menu_item), "activate", G_CALLBACK(StatcontextCopy), statView);
+        menu_item = gtk_menu_item_new_with_label(_("Copy selection"));
+        gtk_menu_shell_append(GTK_MENU_SHELL(copyMenu), menu_item);
+        gtk_widget_show(menu_item);
+        g_signal_connect(G_OBJECT(menu_item), "activate", G_CALLBACK(StatcontextCopy), statView);
 
-    menu_item = gtk_menu_item_new_with_label(_("Copy all"));
-    gtk_menu_shell_append(GTK_MENU_SHELL(copyMenu), menu_item);
-    gtk_widget_show(menu_item);
-    g_signal_connect(G_OBJECT(menu_item), "activate", G_CALLBACK(CopyAll), pwNotebook);
+        menu_item = gtk_menu_item_new_with_label(_("Copy all"));
+        gtk_menu_shell_append(GTK_MENU_SHELL(copyMenu), menu_item);
+        gtk_widget_show(menu_item);
+        g_signal_connect(G_OBJECT(menu_item), "activate", G_CALLBACK(CopyAll), pwNotebook);
 
-    g_signal_connect(G_OBJECT(statView), "button-press-event", G_CALLBACK(ContextMenu), copyMenu);
+        g_signal_connect(G_OBJECT(statView), "button-press-event", G_CALLBACK(ContextMenu), copyMenu);
 
-    /* dialog size */
-    if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pwUsePanels)))
-        gtk_window_set_default_size(GTK_WINDOW(pwStatDialog), 0, 300);
-    else {
-        GtkRequisition req;
+        /* dialog size */
+        if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pwUsePanels)))
+            gtk_window_set_default_size(GTK_WINDOW(pwStatDialog), 0, 300);
+        else {
+            GtkRequisition req;
 #if GTK_CHECK_VERSION(3,0,0)
-        gtk_widget_get_preferred_size(GTK_WIDGET(pwStatDialog), &req, NULL);
+            gtk_widget_get_preferred_size(GTK_WIDGET(pwStatDialog), &req, NULL);
 #else
-        gtk_widget_size_request(GTK_WIDGET(pwStatDialog), &req);
+            gtk_widget_size_request(GTK_WIDGET(pwStatDialog), &req);
 #endif
-        if (req.height < 600)
-            gtk_window_set_default_size(GTK_WINDOW(pwStatDialog), 0, 600);
+            if (req.height < 600)
+                gtk_window_set_default_size(GTK_WINDOW(pwStatDialog), 0, 600);
+        }
+
+        copyMenu = gtk_menu_new();
+
+        menu_item = gtk_menu_item_new_with_label(_("Copy page"));
+        gtk_menu_shell_append(GTK_MENU_SHELL(copyMenu), menu_item);
+        gtk_widget_show(menu_item);
+        g_signal_connect(G_OBJECT(menu_item), "activate", G_CALLBACK(CopyPage), pwNotebook);
+
+        menu_item = gtk_menu_item_new_with_label(_("Copy all pages"));
+        gtk_menu_shell_append(GTK_MENU_SHELL(copyMenu), menu_item);
+        gtk_widget_show(menu_item);
+        g_signal_connect(G_OBJECT(menu_item), "activate", G_CALLBACK(CopyAll), pwNotebook);
+
+        g_signal_connect(G_OBJECT(pwNotebook), "button-press-event", G_CALLBACK(ContextMenu), copyMenu);
+
+        gtk_combo_box_set_active(GTK_COMBO_BOX(navi_combo), game);
+
+        g_signal_connect(pwStatDialog, "map", G_CALLBACK(stat_dialog_map), pwUsePanels);
     }
-
-    copyMenu = gtk_menu_new();
-
-    menu_item = gtk_menu_item_new_with_label(_("Copy page"));
-    gtk_menu_shell_append(GTK_MENU_SHELL(copyMenu), menu_item);
-    gtk_widget_show(menu_item);
-    g_signal_connect(G_OBJECT(menu_item), "activate", G_CALLBACK(CopyPage), pwNotebook);
-
-    menu_item = gtk_menu_item_new_with_label(_("Copy all pages"));
-    gtk_menu_shell_append(GTK_MENU_SHELL(copyMenu), menu_item);
-    gtk_widget_show(menu_item);
-    g_signal_connect(G_OBJECT(menu_item), "activate", G_CALLBACK(CopyAll), pwNotebook);
-
-    g_signal_connect(G_OBJECT(pwNotebook), "button-press-event", G_CALLBACK(ContextMenu), copyMenu);
-
-    gtk_combo_box_set_active(GTK_COMBO_BOX(navi_combo), game);
-
-    g_signal_connect(pwStatDialog, "map", G_CALLBACK(stat_dialog_map), pwUsePanels);
-
     //gtk_widget_show_all (pwStatDialog);
     GTKRunDialog(pwStatDialog); // <-- causes issues! see above
 
