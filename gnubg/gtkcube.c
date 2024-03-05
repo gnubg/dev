@@ -1719,7 +1719,11 @@ CreateCubeAnalysisTools(cubehintdata * pchd)
 
         g_object_set_data_full(G_OBJECT(ro_preset), "user_data", sz, g_free);
 
-        sz = g_strdup_printf(_("Rollout preset %c"), i + 'a');
+        sz = g_strdup_printf(_("Rollout preset %c. \n" 
+            "(1) Once you select moves, rollout the selected moves with current settings.\n"
+            "(2) Before you select moves, AutoRollout automatically selects the player move "
+            " and the best moves, and launches the rollout. "), 
+            i + 'a');
         gtk_widget_set_tooltip_text(ro_preset, sz);
         g_free(sz);
 
