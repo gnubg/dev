@@ -114,6 +114,9 @@ MoveListRolloutClicked(GtkWidget * pw, hintdata * phd)
         return;
     }
 
+    /* sync fEvalAtMoney indicators, as rollout computations get the ms as input but not the pmr */
+    ms.fEvalAtMoney = phd->pmr->evalMoveAtMoney;
+
     if (!phd->pmr->evalMoveAtMoney)
         GetMatchStateCubeInfo(&ci, &ms);
     else

@@ -426,7 +426,7 @@ BasicCubefulRollout(unsigned int aanBoard[][2][25],
             pc = ClassifyPosition((ConstTanBoard) aanBoard[ici], pci->bgv);
 
             if (prc->fTruncBearoff2 && pc <= CLASS_PERFECT &&
-                prc->fCubeful && *pf && !pci->nMatchTo && ((afCubeDecTop[ici] && !prc->fInitial) || iTurn > 0)) {
+                prc->fCubeful && *pf && (!pci->nMatchTo ||ms.fEvalAtMoney) && ((afCubeDecTop[ici] && !prc->fInitial) || iTurn > 0)) {
 
                 /* truncate at two sided bearoff if money game */
 
@@ -481,7 +481,8 @@ BasicCubefulRollout(unsigned int aanBoard[][2][25],
                         if (aarsStatistics)
                             MT_SafeInc(&aarsStatistics[ici][pci->fMove].acDoubleTake[LogCubeClamped(pci->nCube)]);
 
-                        SetCubeInfo(pci, 2 * pci->nCube, !pci->fMove, pci->fMove, pci->nMatchTo,
+                        SetCubeInfo(pci, 2 * pci->nCube, !pci->fMove, pci->fMove, 
+                                    (ms.fEvalAtMoney? 0 : pci->nMatchTo),
                                     pci->anScore, pci->fCrawford, pci->fJacoby, pci->fBeavers, pci->bgv);
 
                         break;
@@ -657,7 +658,7 @@ BasicCubefulRollout(unsigned int aanBoard[][2][25],
 
                     /* Accumulate variance reduction terms */
 
-                    if (pci->nMatchTo)
+                    if (pci->nMatchTo && !ms.fEvalAtMoney)
                         for (i = 0; i < NUM_ROLLOUT_OUTPUTS; i++)
                             aarVarRedn[ici][i] += arMean[i] - aaar[anDice[0] - 1][anDice[1] - 1][i];
                     else {
@@ -745,7 +746,7 @@ BasicCubefulRollout(unsigned int aanBoard[][2][25],
                      * (convert to mwc for match play) */
 
                     aarOutput[ici][OUTPUT_CUBEFUL_EQUITY] =
-                        (pci->nMatchTo) ? eq2mwc(aarOutput[ici][OUTPUT_EQUITY], pci) : aarOutput[ici][OUTPUT_EQUITY];
+                        (pci->nMatchTo && !ms.fEvalAtMoney) ? eq2mwc(aarOutput[ici][OUTPUT_EQUITY], pci) : aarOutput[ici][OUTPUT_EQUITY];
 
                     if (iTurn & 1)
                         InvertEvaluationR(aarOutput[ici], pci);
@@ -775,7 +776,7 @@ BasicCubefulRollout(unsigned int aanBoard[][2][25],
                 SwapSides(aanBoard[ici]);
 
                 SetCubeInfo(pci, pci->nCube, pci->fCubeOwner,
-                            !pci->fMove, pci->nMatchTo,
+                            !pci->fMove, (ms.fEvalAtMoney? 0 : pci->nMatchTo),
                             pci->anScore, pci->fCrawford, pci->fJacoby, pci->fBeavers, pci->bgv);
             }
         }
@@ -809,7 +810,7 @@ BasicCubefulRollout(unsigned int aanBoard[][2][25],
         /* the final output is the sum of the resulting evaluation and
          * all variance reduction terms */
 
-        if (!pci->nMatchTo)
+        if (!pci->nMatchTo || ms.fEvalAtMoney)
             aarOutput[ici][OUTPUT_CUBEFUL_EQUITY] *= (float) (pci->nCube / aci[ici].nCube);
 
         if (useVarRedn)
@@ -818,7 +819,7 @@ BasicCubefulRollout(unsigned int aanBoard[][2][25],
 
         /* multiply money equities */
 
-        if (!pci->nMatchTo)
+        if (!pci->nMatchTo || ms.fEvalAtMoney)
             aarOutput[ici][OUTPUT_CUBEFUL_EQUITY] *= (float) (aci[ici].nCube / nBasisCube);
 
 
@@ -940,7 +941,7 @@ check_jsds(int *active)
 {
     int alt;
     float v, s, denominator;
-    // g_message("rollout: ms.fEvalAtMoney=%d",ms.fEvalAtMoney);
+    g_message("rollout: ms.fEvalAtMoney=%d",ms.fEvalAtMoney);
     for (alt = 0; alt < ro_alternatives; ++alt) {
 
         /* 1) For each move, calculate the cubeful (or cubeless if that's what we're doing)
@@ -960,7 +961,7 @@ check_jsds(int *active)
             if (ms.nMatchTo && !fOutputMWC && !ms.fEvalAtMoney) {
                 v = mwc2eq(v, &aciLocal[(ro_fCubeRollout ? 0 : alt)]);
                 s = se_mwc2eq(s, &aciLocal[(ro_fCubeRollout ? 0 : alt)]);
-            // g_message("vafter=%f",v);
+            g_message("vafter=%f",v);
 
             }
         } else {
@@ -987,7 +988,7 @@ check_jsds(int *active)
         v = ajiJSD[0].rEquity;
         s = ajiJSD[0].rJSD;
         s *= s;
-        // g_message("ajiJSD[0].rJSD=%f,ajiJSD[0].rEquity=%f", ajiJSD[0].rJSD,ajiJSD[0].rEquity);
+        g_message("ajiJSD[0].rJSD=%f,ajiJSD[0].rEquity=%f", ajiJSD[0].rJSD,ajiJSD[0].rEquity);
 
         for (alt = ro_alternatives - 1; alt > 0; --alt) {
 
@@ -995,7 +996,7 @@ check_jsds(int *active)
             ajiJSD[alt].rEquity = v - ajiJSD[alt].rEquity;
 
             denominator = sqrtf(s + ajiJSD[alt].rJSD * ajiJSD[alt].rJSD);
-            // g_message("denominator=%f", denominator);
+            g_message("denominator=%f", denominator);
 
             if (denominator < 1e-8f)
                 denominator = 1e-8f;
@@ -1084,7 +1085,7 @@ check_sds(int *active)
         prc = &ro_apes[alt]->rc;
         for (ioutput = OUTPUT_EQUITY; ioutput < NUM_ROLLOUT_OUTPUTS; ioutput++) {
             if (ioutput == OUTPUT_EQUITY) {     /* cubeless */
-                if (!ms.nMatchTo) {     /* money game */
+                if (!ms.nMatchTo || ms.fEvalAtMoney) {     /* money game */
                     s = fabsf(aarSigma[alt][ioutput]);
                     if (ro_fCubeRollout) {
                         s *= (float) (aciLocal[alt].nCube / aciLocal[0].nCube);
@@ -1097,7 +1098,7 @@ check_sds(int *active)
                 if (!prc->fCubeful)
                     continue;
                 /* cubeful */
-                if (!ms.nMatchTo) {     /* money game */
+                if (!ms.nMatchTo  || ms.fEvalAtMoney) {     /* money game */
                     s = fabsf(aarSigma[alt][ioutput]);
                 } else {
                     s = fabsf(se_mwc2eq(aarSigma[alt][ioutput], &aciLocal[(ro_fCubeRollout ? 0 : alt)]));
@@ -1192,7 +1193,7 @@ RolloutLoopMT(void *UNUSED(unused))
 
             if (ro_fInvert)
                 InvertEvaluationR(aar, ro_apci[alt]);
-
+            g_message("rolloutloopmt");
             /* apply the results */
             for (j = 0; j < NUM_ROLLOUT_OUTPUTS; j++) {
                 float rMuNew;
@@ -1330,7 +1331,7 @@ RolloutGeneral(ConstTanBoard * apBoard,
     aarResult = g_alloca(alternatives * NUM_ROLLOUT_OUTPUTS * sizeof(float));
     aarVariance = g_alloca(alternatives * NUM_ROLLOUT_OUTPUTS * sizeof(float));
 
-    if (ms.nMatchTo == 0)
+    if (ms.nMatchTo == 0 || ms.fEvalAtMoney)
         fOutputMWC = 0;
 
     memcpy(&rcRolloutSave, &rcRollout, sizeof(rcRollout));
@@ -1691,10 +1692,10 @@ GeneralCubeDecisionR(float aarOutput[2][NUM_ROLLOUT_OUTPUTS],
     apes[0] = apes[1] = pes;
 
     SetCubeInfo(&aci[0], pci->nCube, pci->fCubeOwner, pci->fMove,
-                pci->nMatchTo, pci->anScore, pci->fCrawford, pci->fJacoby, pci->fBeavers, pci->bgv);
+                (ms.fEvalAtMoney? 0 : pci->nMatchTo), pci->anScore, pci->fCrawford, pci->fJacoby, pci->fBeavers, pci->bgv);
 
     SetCubeInfo(&aci[1], 2 * pci->nCube, !pci->fMove, pci->fMove,
-                pci->nMatchTo, pci->anScore, pci->fCrawford, pci->fJacoby, pci->fBeavers, pci->bgv);
+                (ms.fEvalAtMoney? 0 : pci->nMatchTo), pci->anScore, pci->fCrawford, pci->fJacoby, pci->fBeavers, pci->bgv);
 
     if (!GetDPEq(NULL, NULL, &aci[0])) {
         outputl(_("Cube not available!"));
@@ -1883,7 +1884,7 @@ ScoreMoveRollout(move ** ppm, cubeinfo ** ppci, int cMoves, rolloutprogressfunc 
         pci = apci[i];
 
         if (prc->fCubeful) {
-            if (pci->nMatchTo)
+            if (pci->nMatchTo && !ms.fEvalAtMoney)
                 ppm[i]->rScore = mwc2eq(ppm[i]->arEvalMove[OUTPUT_CUBEFUL_EQUITY], pci);
             else
                 ppm[i]->rScore = ppm[i]->arEvalMove[OUTPUT_CUBEFUL_EQUITY];

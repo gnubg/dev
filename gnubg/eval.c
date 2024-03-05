@@ -3327,7 +3327,10 @@ SetCubeInfo(cubeinfo * pci, const int nCube, const int fCubeOwner,
             const int fMove, const int nMatchTo, const int anScore[2],
             const int fCrawford, const int fJacoby, const int fBeavers, const bgvariation bgv)
 {
-
+    // if (nMatchTo==0 || ms.fEvalAtMoney)
+    //     return SetCubeInfoMoney(pci, nCube, fCubeOwner, fMove, fJacoby, fBeavers, bgv);
+    // else
+    //     return SetCubeInfoMatch(pci, nCube, fCubeOwner, fMove, nMatchTo, anScore, fCrawford, bgv);
     return nMatchTo ? SetCubeInfoMatch(pci, nCube, fCubeOwner, fMove,
                                        nMatchTo, anScore, fCrawford, bgv) :
         SetCubeInfoMoney(pci, nCube, fCubeOwner, fMove, fJacoby, fBeavers, bgv);

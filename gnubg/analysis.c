@@ -2111,6 +2111,9 @@ cmark_move_rollout(moverecord * pmr, gboolean destroy)
  
     g_return_val_if_fail(pmr, -1);
 
+    /* sync fEvalAtMoney indicators, as rollout computations get the ms as input but not the pmr */
+    ms.fEvalAtMoney = pmr->evalMoveAtMoney;
+
     for (j = 0; j < pmr->ml.cMoves; j++) {
         if (pmr->ml.amMoves[j].cmark == CMARK_ROLLOUT) {
             // g_message("cmark_move_rollout: looking at j=%d",j);
