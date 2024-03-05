@@ -62,6 +62,9 @@ void MoveListAutoMark(movelist * pml, int keyIndex)
             then add close decisions or the player's decision if it's different */   
     c=0;
     for (int j = 1; j < (int)(pml->cMoves); j++) {
+            // g_message("we are checking: j=%d/%d, score=%f, delta=%f vs %i+%i, threshold=%f",j,pml->cMoves,
+            //         pml->amMoves[j].rScore,pml->amMoves[0].rScore - pml->amMoves[j].rScore,
+            //         ARAnalysisFilter.Accept,ARAnalysisFilter.Extra,ARAnalysisFilter.Threshold); 
         if ( (j==keyIndex /*the player didn't choose the best decision*/
                 || j<ARAnalysisFilter.Accept /*automatically added*/
                 || (j<ARAnalysisFilter.Accept+ARAnalysisFilter.Extra 
@@ -409,31 +412,43 @@ EvalMoves(hintdata * phd, evalcontext * pec)
 
         MoveListClearSelection(0, 0, phd);
 
-        ai = (int *) g_malloc(phd->pml->cMoves * sizeof(int));
-        RefreshMoveList(phd->pml, ai);
 
-        if (phd->piHighlight && phd->pml->cMoves)
-            *phd->piHighlight = ai[*phd->piHighlight];
-
-        g_free(ai);
     } else { /* auto-eval, the user hasn't selected any specific moves */
-        g_message("empty list");
+        // g_message("empty list");
 
         MoveListAutoMark(phd->pml,(int)(*phd->piHighlight));
 
+        int nEvaluatedMoves = 0;
         for (unsigned int j = 0; j < phd->pmr->ml.cMoves; j++) {
             // g_message("j=%d",j);
             if (phd->pmr->ml.amMoves[j].cmark == CMARK_ROLLOUT) {
-                g_message("EvalMoves: looking at j=%d",j);
-                plSelList = g_list_append(plSelList, GINT_TO_POINTER(j));
+                nEvaluatedMoves++;
+                // g_message("EvalMoves: looking at j=%d",j);
+                // plSelList = g_list_append(plSelList, GINT_TO_POINTER(j));
+
+                scoreData sd;
+                sd.pm = &phd->pmr->ml.amMoves[j]; //MoveListGetMove(phd, pl);
+                sd.pci = &ci;
+                sd.pec = pec;
+                if (RunAsyncProcess((AsyncFun) asyncScoreMove, &sd, _("Evaluating positions...")) != 0) {
+                    return;
+                }
+                MoveListUpdate(phd);
             }
         }
-
-        if (g_list_length(plSelList) == 0) {
-            outputerrf("no marked close moves to eval, please select moves for evaluation");
+        if (nEvaluatedMoves==0) { //g_list_length(plSelList) == 0) {
+            outputerrf("no close moves are marked to evaluate, please select moves for evaluation");
             return;
         }
     }
+
+    ai = (int *) g_malloc(phd->pml->cMoves * sizeof(int));
+    RefreshMoveList(phd->pml, ai);
+
+    if (phd->piHighlight && phd->pml->cMoves)
+        *phd->piHighlight = ai[*phd->piHighlight];
+
+    g_free(ai);
 
     find_skills(phd->pmr, &ms, -1, -1);
     MoveListUpdate(phd);
@@ -716,7 +731,9 @@ CreateMoveListTools(hintdata * phd)
 
         g_object_set_data_full(G_OBJECT(pwply), "user_data", sz, g_free);
 
-        sz = g_strdup_printf(_("Evaluate play on cubeful %d-ply"), i);
+        sz = g_strdup_printf(_("(1) Once you select moves, evaluate them using cubeful %d-ply.\n"
+        "(2) Before you select moves, AutoEval automatically selects the player move and the best "
+        "alternative moves, and launches the evaluation using cubeful %d-ply."), i, i);
         gtk_widget_set_tooltip_text(pwply, sz);
         g_free(sz);
 
@@ -811,7 +828,7 @@ CreateMoveListTools(hintdata * phd)
         sz = g_strdup_printf(_("Rollout preset %c. \n" 
             "(1) Once you select moves, rollout the selected moves with current settings.\n"
             "(2) Before you select moves, AutoRollout automatically selects the player move "
-            " and the best moves, and launches the rollout. "), 
+            " and the best alternative moves, and launches the rollout. "), 
             i + 'a');
         gtk_widget_set_tooltip_text(ro_preset, sz);
         g_free(sz);
@@ -896,10 +913,12 @@ CreateMoveListTools(hintdata * phd)
     /* tool tips */
 
     gtk_widget_set_tooltip_text(pwRollout, _("(1) Once you select moves, rollout the selected moves with current settings.\n"
-        "(2) Before you select moves, AutoRollout automatically selects the player move and the best moves, and "
+        "(2) Before you select moves, AutoRollout automatically selects the player move and the best alternative moves, and "
         "launches the rollout. "));
 
-    gtk_widget_set_tooltip_text(pwEval, _("Evaluate selected moves with current settings"));
+    gtk_widget_set_tooltip_text(pwEval, _("(1) Once you select moves, evaluate them with current settings.\n"
+        "(2) Before you select moves, AutoEval automatically selects the player move and the best alternative moves, and "
+        "launches the evaluation."));
 
     gtk_widget_set_tooltip_text(pwRolloutSettings, _("Modify rollout settings"));
 
