@@ -48,21 +48,13 @@
 int showMoveListDetail = 1;
 moverecord *pmrCurAnn;
 
-
-extern void MoveListAutoRollout(movelist * pml, int keyIndex)
+/* automatically select the played move and best alternative moves for rollout or eval */
+void MoveListAutoMark(movelist * pml, int keyIndex)
 {
-    // g_message("AR clicked");
-
     int c;
 
-    if (ARAnalysisFilter.Accept == -1){
-        GTKMessage(_("Error: the user-defined filter (in Settings->Analysis) does not allow AutoRollout"), DT_INFO);
-        return;
-    }
-
-
     if (!(pml->amMoves) || (pml->cMoves <=1)) { /*not a trivial decision nor a doubling decision*/ 
-        GTKMessage(_("Error: no non-trivial decision to roll out"), DT_INFO);
+        GTKMessage(_("Error: no non-trivial decision"), DT_INFO);
         return;
     }
 
@@ -89,6 +81,19 @@ extern void MoveListAutoRollout(movelist * pml, int keyIndex)
         GTKMessage(_("Error: no close decisions and no player mistake to roll out"), DT_INFO);
         return;
     }
+}
+
+/* automatically select the played move and best alternative moves for rollout */
+extern void MoveListAutoRollout(movelist * pml, int keyIndex)
+{
+    // g_message("AR clicked");
+
+    if (ARAnalysisFilter.Accept == -1){
+        GTKMessage(_("Error: the user-defined filter (in Settings->Analysis) does not allow AutoRollout"), DT_INFO);
+        return;
+    }
+
+    MoveListAutoMark(pml, keyIndex);
 
     CommandAnalyseRolloutMove(NULL);
 }
@@ -365,44 +370,70 @@ static void
 EvalMoves(hintdata * phd, evalcontext * pec)
 {
     GList *pl;
+    // GSList *list = NULL;
     cubeinfo ci;
     int *ai;
     GList *plSelList = MoveListGetSelectionList(phd);
 
-    if (!plSelList)
-        return;
+    // if (!plSelList)
+    //     return;
+    
+    ms.fEvalAtMoney = phd->pmr->evalMoveAtMoney;
 
     if (!phd->pmr->evalMoveAtMoney)
         GetMatchStateCubeInfo(&ci, &ms);
     else
         GetMoneyCubeInfo(&ci, &ms);
 
-    for (pl = plSelList; pl; pl = pl->next) {
-        scoreData sd;
-        sd.pm = MoveListGetMove(phd, pl);
-        sd.pci = &ci;
-        sd.pec = pec;
+    // if (!plSelList) { /* auto-eval, the user hasn't selected any specific moves */
 
-        if (RunAsyncProcess((AsyncFun) asyncScoreMove, &sd, _("Evaluating positions...")) != 0) {
-            MoveListFreeSelectionList(plSelList);
-            return;
+    // }
+
+    if (plSelList) { /* the user has selected specific moves to evaluate */
+        for (pl = plSelList; pl; pl = pl->next) {
+            scoreData sd;
+            sd.pm = MoveListGetMove(phd, pl);
+            sd.pci = &ci;
+            sd.pec = pec;
+
+            if (RunAsyncProcess((AsyncFun) asyncScoreMove, &sd, _("Evaluating positions...")) != 0) {
+                MoveListFreeSelectionList(plSelList);
+                return;
+            }
+
+            /* Calling RefreshMoveList here requires some extra work, as
+            * it may reorder moves [RefreshMoveList is called later] */
+            MoveListUpdate(phd);
+        }
+        MoveListFreeSelectionList(plSelList);
+
+        MoveListClearSelection(0, 0, phd);
+
+        ai = (int *) g_malloc(phd->pml->cMoves * sizeof(int));
+        RefreshMoveList(phd->pml, ai);
+
+        if (phd->piHighlight && phd->pml->cMoves)
+            *phd->piHighlight = ai[*phd->piHighlight];
+
+        g_free(ai);
+    } else { /* auto-eval, the user hasn't selected any specific moves */
+        g_message("empty list");
+
+        MoveListAutoMark(phd->pml,(int)(*phd->piHighlight));
+
+        for (unsigned int j = 0; j < phd->pmr->ml.cMoves; j++) {
+            // g_message("j=%d",j);
+            if (phd->pmr->ml.amMoves[j].cmark == CMARK_ROLLOUT) {
+                g_message("EvalMoves: looking at j=%d",j);
+                plSelList = g_list_append(plSelList, GINT_TO_POINTER(j));
+            }
         }
 
-        /* Calling RefreshMoveList here requires some extra work, as
-         * it may reorder moves [RefreshMoveList is called later] */
-        MoveListUpdate(phd);
+        if (g_list_length(plSelList) == 0) {
+            outputerrf("no marked close moves to eval, please select moves for evaluation");
+            return;
+        }
     }
-    MoveListFreeSelectionList(plSelList);
-
-    MoveListClearSelection(0, 0, phd);
-
-    ai = (int *) g_malloc(phd->pml->cMoves * sizeof(int));
-    RefreshMoveList(phd->pml, ai);
-
-    if (phd->piHighlight && phd->pml->cMoves)
-        *phd->piHighlight = ai[*phd->piHighlight];
-
-    g_free(ai);
 
     find_skills(phd->pmr, &ms, -1, -1);
     MoveListUpdate(phd);
@@ -946,8 +977,10 @@ CheckHintButtons(hintdata * phd)
     //gtk_widget_set_sensitive(phd->pwRollout, c && phd->fButtonsValid && !fBackgroundAnalysisRunning);
     gtk_widget_set_sensitive(phd->pwRollout, !fBackgroundAnalysisRunning);
     gtk_widget_set_sensitive(phd->pwRolloutPresets, !fBackgroundAnalysisRunning);
-    gtk_widget_set_sensitive(phd->pwEval, c && phd->fButtonsValid && !fBackgroundAnalysisRunning);
-    gtk_widget_set_sensitive(phd->pwEvalPly, c && phd->fButtonsValid && !fBackgroundAnalysisRunning);
+    // gtk_widget_set_sensitive(phd->pwEval, c && phd->fButtonsValid && !fBackgroundAnalysisRunning);
+    gtk_widget_set_sensitive(phd->pwEval, phd->fButtonsValid && !fBackgroundAnalysisRunning);
+    // gtk_widget_set_sensitive(phd->pwEvalPly, c && phd->fButtonsValid && !fBackgroundAnalysisRunning);
+    gtk_widget_set_sensitive(phd->pwEvalPly, phd->fButtonsValid && !fBackgroundAnalysisRunning);
     // gtk_widget_set_sensitive(phd->pwAutoRollout, phd->fButtonsValid && !fBackgroundAnalysisRunning);
 
     bd = BOARD(pwBoard)->board_data;

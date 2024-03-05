@@ -2116,7 +2116,7 @@ cmark_move_rollout(moverecord * pmr, gboolean destroy)
 
     for (j = 0; j < pmr->ml.cMoves; j++) {
         if (pmr->ml.amMoves[j].cmark == CMARK_ROLLOUT) {
-            // g_message("cmark_move_rollout: looking at j=%d",j);
+            g_message("cmark_move_rollout: looking at j=%d",j);
             list = g_slist_append(list, GINT_TO_POINTER(j));
         }
     }
