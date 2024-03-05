@@ -941,7 +941,7 @@ check_jsds(int *active)
 {
     int alt;
     float v, s, denominator;
-    g_message("rollout: ms.fEvalAtMoney=%d",ms.fEvalAtMoney);
+    // g_message("rollout: ms.fEvalAtMoney=%d",ms.fEvalAtMoney);
     for (alt = 0; alt < ro_alternatives; ++alt) {
 
         /* 1) For each move, calculate the cubeful (or cubeless if that's what we're doing)
@@ -961,7 +961,7 @@ check_jsds(int *active)
             if (ms.nMatchTo && !fOutputMWC && !ms.fEvalAtMoney) {
                 v = mwc2eq(v, &aciLocal[(ro_fCubeRollout ? 0 : alt)]);
                 s = se_mwc2eq(s, &aciLocal[(ro_fCubeRollout ? 0 : alt)]);
-            g_message("vafter=%f",v);
+            // g_message("vafter=%f",v);
 
             }
         } else {
@@ -988,7 +988,7 @@ check_jsds(int *active)
         v = ajiJSD[0].rEquity;
         s = ajiJSD[0].rJSD;
         s *= s;
-        g_message("ajiJSD[0].rJSD=%f,ajiJSD[0].rEquity=%f", ajiJSD[0].rJSD,ajiJSD[0].rEquity);
+        // g_message("ajiJSD[0].rJSD=%f,ajiJSD[0].rEquity=%f", ajiJSD[0].rJSD,ajiJSD[0].rEquity);
 
         for (alt = ro_alternatives - 1; alt > 0; --alt) {
 
@@ -996,7 +996,7 @@ check_jsds(int *active)
             ajiJSD[alt].rEquity = v - ajiJSD[alt].rEquity;
 
             denominator = sqrtf(s + ajiJSD[alt].rJSD * ajiJSD[alt].rJSD);
-            g_message("denominator=%f", denominator);
+            // g_message("denominator=%f", denominator);
 
             if (denominator < 1e-8f)
                 denominator = 1e-8f;
@@ -1193,7 +1193,7 @@ RolloutLoopMT(void *UNUSED(unused))
 
             if (ro_fInvert)
                 InvertEvaluationR(aar, ro_apci[alt]);
-            g_message("rolloutloopmt");
+
             /* apply the results */
             for (j = 0; j < NUM_ROLLOUT_OUTPUTS; j++) {
                 float rMuNew;
