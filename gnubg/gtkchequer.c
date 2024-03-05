@@ -19,8 +19,11 @@
  */
 
 /* March 2024: Isaac Keslassy: 
- *   new functionality with a button performing an eval of the move decisions
- *   in Money Play
+ * 1. New functionality with a button performing an eval of the move decisions
+ *    as if they were made in Money Play -- so we get a score-independent eval.
+ * 2. New AutoEval functionality: clicking on the eval button (or the k-ply eval 
+ *    button) for a given move automatically leads to an eval of the user's move
+ *    and of the top alternate moves.
 */
 
 #include "config.h"
