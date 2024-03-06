@@ -3285,5 +3285,6 @@ if needed (this was initially planned for some explanation text, which was then 
     /* The DestroyDialog function frees the needed memory! */
     g_object_weak_ref(G_OBJECT(pwDialog), DestroyDialog, psm);
 
-    GTKRunDialog(pwDialog);
+    gtk_widget_show_all (pwDialog);
+    //GTKRunDialog(pwDialog);
 }
