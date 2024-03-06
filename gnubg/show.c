@@ -2143,19 +2143,23 @@ extern void
 CommandShowScoreMap(char *sz)
 {
     if (ms.gs != GAME_PLAYING) {
-        outputl(_("No game in progress (type `new game' to start one)."));
-
+        outputerrf(_("No game in progress (type `new game' to start one)."));
         return;
     }
 #if defined(USE_GTK)
-
-    if (fX) {
-        
-// TODO: don't show score map if not a double. Perhaps start with doShowScoreMap=ms.fDoubled
-        int doShowScoreMap=TRUE; 
-        if ( sz && *sz && (strncmp(sz, "=move", 5) ==0) ) { //strncmp: returns 0 if same content => we enter if NOT move
-            GTKShowScoreMap(&ms, 0);
-        } else { 
+    if (fX) {        
+        if ( sz && *sz && (strncmp(sz, "=move", 5) ==0) ) { /* analyse move */
+                //strncmp: returns 0 if same content => we enter the brackets if move
+            if (plLastMove && plLastMove->plNext && plLastMove->plNext->p) {     
+                moverecord *pmr = plLastMove->plNext->p;
+                if (pmr->mt==MOVE_NORMAL) {
+                    GTKShowScoreMap(&ms, 0);
+                    return;
+                } 
+            }
+            outputerrf(_("No available moves for scoremap."));
+            return;
+        } else { /* analyse cube */
             cubeinfo ci;
             GetMatchStateCubeInfo(&ci, &ms);
             if (!GetDPEq(NULL, NULL, &ci)) {
@@ -2178,21 +2182,19 @@ CommandShowScoreMap(char *sz)
                     g_free(asz[i]);
 
             } else {*/
-                outputl(_("Cube is not available."));
-                doShowScoreMap=FALSE;
+                outputerrf(_("Cube is not available."));
+                // doShowScoreMap=FALSE;
+                return;
             }
-        }
-        if (doShowScoreMap)
             GTKShowScoreMap(&ms, 1); //NULL, FALSE);
-
+            return;
+        }
         return;
     }
 #else
     (void) sz;                  /* suppress unused parameter compiler warning */
 #endif
-
     CommandNotImplemented(NULL);
-
 }
 
 extern void
