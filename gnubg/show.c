@@ -2123,7 +2123,7 @@ CommandShowTemperatureMap(char *sz)
                     g_free(asz[i]);
 
             } else
-                outputl(_("Cube is not available."));
+                outputerrf(_("Cube is not available."));
 
         } else
             GTKShowTempMap(&ms, 1, NULL, FALSE);
@@ -2161,7 +2161,8 @@ CommandShowScoreMap(char *sz)
             return;
         } else { /* analyse cube */
             cubeinfo ci;
-            GetMatchStateCubeInfo(&ci, &ms);
+            // GetMatchStateCubeInfo(&ci, &ms);
+            GetMoneyCubeInfo(&ci, &ms);
             if (!GetDPEq(NULL, NULL, &ci)) {
 
                 /* cube is available 
