@@ -210,37 +210,8 @@ SetStyle(GtkWidget * pw, const float rEquity, const float rMin, const float rMax
 
 }
 
-static char *
-GetEquityDiffString(const float rEquity0, const float rEquity, const cubeinfo * pci, const int fInvert)
-{
 
-    float r0,r;
-
-    if (fInvert) {
-        /* invert equity */
-        if (pci->nMatchTo){
-            r0 = 1.0f - rEquity0;
-            r = 1.0f - rEquity;
-        } else {
-            r0 = -rEquity0;
-            r = -rEquity;
-        }
-    } else {
-        r0 = rEquity0;
-        r = rEquity;
-    }
-
-    if (fInvert) {
-        cubeinfo ci;
-        memcpy(&ci, pci, sizeof ci);
-        ci.fMove = !ci.fMove;
-
-        return OutputEquityDiff(r0, r, &ci);
-    } else
-        return OutputEquityDiff(r0, r, pci);
-}
-
-/* based on MWC(), returns equity as float and not string */
+/* based on OutputMWC(), returns equity as float and not string */
 static float
 GetEquityAux(const float r, const cubeinfo * pci)
 {
@@ -281,6 +252,34 @@ GetEquity(const float rEquity, const cubeinfo * pci, const int fInvert)
     } else
         return GetEquityAux(r, pci);
 
+}
+
+
+static char *
+GetEquityDiffString(const float rEquity0, const float rEquity, const cubeinfo * pci, const int fInvert)
+{
+    // float r0,r;
+    float diff = GetEquity(rEquity, pci, fInvert)-GetEquity(rEquity0, pci, fInvert);
+
+    // if (fInvert) {
+    //     cubeinfo ci;
+    //     memcpy(&ci, pci, sizeof ci);
+    //     ci.fMove = !ci.fMove;
+
+    //     return OutputEquityDiff(r0, r, &ci);
+    // } else
+    #define OUTPUT_SZ_LENGTH (5 + MAX_OUTPUT_DIGITS)
+    static char sz[OUTPUT_SZ_LENGTH];
+
+    if (!pci->nMatchTo || !fOutputMWC) {
+            snprintf(sz, OUTPUT_SZ_LENGTH, "%+*.*f", fOutputDigits + 3, fOutputDigits, diff);
+    } else if (fOutputMatchPC) {
+        snprintf(sz, OUTPUT_SZ_LENGTH, "%*.*f%%", fOutputDigits + 3, fOutputDigits > 1 ? fOutputDigits - 1 : 0,
+                     diff);
+    } else 
+        snprintf(sz, OUTPUT_SZ_LENGTH, "%+*.*f", fOutputDigits + 3, fOutputDigits + 1, diff);
+
+    return sz;
 }
 
 static char *
@@ -329,7 +328,7 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
         for (i = 0; i < 6; ++i)
             for (j = 0; j < 6; ++j) {
                 r = ptmw->atm[m].aarEquity[i][j];
-                g_message("r=%f",r);
+                // g_message("r=%f",r);
                 ptmw->atm[m].rAverage += r;
                 if (r > rMax)
                     rMax = r;
@@ -353,24 +352,24 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
     for (m = 0; m < ptmw->n; ++m) {
         for (i = 0; i < 6; ++i)
             for (j = 0; j < 6; ++j) {
-                if (m==0) {
+                // if (m==0) {
                     sz = g_strdup_printf("%s [%s]",
                                                 GetEquityString(ptmw->atm[m].aarEquity[i][j],
                                                                 &ci, ptmw->fInvert),
                                                 FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
                                                         ptmw->atm[m].aaanMove[i][j]));
-                    g_message("equity=%s",sz);
-                } else {
-                    sz = g_strdup_printf("%s,%s [%s]",
-                                                GetEquityString(ptmw->atm[m].aarEquity[i][j],
-                                                                &ci, ptmw->fInvert),
-                                                GetEquityDiffString(ptmw->atm[0].aarEquity[i][j],
-                                                                ptmw->atm[m].aarEquity[i][j],
-                                                                &ci, ptmw->fInvert),                                                                
-                                                FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
-                                                        ptmw->atm[m].aaanMove[i][j]));
-                    g_message("%s",sz);
-                }
+                    // g_message("equity=%s",sz);
+                // } else {
+                //     sz = g_strdup_printf("%s,%s [%s]",
+                //                                 GetEquityString(ptmw->atm[m].aarEquity[i][j],
+                //                                                 &ci, ptmw->fInvert),
+                //                                 GetEquityDiffString(ptmw->atm[0].aarEquity[i][j],
+                //                                                 ptmw->atm[m].aarEquity[i][j],
+                //                                                 &ci, ptmw->fInvert),                                                                
+                //                                 FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
+                //                                         ptmw->atm[m].aaanMove[i][j]));
+                //     g_message("%s",sz);
+                // }
                 
                 
                 
@@ -411,6 +410,7 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
     char *pch, *tmp;
     GtkAllocation allocation;
     gtk_widget_get_allocation(pw, &allocation);
+    float auxEquity;
 
 #if GTK_CHECK_VERSION(3,0,0)
     double *gbval = g_object_get_data(G_OBJECT(pw), "gbval");
@@ -450,10 +450,20 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
             r = ptmw->atm[m].aarEquity[i][j];
         else if (j == -1)
             r = ptmw->atm[m].rAverage;
-        g_message("r=%f",ptmw->atm[m].aarEquity[i][j]);
+        // g_message("r=%f",ptmw->atm[m].aarEquity[i][j]);
         GetMatchStateCubeInfo(&ci, ptmw->atm[0].pms);
-        tmp = GetEquityString(r, &ci, ptmw->fInvert);
-        g_message("tmp=%s, myequity=%f",tmp,GetEquity(r, &ci, ptmw->fInvert));
+        if(!fShowDiff || m==0 || j<0)
+            tmp = GetEquityString(r, &ci, ptmw->fInvert);
+        else {
+            auxEquity=GetEquity(r, &ci, ptmw->fInvert)-GetEquity(ptmw->atm[0].aarEquity[i][j], &ci, ptmw->fInvert);
+            if (i==0 && j==0)
+                g_message("myequitydiff=%+.3f",auxEquity);
+
+            tmp=GetEquityDiffString(ptmw->atm[0].aarEquity[i][j],r,&ci,ptmw->fInvert);
+            if (i==0 && j==0)
+                g_message("tmp=%s",tmp);
+            // tmp = sprintf(tmp,"%+.3f",auxEquity);
+        }
         while (*tmp == ' ')
             tmp++;
         g_string_append(str, tmp);
