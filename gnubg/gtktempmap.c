@@ -77,8 +77,9 @@ typedef struct {
     int fShowDiff;
     int fInvert;
     GtkWidget *apwGauge[2];
+    GtkWidget *apwGaugeDiff[2];
     float rMin, rMax;
-    float dMin, dMax; /* min/max equity differences */
+    float dMin, dMax, dMaxAbs; /* min/max equity differences and max absolute value*/
 
     tempmap *atm;
     int n;
@@ -208,19 +209,16 @@ UpdateStyle(GtkWidget * pw, const float r, const int fRed)
 }
 
 static void
-SetStyleDiff(GtkWidget * pw, float dEquity, const float dMin, const float dMax, const int fInvert)
+SetStyleDiff(GtkWidget * pw, float dEquity, const float dMaxAbs, const int fInvert)
 {
 
-    float dMAX;
-    dMAX= (dMax > (-dMin)) ? dMax : -dMin;
-    g_assert(dMAX>0.0f);
     // if (fInvert)
     //     dEquity = -dEquity;
-    g_message("dEquity=%+.3f,dMAX=%+.3f,fInvert=%d",dEquity,dMAX,fInvert);
+    g_message("dEquity=%+.3f,dMaxAbs=%+.3f,fInvert=%d",dEquity,dMaxAbs,fInvert);
     if (dEquity>0)
-        UpdateStyle(pw, dEquity/dMAX, FALSE);
+        UpdateStyle(pw, dEquity/dMaxAbs, FALSE);
     else
-        UpdateStyle(pw, -dEquity/dMAX, TRUE);
+        UpdateStyle(pw, -dEquity/dMaxAbs, TRUE);
 
 
 }
@@ -280,6 +278,23 @@ GetEquity(const float rEquity, const cubeinfo * pci, const int fInvert)
 
 
 static char *
+GetEquityDiffStringAux(const float diff, const cubeinfo * pci)
+{
+    #define OUTPUT_SZ_LENGTH (5 + MAX_OUTPUT_DIGITS)
+    static char sz[OUTPUT_SZ_LENGTH];
+
+    if (!pci->nMatchTo || !fOutputMWC) {
+            snprintf(sz, OUTPUT_SZ_LENGTH, "%+*.*f", fOutputDigits + 3, fOutputDigits, diff);
+    } else if (fOutputMatchPC) {
+        snprintf(sz, OUTPUT_SZ_LENGTH, "%*.*f%%", fOutputDigits + 3, fOutputDigits > 1 ? fOutputDigits - 1 : 0,
+                     diff);
+    } else 
+        snprintf(sz, OUTPUT_SZ_LENGTH, "%+*.*f", fOutputDigits + 3, fOutputDigits + 1, diff);
+
+    return sz;
+}
+
+static char *
 GetEquityDiffString(const float rEquity0, const float rEquity, const cubeinfo * pci, const int fInvert)
 {
     // float r0,r;
@@ -293,18 +308,8 @@ GetEquityDiffString(const float rEquity0, const float rEquity, const cubeinfo * 
 
     //     return OutputEquityDiff(r0, r, &ci);
     // } else
-    #define OUTPUT_SZ_LENGTH (5 + MAX_OUTPUT_DIGITS)
-    static char sz[OUTPUT_SZ_LENGTH];
 
-    if (!pci->nMatchTo || !fOutputMWC) {
-            snprintf(sz, OUTPUT_SZ_LENGTH, "%+*.*f", fOutputDigits + 3, fOutputDigits, diff);
-    } else if (fOutputMatchPC) {
-        snprintf(sz, OUTPUT_SZ_LENGTH, "%*.*f%%", fOutputDigits + 3, fOutputDigits > 1 ? fOutputDigits - 1 : 0,
-                     diff);
-    } else 
-        snprintf(sz, OUTPUT_SZ_LENGTH, "%+*.*f", fOutputDigits + 3, fOutputDigits + 1, diff);
-
-    return sz;
+    return GetEquityDiffStringAux(diff,pci);
 }
 
 static char *
@@ -388,6 +393,10 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
 
     ptmw->dMax = dMax;
     ptmw->dMin = dMin;
+    ptmw->dMaxAbs = MAX(-dMin,dMax);
+    // float dMAX = (dMax > (-dMin)) ? dMax : -dMin;
+    g_assert(ptmw->dMaxAbs>=0.0f);
+
 
     /* update styles (cell colors) & tooltips */
 
@@ -424,7 +433,7 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
                 if (!fShowDiff || m==0) /* absolute equities */
                     SetStyle(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquity[i][j], rMin, rMax, ptmw->fInvert);
                 else /* difference i.e. relative equities */
-                    SetStyleDiff(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquityDiff[i][j], dMin, dMax, ptmw->fInvert);
+                    SetStyleDiff(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquityDiff[i][j], ptmw->dMaxAbs, ptmw->fInvert);
 
                 gtk_widget_set_tooltip_text(ptmw->atm[m].aapwe[i][j], sz);
                 g_free(sz);
@@ -435,7 +444,7 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
         if (!fShowDiff || m==0) /* absolute equities */
             SetStyle(ptmw->atm[m].pwAverage, ptmw->atm[m].rAverage, rMin, rMax, ptmw->fInvert);
         else /* relative equities */
-            SetStyleDiff(ptmw->atm[m].pwAverage, ptmw->atm[m].dAverage, dMin, dMax, ptmw->fInvert);
+            SetStyleDiff(ptmw->atm[m].pwAverage, ptmw->atm[m].dAverage, ptmw->dMaxAbs, ptmw->fInvert);
 
         gtk_widget_set_tooltip_text(ptmw->atm[m].pweAverage,
                                     GetEquityString(ptmw->atm[m].rAverage, &ci, ptmw->fInvert));
@@ -447,6 +456,8 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
 
     gtk_label_set_text(GTK_LABEL(ptmw->apwGauge[ptmw->fInvert]), GetEquityString(rMin, &ci, ptmw->fInvert));
     gtk_label_set_text(GTK_LABEL(ptmw->apwGauge[!ptmw->fInvert]), GetEquityString(rMax, &ci, ptmw->fInvert));
+    gtk_label_set_text(GTK_LABEL(ptmw->apwGaugeDiff[0]), GetEquityDiffStringAux(dMin,&ci));
+    gtk_label_set_text(GTK_LABEL(ptmw->apwGaugeDiff[1]), GetEquityDiffStringAux(dMax,&ci));    
 }
 
 static gboolean
@@ -1005,6 +1016,61 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
 #else
     gtk_box_pack_start(GTK_BOX(pwv), gtk_hseparator_new(), FALSE, FALSE, 0);
 #endif
+
+
+    /* gauge2=apwGaugeDiff for relative equity */
+
+#if GTK_CHECK_VERSION(3,0,0)
+    pwGrid = gtk_grid_new();
+    gtk_box_pack_start(GTK_BOX(pwv), pwGrid, FALSE, FALSE, 0);
+#else
+    pwTable = gtk_table_new(2, 16, FALSE);
+    gtk_box_pack_start(GTK_BOX(pwv), pwTable, FALSE, FALSE, 0);
+#endif
+
+    for (i = 0; i < 16; ++i) {
+
+        pw = gtk_drawing_area_new();
+        gtk_widget_set_size_request(pw, 15, 20);
+
+#if GTK_CHECK_VERSION(3,0,0)
+        gtk_grid_attach(GTK_GRID(pwGrid), pw, i, 1, 1, 1);
+        gtk_widget_set_hexpand(pw, TRUE);
+#else
+        gtk_table_attach_defaults(GTK_TABLE(pwTable), pw, i, i + 1, 1, 2);
+#endif
+
+        g_object_set_data(G_OBJECT(pw), "user_data", NULL);
+
+#if GTK_CHECK_VERSION(3,0,0)
+        gtk_style_context_add_class(gtk_widget_get_style_context(pw), "gnubg-temp-map-quadrant");
+        g_signal_connect(G_OBJECT(pw), "draw", G_CALLBACK(DrawQuadrant), NULL);
+#else
+        g_signal_connect(G_OBJECT(pw), "expose_event", G_CALLBACK(ExposeQuadrant), NULL);
+#endif
+
+        UpdateStyle(pw, (float)i / 15.0f, FALSE);
+
+
+    }
+
+    for (i = 0; i < 2; ++i) {
+        ptmw->apwGaugeDiff[i] = gtk_label_new("");
+#if GTK_CHECK_VERSION(3,0,0)
+        gtk_grid_attach(GTK_GRID(pwGrid), ptmw->apwGaugeDiff[i], 15 * i, 0, 1, 1);
+#else
+        gtk_table_attach_defaults(GTK_TABLE(pwTable), ptmw->apwGaugeDiff[i], 15 * i, 15 * i + 1, 0, 1);
+#endif
+    }
+
+    /* separator */
+
+#if GTK_CHECK_VERSION(3,0,0)
+    gtk_box_pack_start(GTK_BOX(pwv), gtk_separator_new(GTK_ORIENTATION_HORIZONTAL), FALSE, FALSE, 0);
+#else
+    gtk_box_pack_start(GTK_BOX(pwv), gtk_hseparator_new(), FALSE, FALSE, 0);
+#endif
+
 
     /* buttons */
 
