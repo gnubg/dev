@@ -3262,7 +3262,12 @@ if needed (this was initially planned for some explanation text, which was then 
     psm->pwLastContainer = (psm->layout == VERTICAL) ? (psm->pwVContainer) : (psm->pwHContainer);
     BuildOptions(psm); 
 
-    gtk_box_pack_start(GTK_BOX(psm->pwMegaVContainer), pwButton = gtk_button_new_with_label(_("Explanations")), FALSE, FALSE, 8);
+
+    /* explanations button */
+    // gtk_box_pack_start(GTK_BOX(psm->pwMegaVContainer), pwButton = gtk_button_new_with_label(_("Explanations")), FALSE, FALSE, 8);
+    // gtk_box_pack_start(GTK_BOX(GTK_CONTAINER(DialogArea(pwDialog, DA_BUTTONS))), pwButton = gtk_button_new_with_label(_("Explanations")), FALSE, FALSE, 8);    
+    gtk_container_add(GTK_CONTAINER(DialogArea(pwDialog, DA_BUTTONS)),
+            pwButton = gtk_button_new_with_label(_("Explanations")));
     gtk_widget_set_tooltip_text(pwButton, _("Click to obtain more explanations on this ScoreMap window")); 
     //g_signal_connect(G_OBJECT(pwButton), "clicked", G_CALLBACK(GTKShowMoveScoreMapInfo), pwDialog); 
     if (psm->cubeScoreMap)
