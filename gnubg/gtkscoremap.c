@@ -62,6 +62,14 @@
 */
 
 /* 
+03/2024: Isaac Keslassy: some more ScoreMap improvements:
+- solved the "blackhole" bug for ScoreMap in the menu. The bug prevented
+us from calling it twice
+- better definition of when to set the ScoreMap as sensitive in the menu
+- ScoreMap Move now better complains when it shouldn't have been called,
+and ScoreMap Cube does not complain when it could have been called
+- the help button has been moved to make space
+
 01/2023: Isaac Keslassy: several ScoreMap improvements:
 - new Settings>Options>ScoreMap panel where all default options can be configured
     -> set as a frame
@@ -2990,7 +2998,8 @@ Implemented as:
 (using "psm->pwLastContainer = (layout == VERTICAL) ? (psm->pwVContainer) : (psm->pwHContainer);")
 
 Finally, we pack everything inside a "pwMegaVContainer", which enables us to introduce a shared element at the bottom
-if needed (this was initially planned for some explanation text, which was then removed).
+if needed (this was initially planned for some explanation text, which was then removed; then an explanations button,
+which was moved next to "Close").
 
 
 */
