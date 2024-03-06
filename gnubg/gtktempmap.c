@@ -52,6 +52,8 @@ typedef struct {
     matchstate *pms;
     float aarEquity[6][6];
     float rAverage;
+    float aarEquityDiff[6][6];
+    float dAverage;
 
     GtkWidget *aapwDA[6][6];
     GtkWidget *aapwe[6][6];
@@ -76,6 +78,7 @@ typedef struct {
     int fInvert;
     GtkWidget *apwGauge[2];
     float rMin, rMax;
+    float dMin, dMax; /* min/max equity differences */
 
     tempmap *atm;
     int n;
@@ -183,7 +186,7 @@ CalcTempMapEquities(evalcontext * pec, tempmapwidget * ptmw)
 
 
 static void
-UpdateStyle(GtkWidget * pw, const float r)
+UpdateStyle(GtkWidget * pw, const float r, const int fRelative)
 {
 
     GtkStyle *ps = gtk_style_copy(gtk_widget_get_style(pw));
@@ -193,8 +196,21 @@ UpdateStyle(GtkWidget * pw, const float r)
     *gbval = 1.0 - (double)r;
     g_object_set_data_full(G_OBJECT(pw), "gbval", gbval, g_free);
 
-    ps->bg[GTK_STATE_NORMAL].red = 0xFFFF;
-    ps->bg[GTK_STATE_NORMAL].blue = ps->bg[GTK_STATE_NORMAL].green = (guint16) ((1.0f - r) * 0xFFFF);
+    if (!fRelative) {
+        ps->bg[GTK_STATE_NORMAL].red = 0xFFFF;
+        ps->bg[GTK_STATE_NORMAL].blue = ps->bg[GTK_STATE_NORMAL].green = (guint16) ((1.0f - r) * 0xFFFF);
+    } else {
+        if (r>=0) {
+            ps->bg[GTK_STATE_NORMAL].green= 0xFFFF;
+            ps->bg[GTK_STATE_NORMAL].blue = ps->bg[GTK_STATE_NORMAL].red  = (guint16) ((1.0f - r) * 0xFFFF);
+        } else {
+            ps->bg[GTK_STATE_NORMAL].red= 0xFFFF;
+            ps->bg[GTK_STATE_NORMAL].blue = ps->bg[GTK_STATE_NORMAL].green  = (guint16) ((1.0f + r) * 0xFFFF);            
+        }
+
+
+
+    }
 
     gtk_widget_set_style(pw, ps);
 
@@ -202,11 +218,11 @@ UpdateStyle(GtkWidget * pw, const float r)
 
 
 static void
-SetStyle(GtkWidget * pw, const float rEquity, const float rMin, const float rMax, const int fInvert)
+SetStyle(GtkWidget * pw, const float rEquity, const float rMin, const float rMax, const int fInvert, const int fRelative)
 {
 
     float r = (rEquity - rMin) / (rMax - rMin);
-    UpdateStyle(pw, fInvert ? (1.0f - r) : r);
+    UpdateStyle(pw, fInvert ? (1.0f - r) : r, fRelative);
 
 }
 
@@ -260,6 +276,7 @@ GetEquityDiffString(const float rEquity0, const float rEquity, const cubeinfo * 
 {
     // float r0,r;
     float diff = GetEquity(rEquity, pci, fInvert)-GetEquity(rEquity0, pci, fInvert);
+    // g_message("diff=%f-%f=%f",GetEquity(rEquity, pci, fInvert),GetEquity(rEquity0, pci, fInvert),diff);
 
     // if (fInvert) {
     //     cubeinfo ci;
@@ -315,11 +332,12 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
 
     int i, j;
     float rMax, rMin, r;
+    float dMax, dMin, d; /* equity differences */
     cubeinfo ci;
     int m;
     char szMove[FORMATEDMOVESIZE];
 
-    /* calc. min, max and average */
+    /* calc. min, max and average for (1) equity [in MWC terms?] (2) equity difference with 1st option (in normalized equity) */
 
     rMax = -10000;
     rMin = +10000;
@@ -341,9 +359,31 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
     ptmw->rMax = rMax;
     ptmw->rMin = rMin;
 
-    /* update styles & tooltips */
+    GetMatchStateCubeInfo(&ci, ptmw->atm[0].pms);
+    dMax = -10000;
+    dMin = +10000;
+    for (m = 1; m < ptmw->n; ++m) {
+        ptmw->atm[m].dAverage = 0.0f;
+        for (i = 0; i < 6; ++i)
+            for (j = 0; j < 6; ++j) {
+                d = ptmw->atm[m].aarEquityDiff[i][j] = GetEquity(ptmw->atm[m].aarEquity[i][j], &ci, ptmw->fInvert)
+                                                       - GetEquity(ptmw->atm[0].aarEquity[i][j], &ci, ptmw->fInvert);
+                g_message("m=%d,i=%d,j=%d -> d=%+.3f",m,i,j,d);
+                ptmw->atm[m].dAverage += d;
+                if (d > dMax)
+                    dMax = d;
+                if (d < dMin)
+                    dMin = d;
+            }
+        ptmw->atm[m].dAverage /= 36.0f;
+    }
 
-    /* a bit confusing: it looks like the TempMap uses the aarEquity r (same as MWC?) to pick the color of each cell, 
+    ptmw->dMax = dMax;
+    ptmw->dMin = dMin;
+
+    /* update styles (cell colors) & tooltips */
+
+    /* a bit confusing: it looks like the TempMap uses the "aarEquity" r (same as MWC?) to pick the color of each cell, 
     but it then displays the equity of each cell, not its MWC */
 
     GetMatchStateCubeInfo(&ci, ptmw->atm[0].pms);
@@ -352,6 +392,7 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
     for (m = 0; m < ptmw->n; ++m) {
         for (i = 0; i < 6; ++i)
             for (j = 0; j < 6; ++j) {
+                /* tooltips */
                 // if (m==0) {
                     sz = g_strdup_printf("%s [%s]",
                                                 GetEquityString(ptmw->atm[m].aarEquity[i][j],
@@ -371,9 +412,11 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
                 //     g_message("%s",sz);
                 // }
                 
-                
-                
-                SetStyle(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquity[i][j], rMin, rMax, ptmw->fInvert);
+                /* colors */
+                if (!fShowDiff || m==0) /* absolute equities */
+                    SetStyle(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquity[i][j], rMin, rMax, ptmw->fInvert, FALSE);
+                else /* difference i.e. relative equities */
+                    SetStyle(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquityDiff[i][j], dMin, dMax, ptmw->fInvert, TRUE);
 
                 gtk_widget_set_tooltip_text(ptmw->atm[m].aapwe[i][j], sz);
                 g_free(sz);
@@ -381,7 +424,10 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
 
             }
 
-        SetStyle(ptmw->atm[m].pwAverage, ptmw->atm[m].rAverage, rMin, rMax, ptmw->fInvert);
+        if (!fShowDiff || m==0) /* absolute equities */
+            SetStyle(ptmw->atm[m].pwAverage, ptmw->atm[m].rAverage, rMin, rMax, ptmw->fInvert, FALSE);
+        else /* relative equities */
+            SetStyle(ptmw->atm[m].pwAverage, ptmw->atm[m].dAverage, dMin, dMax, ptmw->fInvert, TRUE);
 
         gtk_widget_set_tooltip_text(ptmw->atm[m].pweAverage,
                                     GetEquityString(ptmw->atm[m].rAverage, &ci, ptmw->fInvert));
@@ -410,7 +456,6 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
     char *pch, *tmp;
     GtkAllocation allocation;
     gtk_widget_get_allocation(pw, &allocation);
-    float auxEquity;
 
 #if GTK_CHECK_VERSION(3,0,0)
     double *gbval = g_object_get_data(G_OBJECT(pw), "gbval");
@@ -450,18 +495,20 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
             r = ptmw->atm[m].aarEquity[i][j];
         else if (j == -1)
             r = ptmw->atm[m].rAverage;
-        // g_message("r=%f",ptmw->atm[m].aarEquity[i][j]);
+        // g_message("m=%d,i=%d,j=%d -> r=%f",m,i,j,r);
         GetMatchStateCubeInfo(&ci, ptmw->atm[0].pms);
-        if(!fShowDiff || m==0 || j<0)
+        if(!fShowDiff || m==0)
             tmp = GetEquityString(r, &ci, ptmw->fInvert);
         else {
-            auxEquity=GetEquity(r, &ci, ptmw->fInvert)-GetEquity(ptmw->atm[0].aarEquity[i][j], &ci, ptmw->fInvert);
+            float auxEquity=GetEquity(r, &ci, ptmw->fInvert)-GetEquity(ptmw->atm[0].aarEquity[i][j], &ci, ptmw->fInvert);
             if (i==0 && j==0)
                 g_message("myequitydiff=%+.3f",auxEquity);
+            if (j >= 0)
+                tmp=GetEquityDiffString(ptmw->atm[0].aarEquity[i][j],r,&ci,ptmw->fInvert);
+            else if (j == -1)
+                tmp=GetEquityDiffString(ptmw->atm[0].rAverage,r,&ci,ptmw->fInvert);
 
-            tmp=GetEquityDiffString(ptmw->atm[0].aarEquity[i][j],r,&ci,ptmw->fInvert);
-            if (i==0 && j==0)
-                g_message("tmp=%s",tmp);
+            // g_message("m=%d,i=%d,j=%d -> tmp=%s",m,i,j,tmp);
             // tmp = sprintf(tmp,"%+.3f",auxEquity);
         }
         while (*tmp == ' ')
@@ -929,7 +976,7 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
         g_signal_connect(G_OBJECT(pw), "expose_event", G_CALLBACK(ExposeQuadrant), NULL);
 #endif
 
-        UpdateStyle(pw, (float)i / 15.0f);
+        UpdateStyle(pw, (float)i / 15.0f, FALSE);
 
 
     }
