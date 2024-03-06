@@ -8473,8 +8473,12 @@ GTKSet(void *p)
         gtk_widget_set_sensitive(gtk_ui_manager_get_widget(puim,
                                                            "/MainMenu/AnalyseMenu/RolloutMenu/Match"),
                                  !ListEmpty(&lMatch));
-
-
+        gtk_widget_set_sensitive(gtk_ui_manager_get_widget(puim,
+                                                           "/MainMenu/AnalyseMenu/ScoreMapMove"),
+                                 plLastMove && plLastMove->plNext && plLastMove->plNext->p);
+        gtk_widget_set_sensitive(gtk_ui_manager_get_widget(puim,
+                                                           "/MainMenu/AnalyseMenu/ScoreMapCube"),
+                                 plLastMove && plLastMove->plNext && plLastMove->plNext->p);
 
         /*disabling everything when we analyze a game in the background*/
 
@@ -8568,6 +8572,10 @@ GTKSet(void *p)
                                  !ListEmpty(&lMatch));
         gtk_widget_set_sensitive(gtk_item_factory_get_widget_by_action(pif, CMD_ANALYSE_ROLLOUT_MATCH),
                                  !ListEmpty(&lMatch));
+        gtk_widget_set_sensitive(gtk_item_factory_get_widget_by_action(pif, CMD_SHOW_SCORE_MAP_MOVE),
+                                 plLastMove && plLastMove->plNext && plLastMove->plNext->p);
+        gtk_widget_set_sensitive(gtk_item_factory_get_widget_by_action(pif, CMD_SHOW_SCORE_MAP_CUBE),
+                                 plLastMove && plLastMove->plNext && plLastMove->plNext->p);
 
         gtk_widget_set_sensitive(gtk_item_factory_get_widget(pif,
                     "/Analyse/Add match or session to database"), 
