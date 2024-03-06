@@ -186,7 +186,7 @@ CalcTempMapEquities(evalcontext * pec, tempmapwidget * ptmw)
 
 
 static void
-UpdateStyle(GtkWidget * pw, const float r, const int fRelative)
+UpdateStyle(GtkWidget * pw, const float r, const int fRed)
 {
 
     GtkStyle *ps = gtk_style_copy(gtk_widget_get_style(pw));
@@ -196,33 +196,41 @@ UpdateStyle(GtkWidget * pw, const float r, const int fRelative)
     *gbval = 1.0 - (double)r;
     g_object_set_data_full(G_OBJECT(pw), "gbval", gbval, g_free);
 
-    if (!fRelative) {
+    if (fRed) {
         ps->bg[GTK_STATE_NORMAL].red = 0xFFFF;
         ps->bg[GTK_STATE_NORMAL].blue = ps->bg[GTK_STATE_NORMAL].green = (guint16) ((1.0f - r) * 0xFFFF);
     } else {
-        if (r>=0) {
-            ps->bg[GTK_STATE_NORMAL].green= 0xFFFF;
-            ps->bg[GTK_STATE_NORMAL].blue = ps->bg[GTK_STATE_NORMAL].red  = (guint16) ((1.0f - r) * 0xFFFF);
-        } else {
-            ps->bg[GTK_STATE_NORMAL].red= 0xFFFF;
-            ps->bg[GTK_STATE_NORMAL].blue = ps->bg[GTK_STATE_NORMAL].green  = (guint16) ((1.0f + r) * 0xFFFF);            
-        }
-
-
-
+        ps->bg[GTK_STATE_NORMAL].green= 0xFFFF;
+        ps->bg[GTK_STATE_NORMAL].blue = ps->bg[GTK_STATE_NORMAL].red  = (guint16) ((1.0f - r) * 0xFFFF);
     }
-
     gtk_widget_set_style(pw, ps);
 
 }
 
+static void
+SetStyleDiff(GtkWidget * pw, float dEquity, const float dMin, const float dMax, const int fInvert)
+{
+
+    float dMAX;
+    dMAX= (dMax > (-dMin)) ? dMax : -dMin;
+    g_assert(dMAX>0.0f);
+    // if (fInvert)
+    //     dEquity = -dEquity;
+    g_message("dEquity=%+.3f,dMAX=%+.3f,fInvert=%d",dEquity,dMAX,fInvert);
+    if (dEquity>0)
+        UpdateStyle(pw, dEquity/dMAX, FALSE);
+    else
+        UpdateStyle(pw, -dEquity/dMAX, TRUE);
+
+
+}
 
 static void
-SetStyle(GtkWidget * pw, const float rEquity, const float rMin, const float rMax, const int fInvert, const int fRelative)
+SetStyle(GtkWidget * pw, const float rEquity, const float rMin, const float rMax, const int fInvert)
 {
 
     float r = (rEquity - rMin) / (rMax - rMin);
-    UpdateStyle(pw, fInvert ? (1.0f - r) : r, fRelative);
+    UpdateStyle(pw, fInvert ? (1.0f - r) : r, TRUE);
 
 }
 
@@ -414,9 +422,9 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
                 
                 /* colors */
                 if (!fShowDiff || m==0) /* absolute equities */
-                    SetStyle(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquity[i][j], rMin, rMax, ptmw->fInvert, FALSE);
+                    SetStyle(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquity[i][j], rMin, rMax, ptmw->fInvert);
                 else /* difference i.e. relative equities */
-                    SetStyle(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquityDiff[i][j], dMin, dMax, ptmw->fInvert, TRUE);
+                    SetStyleDiff(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquityDiff[i][j], dMin, dMax, ptmw->fInvert);
 
                 gtk_widget_set_tooltip_text(ptmw->atm[m].aapwe[i][j], sz);
                 g_free(sz);
@@ -425,9 +433,9 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
             }
 
         if (!fShowDiff || m==0) /* absolute equities */
-            SetStyle(ptmw->atm[m].pwAverage, ptmw->atm[m].rAverage, rMin, rMax, ptmw->fInvert, FALSE);
+            SetStyle(ptmw->atm[m].pwAverage, ptmw->atm[m].rAverage, rMin, rMax, ptmw->fInvert);
         else /* relative equities */
-            SetStyle(ptmw->atm[m].pwAverage, ptmw->atm[m].dAverage, dMin, dMax, ptmw->fInvert, TRUE);
+            SetStyleDiff(ptmw->atm[m].pwAverage, ptmw->atm[m].dAverage, dMin, dMax, ptmw->fInvert);
 
         gtk_widget_set_tooltip_text(ptmw->atm[m].pweAverage,
                                     GetEquityString(ptmw->atm[m].rAverage, &ci, ptmw->fInvert));
