@@ -758,8 +758,8 @@ DestroyDialog(gpointer p, GObject * UNUSED(obj))
 
 }
 
-static tempmapwidget *
-GTKShowTempMapAux(const matchstate ams[], const int n, gchar * aszTitle[], const int fInvert)
+extern void
+GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const int fInvert)
 {
 
     evalcontext ec = { TRUE, 0, FALSE, TRUE, 0.0, FALSE};
@@ -982,14 +982,14 @@ GTKShowTempMapAux(const matchstate ams[], const int n, gchar * aszTitle[], const
     ptmw->pwGauge = gtk_grid_new();
     gtk_box_pack_start(GTK_BOX(pwv), ptmw->pwGauge, FALSE, FALSE, 0);
 #else
-    ptmw->pwGauge =  gtk_table_new(2, 16, FALSE);
+    ptmw->pwGauge =  gtk_table_new(2, 32, FALSE);
     gtk_box_pack_start(GTK_BOX(pwv), ptmw->pwGauge, FALSE, FALSE, 0);
 #endif
 
-    for (i = 0; i < 16; ++i) {
+    for (i = 0; i < 32; ++i) {
 
         pw = gtk_drawing_area_new();
-        gtk_widget_set_size_request(pw, 15, 20);
+        gtk_widget_set_size_request(pw, 7, 20);
 
 #if GTK_CHECK_VERSION(3,0,0)
         gtk_grid_attach(GTK_GRID(ptmw->pwGauge), pw, i, 1, 1, 1);
@@ -1007,7 +1007,7 @@ GTKShowTempMapAux(const matchstate ams[], const int n, gchar * aszTitle[], const
         g_signal_connect(G_OBJECT(pw), "expose_event", G_CALLBACK(ExposeQuadrant), NULL);
 #endif
 
-        UpdateStyle(pw, (float)i / 15.0f, TRUE);
+        UpdateStyle(pw, (float)i / 31.0f, TRUE);
     }
 
     for (i = 0; i < 2; ++i) {
@@ -1015,7 +1015,7 @@ GTKShowTempMapAux(const matchstate ams[], const int n, gchar * aszTitle[], const
 #if GTK_CHECK_VERSION(3,0,0)
         gtk_grid_attach(GTK_GRID(ptmw->pwGauge), ptmw->apwGauge[i], 15 * i, 0, 1, 1);
 #else
-        gtk_table_attach_defaults(GTK_TABLE(ptmw->pwGauge), ptmw->apwGauge[i], 15 * i, 15 * i + 1, 0, 1);
+        gtk_table_attach_defaults(GTK_TABLE(ptmw->pwGauge), ptmw->apwGauge[i], 31 * i, 31 * i + 1, 0, 1);
 #endif
     }
 
@@ -1160,19 +1160,19 @@ GTKShowTempMapAux(const matchstate ams[], const int n, gchar * aszTitle[], const
 
     GTKRunDialog(pwDialog);
 
-    return ptmw;
+    // return ptmw;
 }
 
-extern void
-GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const int fInvert)
-{
-    tempmapwidget *ptmw = GTKShowTempMapAux(ams, n, aszTitle, fInvert);
-    g_message("fShowDiff=%d",fShowDiff);
-    if (fShowDiff){
-        gtk_widget_hide(ptmw->pwGauge);
-        gtk_widget_show(ptmw->pwGaugeDiff);
-    } else {
-        gtk_widget_hide(ptmw->pwGaugeDiff);
-        gtk_widget_show(ptmw->pwGauge);
-    }
-}
+// extern void
+// GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const int fInvert)
+// {
+//     tempmapwidget *ptmw = GTKShowTempMapAux(ams, n, aszTitle, fInvert);
+//     // g_message("fShowDiff=%d",fShowDiff);
+//     // if (fShowDiff){
+//     //     gtk_widget_hide(ptmw->pwGauge);
+//     //     gtk_widget_show(ptmw->pwGaugeDiff);
+//     // } else {
+//     //     gtk_widget_hide(ptmw->pwGaugeDiff);
+//     //     gtk_widget_show(ptmw->pwGauge);
+//     // }
+// }
