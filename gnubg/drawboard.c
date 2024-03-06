@@ -593,7 +593,7 @@ FormatMove(char *sz, const TanBoard anBoard, const int anMove[8])
 
     /* Re-order moves into 2-dimensional array. */
     for (i = 0; i < 4 && anMove[i << 1] >= 0; i++) {
-        aanMove[i][0] = anMove[i << 1] + 1;
+        aanMove[i][0] = anMove[i << 1] + 1; /* like multiplying by 2^1 */
         aanMove[i][1] = anMove[(i << 1) | 1] + 1;
         pnSource[i] = aanMove[i];
         pnDest[i] = aanMove[i] + 1;

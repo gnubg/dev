@@ -72,6 +72,7 @@ typedef struct {
     unsigned char *achPips[2];
     int fShowEquity;
     int fShowBestMove;
+    int fShowDiff;
     int fInvert;
     GtkWidget *apwGauge[2];
     float rMin, rMax;
@@ -86,6 +87,7 @@ typedef struct {
 /* Retain these from one GTKShowTempMap() to the next */
 static int fShowEquity = FALSE;
 static int fShowBestMove = FALSE;
+static int fShowDiff = FALSE;
 
 static int
 TempMapEquities(evalcontext * pec, const matchstate * pms,
@@ -208,6 +210,78 @@ SetStyle(GtkWidget * pw, const float rEquity, const float rMin, const float rMax
 
 }
 
+static char *
+GetEquityDiffString(const float rEquity0, const float rEquity, const cubeinfo * pci, const int fInvert)
+{
+
+    float r0,r;
+
+    if (fInvert) {
+        /* invert equity */
+        if (pci->nMatchTo){
+            r0 = 1.0f - rEquity0;
+            r = 1.0f - rEquity;
+        } else {
+            r0 = -rEquity0;
+            r = -rEquity;
+        }
+    } else {
+        r0 = rEquity0;
+        r = rEquity;
+    }
+
+    if (fInvert) {
+        cubeinfo ci;
+        memcpy(&ci, pci, sizeof ci);
+        ci.fMove = !ci.fMove;
+
+        return OutputEquityDiff(r0, r, &ci);
+    } else
+        return OutputEquityDiff(r0, r, pci);
+}
+
+/* based on MWC(), returns equity as float and not string */
+static float
+GetEquityAux(const float r, const cubeinfo * pci)
+{
+    if (!pci->nMatchTo) {
+        return r;
+    } else {
+        if (!fOutputMWC) {
+            return mwc2eq(r, pci);
+        } else if (fOutputMatchPC) {
+            return 100.0f * r;
+        } else {
+            return r;
+        }
+    }
+}
+
+static float
+GetEquity(const float rEquity, const cubeinfo * pci, const int fInvert)
+{
+
+    float r;
+
+    if (fInvert) {
+        /* invert equity */
+        if (pci->nMatchTo)
+            r = 1.0f - rEquity;
+        else
+            r = -rEquity;
+    } else
+        r = rEquity;
+
+    if (fInvert) {
+        cubeinfo ci;
+        memcpy(&ci, pci, sizeof ci);
+        ci.fMove = !ci.fMove;
+
+        return GetEquityAux(r, &ci);
+    } else
+        return GetEquityAux(r, pci);
+
+}
 
 static char *
 GetEquityString(const float rEquity, const cubeinfo * pci, const int fInvert)
@@ -255,6 +329,7 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
         for (i = 0; i < 6; ++i)
             for (j = 0; j < 6; ++j) {
                 r = ptmw->atm[m].aarEquity[i][j];
+                g_message("r=%f",r);
                 ptmw->atm[m].rAverage += r;
                 if (r > rMax)
                     rMax = r;
@@ -267,20 +342,38 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
     ptmw->rMax = rMax;
     ptmw->rMin = rMin;
 
-    /* update styles */
+    /* update styles & tooltips */
+
+    /* a bit confusing: it looks like the TempMap uses the aarEquity r (same as MWC?) to pick the color of each cell, 
+    but it then displays the equity of each cell, not its MWC */
 
     GetMatchStateCubeInfo(&ci, ptmw->atm[0].pms);
 
+    gchar *sz;
     for (m = 0; m < ptmw->n; ++m) {
         for (i = 0; i < 6; ++i)
             for (j = 0; j < 6; ++j) {
-
-                gchar *sz = g_strdup_printf("%s [%s]",
-                                            GetEquityString(ptmw->atm[m].aarEquity[i][j],
-                                                            &ci, ptmw->fInvert),
-                                            FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
-                                                       ptmw->atm[m].aaanMove[i][j]));
-
+                if (m==0) {
+                    sz = g_strdup_printf("%s [%s]",
+                                                GetEquityString(ptmw->atm[m].aarEquity[i][j],
+                                                                &ci, ptmw->fInvert),
+                                                FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
+                                                        ptmw->atm[m].aaanMove[i][j]));
+                    g_message("equity=%s",sz);
+                } else {
+                    sz = g_strdup_printf("%s,%s [%s]",
+                                                GetEquityString(ptmw->atm[m].aarEquity[i][j],
+                                                                &ci, ptmw->fInvert),
+                                                GetEquityDiffString(ptmw->atm[0].aarEquity[i][j],
+                                                                ptmw->atm[m].aarEquity[i][j],
+                                                                &ci, ptmw->fInvert),                                                                
+                                                FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
+                                                        ptmw->atm[m].aaanMove[i][j]));
+                    g_message("%s",sz);
+                }
+                
+                
+                
                 SetStyle(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquity[i][j], rMin, rMax, ptmw->fInvert);
 
                 gtk_widget_set_tooltip_text(ptmw->atm[m].aapwe[i][j], sz);
@@ -357,8 +450,10 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
             r = ptmw->atm[m].aarEquity[i][j];
         else if (j == -1)
             r = ptmw->atm[m].rAverage;
+        g_message("r=%f",ptmw->atm[m].aarEquity[i][j]);
         GetMatchStateCubeInfo(&ci, ptmw->atm[0].pms);
         tmp = GetEquityString(r, &ci, ptmw->fInvert);
+        g_message("tmp=%s, myequity=%f",tmp,GetEquity(r, &ci, ptmw->fInvert));
         while (*tmp == ' ')
             tmp++;
         g_string_append(str, tmp);
@@ -542,6 +637,18 @@ ShowBestMoveToggled(GtkWidget * pw, tempmapwidget * ptmw)
 }
 
 static void
+ShowDiffToggled(GtkWidget * pw, tempmapwidget * ptmw)
+{
+
+    int f = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
+
+    if (f != ptmw->fShowDiff) {
+        fShowDiff = ptmw->fShowDiff = f;
+        UpdateTempMapEquities(ptmw);
+    }
+}
+
+static void
 DestroyDialog(gpointer p, GObject * UNUSED(obj))
 {
     tempmapwidget *ptmw = (tempmapwidget *) p;
@@ -603,6 +710,7 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     ptmw = (tempmapwidget *) g_malloc(sizeof(tempmapwidget));
     ptmw->fShowBestMove = fShowBestMove;
     ptmw->fShowEquity = fShowEquity;
+    ptmw->fShowDiff = fShowDiff;
     ptmw->fInvert = fInvert;
     ptmw->n = n;
     ptmw->nSizeDie = -1;
@@ -876,19 +984,21 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
         gtk_box_pack_start(GTK_BOX(pwv), pwh, FALSE, FALSE, 0);
     }
 
+    pw = gtk_check_button_new_with_label(_("Show diff"));
+    gtk_toggle_button_set_active((GtkToggleButton *) pw, ptmw->fShowDiff);
+    gtk_box_pack_end(GTK_BOX(pwh), pw, FALSE, FALSE, 0);
+    g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowDiffToggled), ptmw);
+
     pw = gtk_check_button_new_with_label(_("Show equities"));
     gtk_toggle_button_set_active((GtkToggleButton *) pw, ptmw->fShowEquity);
     gtk_box_pack_end(GTK_BOX(pwh), pw, FALSE, FALSE, 0);
-
     g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowEquityToggled), ptmw);
 
 
     pw = gtk_check_button_new_with_label(_("Show best move"));
     gtk_toggle_button_set_active((GtkToggleButton *) pw, ptmw->fShowBestMove);
     gtk_box_pack_end(GTK_BOX(pwh), pw, FALSE, FALSE, 0);
-
     g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowBestMoveToggled), ptmw);
-
 
     /* update */
 
