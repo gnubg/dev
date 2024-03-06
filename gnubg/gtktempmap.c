@@ -76,6 +76,8 @@ typedef struct {
     int fShowBestMove;
     int fShowDiff;
     int fInvert;
+    GtkWidget * pwGauge;
+    GtkWidget * pwGaugeDiff;
     GtkWidget *apwGauge[2];
     GtkWidget *apwGaugeDiff[2];
     float rMin, rMax;
@@ -456,8 +458,8 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
 
     gtk_label_set_text(GTK_LABEL(ptmw->apwGauge[ptmw->fInvert]), GetEquityString(rMin, &ci, ptmw->fInvert));
     gtk_label_set_text(GTK_LABEL(ptmw->apwGauge[!ptmw->fInvert]), GetEquityString(rMax, &ci, ptmw->fInvert));
-    gtk_label_set_text(GTK_LABEL(ptmw->apwGaugeDiff[0]), GetEquityDiffStringAux(dMin,&ci));
-    gtk_label_set_text(GTK_LABEL(ptmw->apwGaugeDiff[1]), GetEquityDiffStringAux(dMax,&ci));    
+    gtk_label_set_text(GTK_LABEL(ptmw->apwGaugeDiff[0]), GetEquityDiffStringAux(-ptmw->dMaxAbs,&ci));
+    gtk_label_set_text(GTK_LABEL(ptmw->apwGaugeDiff[1]), GetEquityDiffStringAux(ptmw->dMaxAbs,&ci));    
 }
 
 static gboolean
@@ -722,6 +724,14 @@ ShowDiffToggled(GtkWidget * pw, tempmapwidget * ptmw)
         fShowDiff = ptmw->fShowDiff = f;
         UpdateTempMapEquities(ptmw);
     }
+    if (fShowDiff){
+        gtk_widget_hide(ptmw->pwGauge);
+        gtk_widget_show(ptmw->pwGaugeDiff);
+    } else {
+        gtk_widget_hide(ptmw->pwGaugeDiff);
+        gtk_widget_show(ptmw->pwGauge);
+    }
+
 }
 
 static void
@@ -748,8 +758,8 @@ DestroyDialog(gpointer p, GObject * UNUSED(obj))
 
 }
 
-extern void
-GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const int fInvert)
+static tempmapwidget *
+GTKShowTempMapAux(const matchstate ams[], const int n, gchar * aszTitle[], const int fInvert)
 {
 
     evalcontext ec = { TRUE, 0, FALSE, TRUE, 0.0, FALSE};
@@ -761,6 +771,7 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     GtkWidget *pwDialog;
     GtkWidget *pwv;
     GtkWidget *pw;
+    GtkWidget *pw2;
     GtkWidget *pwh;
     GtkWidget *pwx = NULL;
 #if GTK_CHECK_VERSION(3,0,0)
@@ -792,6 +803,7 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     ptmw->nSizeDie = -1;
     ptmw->achDice[0] = ptmw->achDice[1] = NULL;
     ptmw->achPips[0] = ptmw->achPips[1] = NULL;
+    ptmw->dMaxAbs=1; /* only to initialize and avoid division by 0 */
 
     ptmw->atm = (tempmap *) g_malloc(n * sizeof(tempmap));
     for (i = 0; i < n; ++i) {
@@ -967,11 +979,11 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     /* gauge */
 
 #if GTK_CHECK_VERSION(3,0,0)
-    pwGrid = gtk_grid_new();
-    gtk_box_pack_start(GTK_BOX(pwv), pwGrid, FALSE, FALSE, 0);
+    ptmw->pwGauge = gtk_grid_new();
+    gtk_box_pack_start(GTK_BOX(pwv), ptmw->pwGauge, FALSE, FALSE, 0);
 #else
-    pwTable = gtk_table_new(2, 16, FALSE);
-    gtk_box_pack_start(GTK_BOX(pwv), pwTable, FALSE, FALSE, 0);
+    ptmw->pwGauge =  gtk_table_new(2, 16, FALSE);
+    gtk_box_pack_start(GTK_BOX(pwv), ptmw->pwGauge, FALSE, FALSE, 0);
 #endif
 
     for (i = 0; i < 16; ++i) {
@@ -980,10 +992,10 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
         gtk_widget_set_size_request(pw, 15, 20);
 
 #if GTK_CHECK_VERSION(3,0,0)
-        gtk_grid_attach(GTK_GRID(pwGrid), pw, i, 1, 1, 1);
+        gtk_grid_attach(GTK_GRID(ptmw->pwGauge), pw, i, 1, 1, 1);
         gtk_widget_set_hexpand(pw, TRUE);
 #else
-        gtk_table_attach_defaults(GTK_TABLE(pwTable), pw, i, i + 1, 1, 2);
+        gtk_table_attach_defaults(GTK_TABLE(ptmw->pwGauge), pw, i, i + 1, 1, 2);
 #endif
 
         g_object_set_data(G_OBJECT(pw), "user_data", NULL);
@@ -995,17 +1007,15 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
         g_signal_connect(G_OBJECT(pw), "expose_event", G_CALLBACK(ExposeQuadrant), NULL);
 #endif
 
-        UpdateStyle(pw, (float)i / 15.0f, FALSE);
-
-
+        UpdateStyle(pw, (float)i / 15.0f, TRUE);
     }
 
     for (i = 0; i < 2; ++i) {
         ptmw->apwGauge[i] = gtk_label_new("");
 #if GTK_CHECK_VERSION(3,0,0)
-        gtk_grid_attach(GTK_GRID(pwGrid), ptmw->apwGauge[i], 15 * i, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(ptmw->pwGauge), ptmw->apwGauge[i], 15 * i, 0, 1, 1);
 #else
-        gtk_table_attach_defaults(GTK_TABLE(pwTable), ptmw->apwGauge[i], 15 * i, 15 * i + 1, 0, 1);
+        gtk_table_attach_defaults(GTK_TABLE(ptmw->pwGauge), ptmw->apwGauge[i], 15 * i, 15 * i + 1, 0, 1);
 #endif
     }
 
@@ -1021,35 +1031,39 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     /* gauge2=apwGaugeDiff for relative equity */
 
 #if GTK_CHECK_VERSION(3,0,0)
-    pwGrid = gtk_grid_new();
-    gtk_box_pack_start(GTK_BOX(pwv), pwGrid, FALSE, FALSE, 0);
+    ptmw->pwGaugeDiff = gtk_grid_new();
+    gtk_box_pack_start(GTK_BOX(pwv), ptmw->pwGaugeDiff, FALSE, FALSE, 0);
 #else
-    pwTable = gtk_table_new(2, 16, FALSE);
-    gtk_box_pack_start(GTK_BOX(pwv), pwTable, FALSE, FALSE, 0);
+    ptmw->pwGaugeDiff = gtk_table_new(2, 32, FALSE);
+    gtk_box_pack_start(GTK_BOX(pwv), ptmw->pwGaugeDiff, FALSE, FALSE, 0);
 #endif
 
-    for (i = 0; i < 16; ++i) {
+    for (i = 0; i < 32; ++i) {
 
-        pw = gtk_drawing_area_new();
-        gtk_widget_set_size_request(pw, 15, 20);
+        pw2 = gtk_drawing_area_new();
+        gtk_widget_set_size_request(pw2, 7, 20);
 
 #if GTK_CHECK_VERSION(3,0,0)
-        gtk_grid_attach(GTK_GRID(pwGrid), pw, i, 1, 1, 1);
-        gtk_widget_set_hexpand(pw, TRUE);
+        gtk_grid_attach(GTK_GRID(ptmw->pwGaugeDiff), pw2, i, 1, 1, 1);
+        gtk_widget_set_hexpand(pw2, TRUE);
 #else
-        gtk_table_attach_defaults(GTK_TABLE(pwTable), pw, i, i + 1, 1, 2);
+        gtk_table_attach_defaults(GTK_TABLE(ptmw->pwGaugeDiff), pw2, i, i + 1, 1, 2);
 #endif
 
-        g_object_set_data(G_OBJECT(pw), "user_data", NULL);
+        g_object_set_data(G_OBJECT(pw2), "user_data", NULL);
 
 #if GTK_CHECK_VERSION(3,0,0)
-        gtk_style_context_add_class(gtk_widget_get_style_context(pw), "gnubg-temp-map-quadrant");
-        g_signal_connect(G_OBJECT(pw), "draw", G_CALLBACK(DrawQuadrant), NULL);
+        gtk_style_context_add_class(gtk_widget_get_style_context(pw2), "gnubg-temp-map-quadrant");
+        g_signal_connect(G_OBJECT(pw2), "draw", G_CALLBACK(DrawQuadrant), NULL);
 #else
-        g_signal_connect(G_OBJECT(pw), "expose_event", G_CALLBACK(ExposeQuadrant), NULL);
+        g_signal_connect(G_OBJECT(pw2), "expose_event", G_CALLBACK(ExposeQuadrant), NULL);
 #endif
 
-        UpdateStyle(pw, (float)i / 15.0f, FALSE);
+    if (i-15>=0)
+        UpdateStyle(pw2, (float)((i-15) / 15.0f), FALSE);
+    else
+        UpdateStyle(pw2, (float)(-(i-15) / 15.0f), TRUE);
+
 
 
     }
@@ -1057,11 +1071,13 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     for (i = 0; i < 2; ++i) {
         ptmw->apwGaugeDiff[i] = gtk_label_new("");
 #if GTK_CHECK_VERSION(3,0,0)
-        gtk_grid_attach(GTK_GRID(pwGrid), ptmw->apwGaugeDiff[i], 15 * i, 0, 1, 1);
+        gtk_grid_attach(GTK_GRID(ptmw->pwGaugeDiff), ptmw->apwGaugeDiff[i], 31 * i, 0, 1, 1);
 #else
-        gtk_table_attach_defaults(GTK_TABLE(pwTable), ptmw->apwGaugeDiff[i], 15 * i, 15 * i + 1, 0, 1);
+        gtk_table_attach_defaults(GTK_TABLE(ptmw->pwGaugeDiff), ptmw->apwGaugeDiff[i], 31 * i, 31 * i + 1, 0, 1);
 #endif
     }
+
+    // gtk_widget_hide(ptmw->pwGaugeDiff);
 
     /* separator */
 
@@ -1114,6 +1130,7 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
 #endif
         gtk_box_pack_start(GTK_BOX(pwv), pwh, FALSE, FALSE, 0);
     }
+  
 
     pw = gtk_check_button_new_with_label(_("Show diff"));
     gtk_toggle_button_set_active((GtkToggleButton *) pw, ptmw->fShowDiff);
@@ -1142,4 +1159,20 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     g_object_weak_ref(G_OBJECT(pwDialog), DestroyDialog, ptmw);
 
     GTKRunDialog(pwDialog);
+
+    return ptmw;
+}
+
+extern void
+GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const int fInvert)
+{
+    tempmapwidget *ptmw = GTKShowTempMapAux(ams, n, aszTitle, fInvert);
+    g_message("fShowDiff=%d",fShowDiff);
+    if (fShowDiff){
+        gtk_widget_hide(ptmw->pwGauge);
+        gtk_widget_show(ptmw->pwGaugeDiff);
+    } else {
+        gtk_widget_hide(ptmw->pwGaugeDiff);
+        gtk_widget_show(ptmw->pwGauge);
+    }
 }
