@@ -78,6 +78,7 @@ typedef struct {
     int fInvert;
     GtkWidget * pwGauge;
     GtkWidget *aapwGaugeDA[32];
+    GtkWidget *aapweGauge[32];
     // GtkWidget * pwGaugeDiff;
     GtkWidget *apwGauge[2];
     // GtkWidget *apwGaugeDiff[2];
@@ -384,8 +385,8 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
     ptmw->rMin = rMin;
 
     GetMatchStateCubeInfo(&ci, ptmw->atm[0].pms);
-    dMax = -10000;
-    dMin = +10000;
+    dMax = -10000.0;
+    dMin = +10000.0;
     for (m = 1; m < ptmw->n; ++m) {
         ptmw->atm[m].dAverage = 0.0f;
         for (i = 0; i < 6; ++i)
@@ -406,7 +407,8 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
     ptmw->dMin = dMin;
     ptmw->dMaxAbs = MAX(-dMin,dMax);
     // float dMAX = (dMax > (-dMin)) ? dMax : -dMin;
-    g_assert(ptmw->dMaxAbs>=0.0f);
+    // g_message("dMax=%f,dMin=%f,ptmw->dMaxAbs=%f",dMax,dMin,ptmw->dMaxAbs);
+    g_assert(ptmw->n <=1 || ptmw->dMaxAbs>=0.0f);
 
 
     /* update styles (cell colors) & tooltips */
@@ -756,11 +758,13 @@ DrawGauge(tempmapwidget *ptmw)
 
         if (!fShowDiff) {
             UpdateStyle(ptmw->aapwGaugeDA[i], (float)i / 31.0f, 0);
+            gtk_widget_set_tooltip_text(ptmw->aapweGauge[i], _("Gauge for the absolute equity used in the temperature maps"));        
         } else {
             if (i-15.5f>0)
                 UpdateStyle(ptmw->aapwGaugeDA[i], (float)((i-15.5f) / 15.5f), 1);
             else
                 UpdateStyle(ptmw->aapwGaugeDA[i], (float)(-(i-15.5f) / 15.5f), 2);
+            gtk_widget_set_tooltip_text(ptmw->aapweGauge[i], _("Gauge for the relative equity used in the relative-equity temperature maps"));        
         }
         // g_message("fShowDiff=%d",fShowDiff);
         gtk_widget_queue_draw(ptmw->aapwGaugeDA[i]);
@@ -1062,20 +1066,25 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     for (int i = 0; i < 32; ++i) {
 
         ptmw->aapwGaugeDA[i] = gtk_drawing_area_new();
+        ptmw->aapweGauge[i] = gtk_event_box_new();
+        
+        gtk_event_box_set_visible_window(GTK_EVENT_BOX(ptmw->aapweGauge[i]), FALSE);
+        gtk_container_add(GTK_CONTAINER(ptmw->aapweGauge[i]), ptmw->aapwGaugeDA[i]);
+        
         gtk_widget_set_size_request(ptmw->aapwGaugeDA[i], 7, 20);
 
 #if GTK_CHECK_VERSION(3,0,0)
-        gtk_grid_attach(GTK_GRID(ptmw->pwGauge), ptmw->aapwGaugeDA[i], i, 1, 1, 1);
-        gtk_widget_set_hexpand(ptmw->aapwGaugeDA[i], TRUE);
+        gtk_grid_attach(GTK_GRID(ptmw->pwGauge), ptmw->aapweGauge[i], i, 1, 1, 1);
+        gtk_widget_set_hexpand(ptmw->aapweGauge[i], TRUE);
 #else
-        gtk_table_attach_defaults(GTK_TABLE(ptmw->pwGauge), ptmw->aapwGaugeDA[i], i, i + 1, 1, 2);
+        gtk_table_attach_defaults(GTK_TABLE(ptmw->pwGauge), ptmw->aapweGauge[i], i, i + 1, 1, 2);
 #endif
 
         g_object_set_data(G_OBJECT(ptmw->aapwGaugeDA[i]), "user_data", NULL);
 
 #if GTK_CHECK_VERSION(3,0,0)
-        gtk_style_context_add_class(gtk_widget_get_style_context(ptmw->aapwGaugeDA[i]), "gnubg-temp-map-quadrant");
-        g_signal_connect(G_OBJECT(ptmw->aapwGaugeDA[i]), "draw", G_CALLBACK(DrawQuadrant), NULL);
+        gtk_style_context_add_class(gtk_widget_get_style_context(ptmw->aapweGauge[i]), "gnubg-temp-map-quadrant");
+        g_signal_connect(G_OBJECT(ptmw->aapweGauge[i]), "draw", G_CALLBACK(DrawQuadrant), NULL);
 #else
         g_signal_connect(G_OBJECT(ptmw->aapwGaugeDA[i]), "expose_event", G_CALLBACK(ExposeQuadrant), NULL);
 #endif
@@ -1143,11 +1152,12 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
         gtk_box_pack_start(GTK_BOX(pwv), pwh, FALSE, FALSE, 0);
     }
   
-
-    pw = gtk_check_button_new_with_label(_("Show diff"));
-    gtk_toggle_button_set_active((GtkToggleButton *) pw, ptmw->fShowDiff);
-    gtk_box_pack_end(GTK_BOX(pwh), pw, FALSE, FALSE, 0);
-    g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowDiffToggled), ptmw);
+    if (n>1) {
+        pw = gtk_check_button_new_with_label(_("Show diff"));
+        gtk_toggle_button_set_active((GtkToggleButton *) pw, ptmw->fShowDiff);
+        gtk_box_pack_end(GTK_BOX(pwh), pw, FALSE, FALSE, 0);
+        g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowDiffToggled), ptmw);
+    }
 
     pw = gtk_check_button_new_with_label(_("Show equities"));
     gtk_toggle_button_set_active((GtkToggleButton *) pw, ptmw->fShowEquity);
