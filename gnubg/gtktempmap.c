@@ -430,9 +430,9 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
     /* for translations */
     char szROLL[]= "Equity following this roll";
     char szAVG[]= "Average equity";
-    char szREL[]= "Relative: ";
-    char szABS[]= "Absolute: ";
-    char szMOVE[]= "Best move: ";
+    char szREL[]= "Relative";
+    char szABS[]= "Absolute";
+    char szMOVE[]= "Best move";
 
     gchar *sz;
     for (m = 0; m < ptmw->n; ++m) {
@@ -446,7 +446,7 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
                                                         ptmw->atm[m].aaanMove[i][j]));
                     // g_message("equity=%s",sz);
                 } else {
-                    sz = g_strdup_printf("[%s]\n\n%s\t%s\n%s\t%s\n%s\t%s", _(szROLL), _(szREL),
+                    sz = g_strdup_printf("[%s]\n\n%s: \t%s\n%s: \t%s\n%s: \t%s", _(szROLL), _(szREL),
                             GetEquityDiffString(ptmw->atm[0].aarEquity[i][j], ptmw->atm[m].aarEquity[i][j],
                                                                 &ci, ptmw->fInvert), _(szABS),
                             GetEquityString(ptmw->atm[m].aarEquity[i][j], &ci, ptmw->fInvert), _(szMOVE),
@@ -472,7 +472,7 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
                                     GetEquityString(ptmw->atm[m].rAverage, &ci, ptmw->fInvert));
         }
         else {/* relative equities */
-            sz = g_strdup_printf("[%s]\n\n%s\t%s\n%s\t%s", _(szAVG), _(szREL),
+            sz = g_strdup_printf("[%s]\n\n%s: \t%s\n%s: \t%s", _(szAVG), _(szREL),
                             GetEquityDiffString(ptmw->atm[0].rAverage, ptmw->atm[m].rAverage,
                                                                 &ci, ptmw->fInvert), _(szABS),
                             GetEquityString(ptmw->atm[m].rAverage, &ci, ptmw->fInvert));
