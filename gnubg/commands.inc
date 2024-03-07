@@ -1590,7 +1590,7 @@ command acTop[] = {
     { "roll", CommandRoll, N_("Roll the dice"), NULL, NULL },
     { "rollout", CommandRollout, 
       N_("Have GNUbg perform rollouts of the current position."),
-      szOPTPOSITION, NULL },
+      NULL, NULL },
     { "save", NULL, N_("Write data to a file"), NULL, acSave },
     { "set", NULL, N_("Modify program parameters"), NULL, acSet },
     { "show", NULL, N_("View program parameters"), NULL, acShow },

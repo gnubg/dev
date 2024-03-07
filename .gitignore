@@ -54,6 +54,8 @@ Mkfile.old
 dkms.conf
 
 .vs/*
+gnubg/cglm/
+gnubg/cglm/*
 
 # list of files that appear during compilation
 

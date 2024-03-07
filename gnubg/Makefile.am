@@ -294,3 +294,6 @@ endif
 
 MOSTLYCLEANFILES=sgf_y.c sgf_y.h sgf_l.c external_l.c external_l.h external_y.c external_y.h copying.c credits.c credits.h AUTHORS
 DISTCLEANFILES=gnubg_os0.bd gnubg_ts0.bd gnubg.wd
+
+distclean-local:
+    $(RM) -r cglm
