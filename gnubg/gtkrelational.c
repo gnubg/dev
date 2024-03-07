@@ -516,59 +516,93 @@ It divides the total errors by the number of played decisions within these 5 mat
     GTKRunDialog(pwInfoDialog);
 }
 
+// static void CreateHistoryWindow (void)  //GtkWidget* pwParent) {
+// {
+//     char plotTitle[200];
+//     sprintf(plotTitle, _("History plot for %s"), playerName);
+
+// #if GTK_CHECK_VERSION(3,0,0)
+//     GtkWidget * window;
+
+//     /* careful: GTK3 only here, not GTK2! */
+//     window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
+//     gtk_window_set_default_size (GTK_WINDOW(window), WIDTH, HEIGHT);
+//     gtk_window_set_position     (GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+//     gtk_window_set_title        (GTK_WINDOW(window), plotTitle);
+
+//     g_signal_connect(window, "destroy", G_CALLBACK(gtk_widget_destroy), NULL);
+
+//     GtkWidget *helpButton;
+//     gtk_container_add(GTK_CONTAINER(DialogArea(window, DA_BUTTONS)),
+//         helpButton = gtk_button_new_with_label(_("Explanations")));
+//     gtk_widget_set_tooltip_text(helpButton,
+//         _("Click to obtain more explanations on this History plot"));
+//     g_signal_connect(helpButton, "clicked", G_CALLBACK(HistoryPlotInfo), window);
+
+//     GtkWidget* da = gtk_drawing_area_new();
+//     gtk_widget_set_hexpand(da, TRUE);
+//     gtk_container_add(GTK_CONTAINER(DialogArea(window, DA_MAIN)), da);
+//     g_signal_connect(G_OBJECT(da), "draw", G_CALLBACK(DrawHistoryPlot), NULL);
+    
+//     gtk_widget_show_all(window);
+// #else
+//     GtkWidget *window;
+//     GtkWidget *helpButton;
+//     window = GTKCreateDialog(_("History plot"), DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
+//     gtk_window_set_default_size (GTK_WINDOW (window), WIDTH, HEIGHT);
+//     gtk_window_set_title (GTK_WINDOW (window), plotTitle);
+
+//     g_signal_connect(G_OBJECT(window), "destroy", G_CALLBACK(gtk_widget_destroy), NULL);
+
+//     gtk_container_add(GTK_CONTAINER(DialogArea(window, DA_BUTTONS)),
+//         helpButton = gtk_button_new_with_label(_("Explanations")));
+//     gtk_widget_set_tooltip_text(helpButton,
+//         _("Click to obtain more explanations on this History plot"));
+//     g_signal_connect(helpButton, "clicked", G_CALLBACK(HistoryPlotInfo), window);
+
+//     GtkWidget * da = gtk_drawing_area_new ();
+//     gtk_container_add(GTK_CONTAINER(DialogArea(window, DA_MAIN)), da);
+//     g_signal_connect(G_OBJECT(da), "expose-event", G_CALLBACK (DrawHistoryPlot), NULL);
+
 static void CreateHistoryWindow (void)  //GtkWidget* pwParent) {
 {
-    char plotTitle[200];
-    sprintf(plotTitle, _("History plot for %s"), playerName);
-
-#if GTK_CHECK_VERSION(3,0,0)
-    GtkWidget * window;
-
-    /* careful: GTK3 only here, not GTK2! */
-    window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
-    gtk_window_set_default_size (GTK_WINDOW(window), WIDTH, HEIGHT);
-    gtk_window_set_position     (GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-    gtk_window_set_title        (GTK_WINDOW(window), plotTitle);
-
-    g_signal_connect(window, "destroy", G_CALLBACK(gtk_widget_destroy), NULL);
-
-    GtkWidget *helpButton;
-    gtk_container_add(GTK_CONTAINER(DialogArea(window, DA_BUTTONS)),
-        helpButton = gtk_button_new_with_label(_("Explanations")));
-    gtk_widget_set_tooltip_text(helpButton,
-        _("Click to obtain more explanations on this History plot"));
-    g_signal_connect(helpButton, "clicked", G_CALLBACK(HistoryPlotInfo), window);
-
-    GtkWidget* da = gtk_drawing_area_new();
-    gtk_widget_set_hexpand(da, TRUE);
-    gtk_container_add(GTK_CONTAINER(DialogArea(window, DA_MAIN)), da);
-    g_signal_connect(G_OBJECT(da), "draw", G_CALLBACK(DrawHistoryPlot), NULL);
-    
-    gtk_widget_show_all(window);
-#else
     GtkWidget *window;
     GtkWidget *helpButton;
-    window = GTKCreateDialog(_("History plot"), DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
-    gtk_window_set_default_size (GTK_WINDOW (window), WIDTH, HEIGHT);
-    gtk_window_set_title (GTK_WINDOW (window), plotTitle);
+    GtkWidget *da;
+    gchar *plotTitle;
+
+    window = GTKCreateDialog("", DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
+
+    gtk_window_set_default_size(GTK_WINDOW(window), WIDTH, HEIGHT);
+    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+
+    plotTitle = g_strdup_printf( _("History plot for %s"), playerName);
+    gtk_window_set_title(GTK_WINDOW(window), plotTitle);
+    g_free(plotTitle);
 
     g_signal_connect(G_OBJECT(window), "destroy", G_CALLBACK(gtk_widget_destroy), NULL);
 
     gtk_container_add(GTK_CONTAINER(DialogArea(window, DA_BUTTONS)),
-        helpButton = gtk_button_new_with_label(_("Explanations")));
+		      helpButton = gtk_button_new_with_label(_("Explanations")));
     gtk_widget_set_tooltip_text(helpButton,
-        _("Click to obtain more explanations on this History plot"));
+				_("Click to obtain more explanations on this History plot"));
     g_signal_connect(helpButton, "clicked", G_CALLBACK(HistoryPlotInfo), window);
 
-    GtkWidget * da = gtk_drawing_area_new ();
+    da = gtk_drawing_area_new();
     gtk_container_add(GTK_CONTAINER(DialogArea(window, DA_MAIN)), da);
+
+#if GTK_CHECK_VERSION(3,0,0)
+    gtk_widget_set_hexpand(da, TRUE);
+    g_signal_connect(G_OBJECT(da), "draw", G_CALLBACK(DrawHistoryPlot), NULL);
+#else
     g_signal_connect(G_OBJECT(da), "expose-event", G_CALLBACK (DrawHistoryPlot), NULL);
+#endif
 
     gtk_widget_show_all (window);
     /* GTKRunDialog(window); */ /* <-- this leads to a blackhole: we can only use this window once (because of its 
                                 calling the gtk_main() function)*/
 
-#endif
+
 }
 
 static void initHistoryArrays(void) {

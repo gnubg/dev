@@ -821,6 +821,7 @@ GTKShowTheory(const int fActivePage)
     gtk_misc_set_alignment(GTK_MISC(pwz), 0, 0.5);
 #endif
     gtk_box_pack_start(GTK_BOX(pwx), pwz = gtk_label_new((char *) miCurrent.szDescription), FALSE, FALSE, 0);
+    gtk_label_set_line_wrap(GTK_LABEL(pwz), TRUE);
 #if GTK_CHECK_VERSION(3,0,0)
     gtk_widget_set_halign(pwz, GTK_ALIGN_START);
     gtk_widget_set_valign(pwz, GTK_ALIGN_CENTER);
