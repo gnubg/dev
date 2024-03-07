@@ -58,8 +58,8 @@ typedef struct {
     GtkWidget *aapwDA[6][6];
     GtkWidget *aapwe[6][6];
     GtkWidget *pwAverage;
-
     GtkWidget *pweAverage;
+    GtkWidget *Frame; /* frame with title to be changed */
 
     int aaanMove[6][6][8];
 
@@ -212,12 +212,12 @@ UpdateStyle(GtkWidget * pw, const float r, const int fRed)
 }
 
 static void
-SetStyleDiff(GtkWidget * pw, float dEquity, const float dMaxAbs, const int fInvert)
+SetStyleDiff(GtkWidget * pw, float dEquity, const float dMaxAbs) //, const int fInvert)
 {
 
     // if (fInvert)
     //     dEquity = -dEquity;
-    g_message("dEquity=%+.3f,dMaxAbs=%+.3f,fInvert=%d",dEquity,dMaxAbs,fInvert);
+    // g_message("dEquity=%+.3f,dMaxAbs=%+.3f,fInvert=%d",dEquity,dMaxAbs,fInvert);
     if (dEquity>0)
         UpdateStyle(pw, dEquity/dMaxAbs, FALSE);
     else
@@ -384,7 +384,7 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
             for (j = 0; j < 6; ++j) {
                 d = ptmw->atm[m].aarEquityDiff[i][j] = GetEquity(ptmw->atm[m].aarEquity[i][j], &ci, ptmw->fInvert)
                                                        - GetEquity(ptmw->atm[0].aarEquity[i][j], &ci, ptmw->fInvert);
-                g_message("m=%d,i=%d,j=%d -> d=%+.3f",m,i,j,d);
+                // g_message("m=%d,i=%d,j=%d -> d=%+.3f",m,i,j,d);
                 ptmw->atm[m].dAverage += d;
                 if (d > dMax)
                     dMax = d;
@@ -436,7 +436,7 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
                 if (!fShowDiff || m==0) /* absolute equities */
                     SetStyle(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquity[i][j], rMin, rMax, ptmw->fInvert);
                 else /* difference i.e. relative equities */
-                    SetStyleDiff(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquityDiff[i][j], ptmw->dMaxAbs, ptmw->fInvert);
+                    SetStyleDiff(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquityDiff[i][j], ptmw->dMaxAbs);
 
                 gtk_widget_set_tooltip_text(ptmw->atm[m].aapwe[i][j], sz);
                 g_free(sz);
@@ -447,7 +447,7 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
         if (!fShowDiff || m==0) /* absolute equities */
             SetStyle(ptmw->atm[m].pwAverage, ptmw->atm[m].rAverage, rMin, rMax, ptmw->fInvert);
         else /* relative equities */
-            SetStyleDiff(ptmw->atm[m].pwAverage, ptmw->atm[m].dAverage, ptmw->dMaxAbs, ptmw->fInvert);
+            SetStyleDiff(ptmw->atm[m].pwAverage, ptmw->atm[m].dAverage, ptmw->dMaxAbs);
 
         gtk_widget_set_tooltip_text(ptmw->atm[m].pweAverage,
                                     GetEquityString(ptmw->atm[m].rAverage, &ci, ptmw->fInvert));
@@ -524,9 +524,9 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
         if(!fShowDiff || m==0)
             tmp = GetEquityString(r, &ci, ptmw->fInvert);
         else {
-            float auxEquity=GetEquity(r, &ci, ptmw->fInvert)-GetEquity(ptmw->atm[0].aarEquity[i][j], &ci, ptmw->fInvert);
-            if (i==0 && j==0)
-                g_message("myequitydiff=%+.3f",auxEquity);
+            // float auxEquity=GetEquity(r, &ci, ptmw->fInvert)-GetEquity(ptmw->atm[0].aarEquity[i][j], &ci, ptmw->fInvert);
+            // if (i==0 && j==0)
+                // g_message("myequitydiff=%+.3f",auxEquity);
             if (j >= 0)
                 tmp=GetEquityDiffString(ptmw->atm[0].aarEquity[i][j],r,&ci,ptmw->fInvert);
             else if (j == -1)
@@ -749,7 +749,7 @@ DrawGauge(tempmapwidget *ptmw)
             else
                 UpdateStyle(ptmw->aapwGaugeDA[i], (float)(-(i-15.5f) / 15.5f), TRUE);
         }
-        g_message("fShowDiff=%d",fShowDiff);
+        // g_message("fShowDiff=%d",fShowDiff);
         gtk_widget_queue_draw(ptmw->aapwGaugeDA[i]);
     }
 }
@@ -772,7 +772,18 @@ ShowDiffToggled(GtkWidget * pw, tempmapwidget * ptmw)
     //     gtk_widget_hide(ptmw->pwGaugeDiff);
     //     gtk_widget_show(ptmw->pwGauge);
     // }
-
+    for (int i = 0; i < ptmw->n; ++i) {
+        if (!fShowDiff)
+            gtk_frame_set_label(GTK_FRAME(ptmw->atm[i].Frame),ptmw->atm[i].szTitle);
+        else {
+            char buf[100];
+            if (i==0)
+                sprintf(buf, _("%s: basis equity"), ptmw->atm[i].szTitle);
+            else
+                sprintf(buf, _("%s: equity relative to basis"), ptmw->atm[i].szTitle);
+            gtk_frame_set_label(GTK_FRAME(ptmw->atm[i].Frame),buf);
+        }
+    }
 }
 
 static void
@@ -864,11 +875,11 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
 
     /* calculate number of rows and columns */
 
-    for (lm = 1; /**/; ++lm)
+    for (lm = 1; /**/; ++lm) /* computing lm=max(l)+1*/
         if (lm * lm >= n)
             break;
 
-    for (km = 1; km * lm < n; ++km);
+    for (km = 1; km * lm < n; ++km); /* computing km=max(k)+1*/
 
 #if GTK_CHECK_VERSION(3,0,0)
     pwOuterGrid = gtk_grid_new();
@@ -880,14 +891,14 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     gtk_box_pack_start(GTK_BOX(pwv), pwOuterTable, TRUE, TRUE, 0);
 #endif
 
-    for (k = m = 0; k < km; ++k)
+    for (k = m = 0; k < km; ++k) /* m is the global index, (k,l) the position*/
         for (l = 0; l < lm && m < n; ++l, ++m) {
 
             tempmap *ptm = &ptmw->atm[m];
 
             ptm->szTitle = (aszTitle && aszTitle[m] && *aszTitle[m]) ? g_strdup(aszTitle[m]) : NULL;
 
-            pw = gtk_frame_new(ptm->szTitle);
+            ptm->Frame = pw = gtk_frame_new(ptm->szTitle);
 
 #if GTK_CHECK_VERSION(3,0,0)
             gtk_grid_attach(GTK_GRID(pwOuterGrid), pw, l, k, 1, 1);
