@@ -190,7 +190,7 @@ CalcTempMapEquities(evalcontext * pec, tempmapwidget * ptmw)
 
 
 static void
-UpdateStyle(GtkWidget * pw, const float r, const int fRed)
+UpdateStyle(GtkWidget * pw, const float r, const int fColor)
 {
 
     GtkStyle *ps = gtk_style_copy(gtk_widget_get_style(pw));
@@ -200,12 +200,16 @@ UpdateStyle(GtkWidget * pw, const float r, const int fRed)
     *gbval = 1.0 - (double)r;
     g_object_set_data_full(G_OBJECT(pw), "gbval", gbval, g_free);
 
-    if (fRed) {
-        ps->bg[GTK_STATE_NORMAL].red = 0xFFFF;
-        ps->bg[GTK_STATE_NORMAL].blue = ps->bg[GTK_STATE_NORMAL].green = (guint16) ((1.0f - r) * 0xFFFF);
-    } else {
+    if (fColor==0) { /* ??? for absolute equity*/
+        ps->bg[GTK_STATE_NORMAL].green = (guint16) ((1.0f - 0.3f * r) * 0xFFFF);
+        ps->bg[GTK_STATE_NORMAL].blue = 0xFFFF;
+        ps->bg[GTK_STATE_NORMAL].red = (guint16) ((1.0f - r) * 0xFFFF);
+    } else if (fColor==1) { /* green for positive relative equity*/
         ps->bg[GTK_STATE_NORMAL].green= 0xFFFF;
         ps->bg[GTK_STATE_NORMAL].blue = ps->bg[GTK_STATE_NORMAL].red  = (guint16) ((1.0f - r) * 0xFFFF);
+    } else { /* red for negative relative equity*/
+        ps->bg[GTK_STATE_NORMAL].red = 0xFFFF;
+        ps->bg[GTK_STATE_NORMAL].blue = ps->bg[GTK_STATE_NORMAL].green = (guint16) ((1.0f - r) * 0xFFFF);        
     }
     gtk_widget_set_style(pw, ps);
 
@@ -219,9 +223,9 @@ SetStyleDiff(GtkWidget * pw, float dEquity, const float dMaxAbs) //, const int f
     //     dEquity = -dEquity;
     // g_message("dEquity=%+.3f,dMaxAbs=%+.3f,fInvert=%d",dEquity,dMaxAbs,fInvert);
     if (dEquity>0)
-        UpdateStyle(pw, dEquity/dMaxAbs, FALSE);
+        UpdateStyle(pw, dEquity/dMaxAbs, 1);
     else
-        UpdateStyle(pw, -dEquity/dMaxAbs, TRUE);
+        UpdateStyle(pw, -dEquity/dMaxAbs, 2);
 
 
 }
@@ -231,7 +235,7 @@ SetStyle(GtkWidget * pw, const float rEquity, const float rMin, const float rMax
 {
 
     float r = (rEquity - rMin) / (rMax - rMin);
-    UpdateStyle(pw, fInvert ? (1.0f - r) : r, TRUE);
+    UpdateStyle(pw, fInvert ? (1.0f - r) : r, 0);
 
 }
 
@@ -751,12 +755,12 @@ DrawGauge(tempmapwidget *ptmw)
 // #endif
 
         if (!fShowDiff) {
-            UpdateStyle(ptmw->aapwGaugeDA[i], (float)i / 31.0f, TRUE);
+            UpdateStyle(ptmw->aapwGaugeDA[i], (float)i / 31.0f, 0);
         } else {
             if (i-15.5f>0)
-                UpdateStyle(ptmw->aapwGaugeDA[i], (float)((i-15.5f) / 15.5f), FALSE);
+                UpdateStyle(ptmw->aapwGaugeDA[i], (float)((i-15.5f) / 15.5f), 1);
             else
-                UpdateStyle(ptmw->aapwGaugeDA[i], (float)(-(i-15.5f) / 15.5f), TRUE);
+                UpdateStyle(ptmw->aapwGaugeDA[i], (float)(-(i-15.5f) / 15.5f), 2);
         }
         // g_message("fShowDiff=%d",fShowDiff);
         gtk_widget_queue_draw(ptmw->aapwGaugeDA[i]);
@@ -1079,37 +1083,6 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
 
     DrawGauge(ptmw);
 
-//     for (i = 0; i < 32; ++i) {
-
-//         pw = gtk_drawing_area_new();
-//         gtk_widget_set_size_request(pw, 7, 20);
-
-// #if GTK_CHECK_VERSION(3,0,0)
-//         gtk_grid_attach(GTK_GRID(ptmw->pwGauge), pw, i, 1, 1, 1);
-//         gtk_widget_set_hexpand(pw, TRUE);
-// #else
-//         gtk_table_attach_defaults(GTK_TABLE(ptmw->pwGauge), pw, i, i + 1, 1, 2);
-// #endif
-
-//         g_object_set_data(G_OBJECT(pw), "user_data", NULL);
-
-// #if GTK_CHECK_VERSION(3,0,0)
-//         gtk_style_context_add_class(gtk_widget_get_style_context(pw), "gnubg-temp-map-quadrant");
-//         g_signal_connect(G_OBJECT(pw), "draw", G_CALLBACK(DrawQuadrant), NULL);
-// #else
-//         g_signal_connect(G_OBJECT(pw), "expose_event", G_CALLBACK(ExposeQuadrant), NULL);
-// #endif
-
-//         if (!fShowDiff) {
-//             UpdateStyle(pw, (float)i / 31.0f, TRUE);
-//         } else {
-//             if (i-15>=0)
-//                 UpdateStyle(pw, (float)((i-15) / 15.0f), FALSE);
-//             else
-//                 UpdateStyle(pw, (float)(-(i-15) / 15.0f), TRUE);
-//         }
-//     }
-
     for (i = 0; i < 2; ++i) {
         ptmw->apwGauge[i] = gtk_label_new("");
 #if GTK_CHECK_VERSION(3,0,0)
@@ -1126,28 +1099,6 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
 #else
     gtk_box_pack_start(GTK_BOX(pwv), gtk_hseparator_new(), FALSE, FALSE, 0);
 #endif
-
-
-
-//     for (i = 0; i < 2; ++i) {
-//         ptmw->apwGaugeDiff[i] = gtk_label_new("");
-// #if GTK_CHECK_VERSION(3,0,0)
-//         gtk_grid_attach(GTK_GRID(ptmw->pwGaugeDiff), ptmw->apwGaugeDiff[i], 31 * i, 0, 1, 1);
-// #else
-//         gtk_table_attach_defaults(GTK_TABLE(ptmw->pwGaugeDiff), ptmw->apwGaugeDiff[i], 31 * i, 31 * i + 1, 0, 1);
-// #endif
-//     }
-
-    // gtk_widget_hide(ptmw->pwGaugeDiff);
-
-    /* separator */
-
-#if GTK_CHECK_VERSION(3,0,0)
-    gtk_box_pack_start(GTK_BOX(pwv), gtk_separator_new(GTK_ORIENTATION_HORIZONTAL), FALSE, FALSE, 0);
-#else
-    gtk_box_pack_start(GTK_BOX(pwv), gtk_hseparator_new(), FALSE, FALSE, 0);
-#endif
-
 
     /* buttons */
 
