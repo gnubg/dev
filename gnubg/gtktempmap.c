@@ -861,19 +861,22 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     /* dialog */
     if (!cubeTempMapAtMoney) {
         pwDialog = GTKCreateDialog(_("Sho Sengoku Temperature Map - Distribution of Rolls"),
-                               DT_INFO, NULL, DIALOG_FLAG_MODAL, NULL, NULL);
+                               DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
+                            //    DT_INFO, NULL, DIALOG_FLAG_MODAL, NULL, NULL);
     } else {
         pwDialog = GTKCreateDialog(_("Temperature Map in Hypothetical Money Play"),
-                               DT_INFO, NULL, DIALOG_FLAG_MODAL, NULL, NULL);
+                               DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
     }
                                
 
     ptmw = (tempmapwidget *) g_malloc(sizeof(tempmapwidget));
     ptmw->fShowBestMove = fShowBestMove;
     ptmw->fShowEquity = fShowEquity;
-    ptmw->fShowDiff = fShowDiff;
     ptmw->fInvert = fInvert;
     ptmw->n = n;
+    if (n<=1)
+        fShowDiff = 0;
+    ptmw->fShowDiff = fShowDiff;
     ptmw->nSizeDie = -1;
     ptmw->achDice[0] = ptmw->achDice[1] = NULL;
     ptmw->achPips[0] = ptmw->achPips[1] = NULL;
@@ -1180,7 +1183,8 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     gtk_window_set_default_size(GTK_WINDOW(pwDialog), 400, 500);
     g_object_weak_ref(G_OBJECT(pwDialog), DestroyDialog, ptmw);
 
-    GTKRunDialog(pwDialog);
+    gtk_widget_show_all (pwDialog); /* use this if non-modal*/
+    // GTKRunDialog(pwDialog); /* use this if modal */
 
     // return ptmw;
 }

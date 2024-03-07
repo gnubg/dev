@@ -1829,8 +1829,8 @@ GtkShowRelational(gpointer UNUSED(p), guint UNUSED(n), GtkWidget * UNUSED(pw))
 
     gtk_container_add(GTK_CONTAINER(DialogArea(pwDBStatDialog, DA_MAIN)), pwn);
 
-    gtk_widget_show_all (pwDBStatDialog);
-    // GTKRunDialog(pwDBStatDialog);
+    gtk_widget_show_all (pwDBStatDialog); /* use this if non-modal*/
+    // GTKRunDialog(pwDBStatDialog); /* use this if modal */
 }
 
 extern void
