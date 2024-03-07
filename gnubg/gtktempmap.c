@@ -23,6 +23,15 @@
  * https://bkgm.com/articles/Sengoku/TemperatureMap/index.html 
  */
 
+/* 03/2024: Isaac Keslassy: new TempMap with relative equity between alternative decisions:
+ * - the goal is to illustrate the subtle differences between close decisions
+ * - new TempMap colors, gauge, titles, tooltips, button, etc.
+ * - made TempMap non-modal so we can see the position as well; and with a window-maximizing button
+ * - updated the description in the menu
+ */
+
+
+
 #include "config.h"
 
 #include <gtk/gtk.h>
@@ -418,6 +427,13 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
 
     GetMatchStateCubeInfo(&ci, ptmw->atm[0].pms);
 
+    /* for translations */
+    char szROLL[]= "EQUITY FOLLOWING THIS ROLL";
+    char szAVG[]= "AVERAGE EQUITY";
+    char szREL[]= "Relative: ";
+    char szABS[]= "Absolute: ";
+    char szMOVE[]= "Best move: ";
+
     gchar *sz;
     for (m = 0; m < ptmw->n; ++m) {
         for (i = 0; i < 6; ++i)
@@ -430,10 +446,10 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
                                                         ptmw->atm[m].aaanMove[i][j]));
                     // g_message("equity=%s",sz);
                 } else {
-                    sz = g_strdup_printf("Relative: \t%s\nAbsolute: \t%s\nMove: \t\t%s",
+                    sz = g_strdup_printf("%s\n\n%s\t%s\n%s\t%s\n%s\t%s", _(szROLL), _(szREL),
                             GetEquityDiffString(ptmw->atm[0].aarEquity[i][j], ptmw->atm[m].aarEquity[i][j],
-                                                                &ci, ptmw->fInvert), 
-                            GetEquityString(ptmw->atm[m].aarEquity[i][j], &ci, ptmw->fInvert),
+                                                                &ci, ptmw->fInvert), _(szABS),
+                            GetEquityString(ptmw->atm[m].aarEquity[i][j], &ci, ptmw->fInvert), _(szMOVE),
                             FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
                                                         ptmw->atm[m].aaanMove[i][j]));
                     // g_message("%s",sz);
@@ -451,13 +467,19 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
 
             }
 
-        if (!fShowDiff || m==0) /* absolute equities */
-            SetStyle(ptmw->atm[m].pwAverage, ptmw->atm[m].rAverage, rMin, rMax, ptmw->fInvert);
-        else /* relative equities */
-            SetStyleDiff(ptmw->atm[m].pwAverage, ptmw->atm[m].dAverage, ptmw->dMaxAbs);
-
-        gtk_widget_set_tooltip_text(ptmw->atm[m].pweAverage,
+        if (!fShowDiff || m==0) { /* absolute equities */
+            gtk_widget_set_tooltip_text(ptmw->atm[m].pweAverage,
                                     GetEquityString(ptmw->atm[m].rAverage, &ci, ptmw->fInvert));
+        }
+        else {/* relative equities */
+            sz = g_strdup_printf("%s\n\n%s\t%s\n%s\t%s", _(szAVG), _(szREL),
+                            GetEquityDiffString(ptmw->atm[0].rAverage, ptmw->atm[m].rAverage,
+                                                                &ci, ptmw->fInvert), _(szABS),
+                            GetEquityString(ptmw->atm[m].rAverage, &ci, ptmw->fInvert));
+
+            gtk_widget_set_tooltip_text(ptmw->atm[m].pweAverage,sz);
+        }
+            
         gtk_widget_queue_draw(ptmw->atm[m].pwAverage);
 
     }
