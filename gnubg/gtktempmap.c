@@ -296,10 +296,8 @@ GetEquityDiffStringAux(const float diff, const cubeinfo * pci)
     } else /* MWC shown as probability? */ {
         // snprintf(sz, OUTPUT_SZ_LENGTH, "%+*.*f", fOutputDigits + 3, fOutputDigits + 1, diff); 
         snprintf(sz, OUTPUT_SZ_LENGTH, "%+.*f", fOutputDigits + 1, diff); 
-        g_message("in");
     }
-
-    g_message("MWC:%s,%d,%d,%d",sz,OUTPUT_SZ_LENGTH,fOutputDigits,fOutputMatchPC);
+    // g_message("MWC:%s,%d,%d,%d",sz,OUTPUT_SZ_LENGTH,fOutputDigits,fOutputMatchPC);
     return sz;
 }
 
@@ -766,6 +764,20 @@ DrawGauge(tempmapwidget *ptmw)
 }
 
 static void
+UpdateTitles(tempmapwidget * ptmw, int i) {
+    if (!fShowDiff)
+        gtk_frame_set_label(GTK_FRAME(ptmw->atm[i].Frame),ptmw->atm[i].szTitle);
+    else {
+        char buf[100];
+        if (i==0)
+            sprintf(buf, _("%s: basis equity"), ptmw->atm[i].szTitle);
+        else
+            sprintf(buf, _("%s: equity relative to basis"), ptmw->atm[i].szTitle);
+        gtk_frame_set_label(GTK_FRAME(ptmw->atm[i].Frame),buf);
+    }
+}
+
+static void
 ShowDiffToggled(GtkWidget * pw, tempmapwidget * ptmw)
 {
 
@@ -784,16 +796,7 @@ ShowDiffToggled(GtkWidget * pw, tempmapwidget * ptmw)
     //     gtk_widget_show(ptmw->pwGauge);
     // }
     for (int i = 0; i < ptmw->n; ++i) {
-        if (!fShowDiff)
-            gtk_frame_set_label(GTK_FRAME(ptmw->atm[i].Frame),ptmw->atm[i].szTitle);
-        else {
-            char buf[100];
-            if (i==0)
-                sprintf(buf, _("%s: basis equity"), ptmw->atm[i].szTitle);
-            else
-                sprintf(buf, _("%s: equity relative to basis"), ptmw->atm[i].szTitle);
-            gtk_frame_set_label(GTK_FRAME(ptmw->atm[i].Frame),buf);
-        }
+        UpdateTitles(ptmw,i);
     }
 }
 
@@ -910,6 +913,9 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
             ptm->szTitle = (aszTitle && aszTitle[m] && *aszTitle[m]) ? g_strdup(aszTitle[m]) : NULL;
 
             ptm->Frame = pw = gtk_frame_new(ptm->szTitle);
+
+            UpdateTitles(ptmw,m);
+    
 
 #if GTK_CHECK_VERSION(3,0,0)
             gtk_grid_attach(GTK_GRID(pwOuterGrid), pw, l, k, 1, 1);
