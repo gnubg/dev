@@ -413,24 +413,21 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
         for (i = 0; i < 6; ++i)
             for (j = 0; j < 6; ++j) {
                 /* tooltips */
-                // if (m==0) {
+                if(!fShowDiff || m==0) {
                     sz = g_strdup_printf("%s [%s]",
-                                                GetEquityString(ptmw->atm[m].aarEquity[i][j],
-                                                                &ci, ptmw->fInvert),
-                                                FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
+                            GetEquityString(ptmw->atm[m].aarEquity[i][j], &ci, ptmw->fInvert),
+                            FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
                                                         ptmw->atm[m].aaanMove[i][j]));
                     // g_message("equity=%s",sz);
-                // } else {
-                //     sz = g_strdup_printf("%s,%s [%s]",
-                //                                 GetEquityString(ptmw->atm[m].aarEquity[i][j],
-                //                                                 &ci, ptmw->fInvert),
-                //                                 GetEquityDiffString(ptmw->atm[0].aarEquity[i][j],
-                //                                                 ptmw->atm[m].aarEquity[i][j],
-                //                                                 &ci, ptmw->fInvert),                                                                
-                //                                 FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
-                //                                         ptmw->atm[m].aaanMove[i][j]));
-                //     g_message("%s",sz);
-                // }
+                } else {
+                    sz = g_strdup_printf("Relative: \t%s\nAbsolute: \t%s\nMove: \t\t%s",
+                            GetEquityDiffString(ptmw->atm[0].aarEquity[i][j], ptmw->atm[m].aarEquity[i][j],
+                                                                &ci, ptmw->fInvert), 
+                            GetEquityString(ptmw->atm[m].aarEquity[i][j], &ci, ptmw->fInvert),
+                            FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
+                                                        ptmw->atm[m].aaanMove[i][j]));
+                    // g_message("%s",sz);
+                }
                 
                 /* colors */
                 if (!fShowDiff || m==0) /* absolute equities */
@@ -524,7 +521,6 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
         tmp = GetEquityString(r, &ci, ptmw->fInvert);
         while (*tmp == ' ')
             tmp++;
-        g_string_append(str, tmp);
         if (fShowDiff && m>0) {
             // float auxEquity=GetEquity(r, &ci, ptmw->fInvert)-GetEquity(ptmw->atm[0].aarEquity[i][j], &ci, ptmw->fInvert);
             // if (i==0 && j==0)
@@ -537,8 +533,9 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
             // g_message("m=%d,i=%d,j=%d -> tmp=%s",m,i,j,tmp);
             // tmp = sprintf(tmp,"%+.3f",auxEquity);
 
-            g_string_append_printf(str, " (%s)", tmp2);
-        }
+            g_string_append_printf(str, "%s (%s)", tmp2, tmp);
+        } else
+            g_string_append(str, tmp);
     }
 
 
@@ -547,9 +544,10 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
     if (j >= 0 && ptmw->fShowBestMove) {
         char szMove[FORMATEDMOVESIZE];
 
-        FormatMovePlain(szMove, (ConstTanBoard)ptmw->atm[m].pms->anBoard, ptmw->atm[m].aaanMove[i][j]);
+        // FormatMovePlain(szMove, (ConstTanBoard)ptmw->atm[m].pms->anBoard, ptmw->atm[m].aaanMove[i][j]);
+        FormatMove(szMove, (ConstTanBoard)ptmw->atm[m].pms->anBoard, ptmw->atm[m].aaanMove[i][j]);
         if (ptmw->fShowEquity)
-            g_string_append_printf(str, " %s", szMove);
+            g_string_append_printf(str, " [%s]", szMove);
         else
             g_string_append(str, szMove);
     }
@@ -560,14 +558,20 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
     }
 
     pch = str->str;
+    /* y is the starting y-axis position for the text? cf. gtk_paint_layout later */
     if (ptmw->fShowEquity && j >= 0 && ptmw->fShowBestMove)
         y = 2;
     else if (ptmw->fShowEquity)
         y = (float)(allocation.height - 4) / 2.0f;
     else
         y = 2 + (float)(allocation.height - 4) / 10.0f;
+    // if (ptmw->fShowDiff)
+    //     y+=1;
 
     description = pango_font_description_from_string("sans");
+    // if (ptmw->fShowDiff)
+    //     pango_font_description_set_size(description, allocation.height * PANGO_SCALE / 10);
+    // else
     pango_font_description_set_size(description, allocation.height * PANGO_SCALE / 8);
     layout = gtk_widget_create_pango_layout(pw, NULL);
     pango_layout_set_font_description(layout, description);
