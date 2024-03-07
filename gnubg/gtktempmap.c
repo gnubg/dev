@@ -288,12 +288,18 @@ GetEquityDiffStringAux(const float diff, const cubeinfo * pci)
 
     if (!pci->nMatchTo || !fOutputMWC) {
             snprintf(sz, OUTPUT_SZ_LENGTH, "%+*.*f", fOutputDigits + 3, fOutputDigits, diff);
-    } else if (fOutputMatchPC) {
-        snprintf(sz, OUTPUT_SZ_LENGTH, "%*.*f%%", fOutputDigits + 3, fOutputDigits > 1 ? fOutputDigits - 1 : 0,
-                     diff);
-    } else 
-        snprintf(sz, OUTPUT_SZ_LENGTH, "%+*.*f", fOutputDigits + 3, fOutputDigits + 1, diff);
+    } else if (fOutputMatchPC) { /* MWC shown as percentage? */
+        // snprintf(sz, OUTPUT_SZ_LENGTH, "%*.*f%%", fOutputDigits + 3, fOutputDigits > 1 ? fOutputDigits - 1 : 0, diff);
+        // snprintf(sz, OUTPUT_SZ_LENGTH, "%*.*f%%", fOutputDigits + 1, fOutputDigits > 1 ? fOutputDigits - 1 : 0, diff);
+        snprintf(sz, OUTPUT_SZ_LENGTH, "%+.*f%%", fOutputDigits > 1 ? fOutputDigits - 1 : 0, diff);
 
+    } else /* MWC shown as probability? */ {
+        // snprintf(sz, OUTPUT_SZ_LENGTH, "%+*.*f", fOutputDigits + 3, fOutputDigits + 1, diff); 
+        snprintf(sz, OUTPUT_SZ_LENGTH, "%+.*f", fOutputDigits + 1, diff); 
+        g_message("in");
+    }
+
+    g_message("MWC:%s,%d,%d,%d",sz,OUTPUT_SZ_LENGTH,fOutputDigits,fOutputMatchPC);
     return sz;
 }
 
