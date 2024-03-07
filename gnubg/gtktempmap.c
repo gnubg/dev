@@ -477,7 +477,7 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
     PangoFontDescription *description;
     float y;
     GString *str;
-    char *pch, *tmp;
+    char *pch, *tmp, *tmp2=" ";
     GtkAllocation allocation;
     gtk_widget_get_allocation(pw, &allocation);
 
@@ -521,23 +521,24 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
             r = ptmw->atm[m].rAverage;
         // g_message("m=%d,i=%d,j=%d -> r=%f",m,i,j,r);
         GetMatchStateCubeInfo(&ci, ptmw->atm[0].pms);
-        if(!fShowDiff || m==0)
-            tmp = GetEquityString(r, &ci, ptmw->fInvert);
-        else {
+        tmp = GetEquityString(r, &ci, ptmw->fInvert);
+        while (*tmp == ' ')
+            tmp++;
+        g_string_append(str, tmp);
+        if (fShowDiff && m>0) {
             // float auxEquity=GetEquity(r, &ci, ptmw->fInvert)-GetEquity(ptmw->atm[0].aarEquity[i][j], &ci, ptmw->fInvert);
             // if (i==0 && j==0)
                 // g_message("myequitydiff=%+.3f",auxEquity);
             if (j >= 0)
-                tmp=GetEquityDiffString(ptmw->atm[0].aarEquity[i][j],r,&ci,ptmw->fInvert);
+                tmp2=GetEquityDiffString(ptmw->atm[0].aarEquity[i][j],r,&ci,ptmw->fInvert);
             else if (j == -1)
-                tmp=GetEquityDiffString(ptmw->atm[0].rAverage,r,&ci,ptmw->fInvert);
+                tmp2=GetEquityDiffString(ptmw->atm[0].rAverage,r,&ci,ptmw->fInvert);
 
             // g_message("m=%d,i=%d,j=%d -> tmp=%s",m,i,j,tmp);
             // tmp = sprintf(tmp,"%+.3f",auxEquity);
+
+            g_string_append_printf(str, " (%s)", tmp2);
         }
-        while (*tmp == ' ')
-            tmp++;
-        g_string_append(str, tmp);
     }
 
 
