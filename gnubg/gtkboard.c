@@ -3628,7 +3628,7 @@ chequer_key_new(int iPlayer, Board * board)
 
     g_signal_connect(G_OBJECT(pw), "button_press_event", G_CALLBACK(key_press), iPlayer ? pw : NULL);
 
-    sprintf(sz, _("Set player %d on roll."), iPlayer);
+    sprintf(sz, _("In edit mode, click on this checker to set player %d on roll."), iPlayer);
     gtk_widget_set_tooltip_text(pw, sz);
 
     return pw;
