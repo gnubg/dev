@@ -2340,6 +2340,7 @@ board_set(Board * board, gchar * board_text, const gint resigned, const gint cub
     int old_jacoby;
     int redrawNeeded = 0;
     gint failed = 0;
+    char sz[500];
 
     int *match_settings[3];
     unsigned int old_dice[2];
@@ -2554,6 +2555,16 @@ board_set(Board * board, gchar * board_text, const gint resigned, const gint cub
         bd->move_list.amMoves = memcpy(bd->all_moves, bd->move_list.amMoves, bd->move_list.cMoves * sizeof(move));
         bd->valid_move = NULL;
     }
+
+        /* note: this tooltip also loads in gtktoolbar.c, copy any change */
+    sprintf(sz, _(
+            "- To roll the dice: click on the right board.\n"
+            "- To move a checker: click on the checker, then click on its destination. Or drag and drop.\n"
+            "- To cube (when allowed): click on the grey cube on the left.\n"
+            "- To set the turn: click on the small checker image next to the player's name at the bottom.\n"
+            "- To edit the position, change the match length, etc.: click on the toolbar's Edit button."
+            ));
+    gtk_widget_set_tooltip_text(pwBoard, sz);
 
     if (bd->rd->nSize == 0)
         return 0;
