@@ -784,13 +784,22 @@ CommandSetClockwise(char *sz)
 #endif                          /* USE_GTK */
 }
 
-/* IK: I used "#if defined(USE_GTK)" to hide all commands within the function, but then "without-gtk" complains that 
-sz is not used. So I follow the example of "CommandSetTheoryWindow" and don't use "#if defined(USE_GTK)" here anymore,
-only in commands.inc.*/
+/* IK: 
+Version 1) I used "#if defined(USE_GTK)" to hide all commands within the function, but then "without-gtk" complains that 
+sz is not used. 
+V2) So I followed the example of "CommandSetTheoryWindow" and didn't use "#if defined(USE_GTK)" here anymore,
+only in commands.inc. But then "without-gtk" doesn't know about fShortToolbar.
+V3) I used the "#else" as other commands do.
+*/
 extern void
 CommandSetShortToolbar(char *sz)
 {
+#if defined(USE_GTK)
     SetToggle("short-toolbar", &fShortToolbar, sz, _("Show a short toolbar with fewer icons."), _("Show a full toolbar."));
+#else
+    (void) sz;                  /* suppress unused parameter compiler warning */
+    outputl(_("This function is for GTK only"));
+#endif
 }
 
 extern void
@@ -4292,6 +4301,7 @@ CommandSetPriorityIdle(char *UNUSED(sz))
     SetPriority(19);
 }
 
+
 extern void
 CommandSetPriorityNice(char *sz)
 {
@@ -4326,7 +4336,7 @@ CommandSetPriorityNice(char *sz)
         outputl(_("You must specify a priority between -20 and 20."));
         return;
     }
-
+#if defined(USE_GTK)
     if (n < -19) {
         DefaultPriority = (priority) REALTIME;
     } else if (n < -10) {
@@ -4340,12 +4350,11 @@ CommandSetPriorityNice(char *sz)
     } else {
         DefaultPriority = (priority) IDLE;
     }
+#endif
 
     SetPriority(n);
     // g_message("in CommandSetPriorityNice: SetPriority(%d)", n);
 }
-
-
 // extern void
 // CommandSetPriority(char* sz)
 // {
