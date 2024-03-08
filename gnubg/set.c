@@ -784,12 +784,13 @@ CommandSetClockwise(char *sz)
 #endif                          /* USE_GTK */
 }
 
+/* IK: I used "#if defined(USE_GTK)" to hide all commands within the function, but then "without-gtk" complains that 
+sz is not used. So I follow the example of "CommandSetTheoryWindow" and don't use "#if defined(USE_GTK)" here anymore,
+only in commands.inc.*/
 extern void
 CommandSetShortToolbar(char *sz)
 {
-#if defined(USE_GTK)      
     SetToggle("short-toolbar", &fShortToolbar, sz, _("Show a short toolbar with fewer icons."), _("Show a full toolbar."));
-#endif
 }
 
 extern void

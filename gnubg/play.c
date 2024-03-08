@@ -2464,6 +2464,7 @@ CommandDouble(char *UNUSED(sz))
     }
 #endif
     TurnDone();
+#if defined (USE_GTK)
     if(fInQuizMode &&ms.fMove==1 && (!skipDoubleHint)){
         // g_message("within CommandDouble");
         qDecision=QUIZ_DOUBLE;
@@ -2471,6 +2472,7 @@ CommandDouble(char *UNUSED(sz))
         // CommandHint("");
     //     UserCommand2("analyse move");
     }
+#endif
     // if(!fInQuizMode) {
     AddMoveRecord(pmr);
     // if(fInQuizMode){
@@ -2542,6 +2544,7 @@ CommandDrop(char *UNUSED(sz))
         memset(&currentkey, 0, sizeof(positionkey));
         TurnDone();
     }
+#if defined (USE_GTK)
     if(fInQuizMode){
         // g_message("within CommandDrop");
         qDecision=QUIZ_PASS;
@@ -2550,6 +2553,7 @@ CommandDrop(char *UNUSED(sz))
         // g_message("in CommandDrop, qdecision=%d",qDecision);
         // CommandHint("");
     }
+#endif
 }
 
 static void
@@ -2780,7 +2784,9 @@ CommandMove(char *sz)
             return;
         }
         /* update or set the move */
+#if defined (USE_GTK)
         qDecision=QUIZ_MOVE;
+#endif        
         memcpy(pmr_cur->n.anMove, an, sizeof an);
         hint_move("", TRUE, NULL);
         // // if(fInQuizMode){
@@ -3935,12 +3941,14 @@ CommandRedouble(char *UNUSED(sz))
 
     if (!move_not_last_in_match_ok())
         return;
+#if defined (USE_GTK)
     if(fInQuizMode && (!skipDoubleHint)){
         // g_message("within Command*Re*Double");
         qDecision=QUIZ_DOUBLE;
         hint_double(TRUE, 1);
         // CommandHint("");
     }
+#endif    
     if(!fInQuizMode) {
     pmr = NewMoveRecord();
 
@@ -4082,6 +4090,7 @@ CommandRoll(char *UNUSED(sz))
     if (fTutor && fTutorCube && !GiveAdvice(tutor_double(FALSE)))
         return;
 
+#if defined (USE_GTK)
      /* if we put this after GetDice(), it provides the hint for the next move*/
     if(fInQuizMode){
         // g_message("within CommandRoll");
@@ -4089,6 +4098,7 @@ CommandRoll(char *UNUSED(sz))
         hint_double(TRUE, 0);    
         // CommandHint("");
     } else {
+#endif
         if (!fCheat || CheatDice(ms.anDice, &ms, afCheatRoll[ms.fMove]))
             if (GetDice(ms.anDice, ms.fTurn, &rngCurrent, rngctxCurrent, ms.anBoard) < 0)
                 return;
@@ -4149,7 +4159,9 @@ CommandRoll(char *UNUSED(sz))
             TurnDone();
         } else if (fAutoBearoff && !TryBearoff())
             TurnDone();
-    }
+#if defined (USE_GTK)
+    } /* closing the "if(fInQuizMode){} else {}" */
+#endif
 }
 
 
@@ -4189,13 +4201,14 @@ CommandTake(char *UNUSED(sz))
         g_free(pmr);            /* garbage collect */
         return;
     }
-    
+#if defined (USE_GTK)  
     if(fInQuizMode){
         // g_message("within CommandTake");
         qDecision=QUIZ_TAKE;
         hint_take(TRUE, 1);
         // CommandHint("");
     }
+#endif    
     if(!fInQuizMode) {
         if (fDisplay)
             outputf(_("%s accepts the cube at %d.\n"), ap[ms.fTurn].szName, ms.nCube << 1);
