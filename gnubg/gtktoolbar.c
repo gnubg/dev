@@ -253,6 +253,7 @@ extern void
 ToggleEdit(GtkToggleAction * action, gpointer UNUSED(user_data))
 {
     BoardData *pbd = BOARD(pwBoard)->board_data;
+    char sz[1000];
 
     if (gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action))) {
         if (ms.gs == GAME_NONE)
@@ -261,8 +262,26 @@ ToggleEdit(GtkToggleAction * action, gpointer UNUSED(user_data))
          * entering edit mode, should be done before editing is true */
         GTKUndo();
         editing = TRUE;
-    } else
+        sprintf(sz, _(
+            "- To set the turn: click on the small checker image next to the player's name at the bottom.\n"
+            "- To set the dice: click on the side of the board where you would normally click to roll the dice.\n"
+            "- To set the cube: click on the cube on the left. Then, the bottom cubes are for the bottom player, "
+            "and the top ones for the top player. Pick the sideward 64 cube in the middle to reset the cube.\n"
+            "- To set the score and match length: just edit the fields.\n"
+            "- To place the checkers: to place 3 checkers on some point, click the location where the 3rd checker would go. "
+            "Use the left button for the bottom player and the right one for the top player. "
+            "- To place a checker on the bar, click just below the top bar hinges for the bottom player, "
+            "and above the bottom ones for the top player.\n"
+            "- To remove all checkers from the board: click on one of the two oblong rectangles on the right.\n"
+            "- To set all checkers in their initial position: click on one of the two oblong rectangles on the left."));
+        gtk_widget_set_tooltip_text(pwBoard, sz);
+    } else {
         editing = FALSE;
+                sprintf(sz, _(
+            "- To roll the dice: click on the right board.\n"
+            "- To move a checker: click on the checker, then click on its destination. Or just drag and drop. "));
+        gtk_widget_set_tooltip_text(pwBoard, sz);
+    }
 
     board_edit(pbd);
 }
