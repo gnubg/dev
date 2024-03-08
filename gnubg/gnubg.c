@@ -1481,8 +1481,11 @@ ShowBoard(void)
         if (fX) {
             TanBoard anBoardTemp;
             InitBoard(anBoardTemp, ms.bgv);
+            /* is this at the very start when ms.nMatchTo is ill-defined yet? Then set the match length
+            that appears to its default length as defined by the user. */
             game_set(BOARD(pwBoard), anBoardTemp, 0, ap[1].szName,
                      ap[0].szName, ms.nMatchTo, ms.anScore[1], ms.anScore[0], 0, 0, FALSE, anChequers[ms.bgv]);
+                    //  ap[0].szName, nDefaultLength, ms.anScore[1], ms.anScore[0], 0, 0, FALSE, anChequers[ms.bgv]);
         } else
 #endif
 

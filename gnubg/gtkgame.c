@@ -5390,6 +5390,7 @@ RunGTK(GtkWidget * pwSplash, char *commands, char *python_script, char *match)
         reasonExited = RE_NONE;
 
         GTKSet(&ms.fCubeOwner);
+        GTKSet(&ms.nMatchTo);
         GTKSet(&ms.nCube);
         GTKSet(ap);
         GTKSet(&ms.fTurn);
@@ -8607,6 +8608,8 @@ GTKSet(void *p)
         ShowBoard();            /* this is overkill, but it works */
     } else if (p == &ms.nCube) {
         ShowBoard();            /* this is overkill, but it works */
+    } else if (p == &ms.nMatchTo) {
+        ms.nMatchTo = nDefaultLength;
     } else if (IsPanelShowVar(WINDOW_ANNOTATION, p)) {
         ShowHidePanel(WINDOW_ANNOTATION);
     } else if (IsPanelShowVar(WINDOW_GAME, p)) {
