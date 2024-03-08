@@ -1481,11 +1481,8 @@ ShowBoard(void)
         if (fX) {
             TanBoard anBoardTemp;
             InitBoard(anBoardTemp, ms.bgv);
-            /* is this at the very start when ms.nMatchTo is ill-defined yet? Then set the match length
-            that appears to its default length as defined by the user. */
             game_set(BOARD(pwBoard), anBoardTemp, 0, ap[1].szName,
                      ap[0].szName, ms.nMatchTo, ms.anScore[1], ms.anScore[0], 0, 0, FALSE, anChequers[ms.bgv]);
-                    //  ap[0].szName, nDefaultLength, ms.anScore[1], ms.anScore[0], 0, 0, FALSE, anChequers[ms.bgv]);
         } else
 #endif
 
@@ -1621,6 +1618,14 @@ ShowBoard(void)
                 // g_message("copied position: %s",qNow.position);
         }
     }
+
+#if defined(USE_GTK)
+
+    /* remove any tooltip left over from the start*/
+    if (ms.gs != GAME_NONE) 
+        gtk_widget_set_tooltip_text(pwBoard, "");
+    
+#endif    
 }
 
 extern char *
