@@ -518,6 +518,7 @@ extern void DisectPath(const char *path, const char *extension, char **name, cha
 extern void FixMatchState(matchstate * pms, const moverecord * pmr);
 extern void FreeMatch(void);
 extern void GetMatchStateCubeInfo(cubeinfo * pci, const matchstate * pms);
+extern void GetMoneyCubeInfo(cubeinfo * pci, const matchstate * pms);
 extern void HandleCommand(char *sz, command * ac);
 extern void InitBoard(TanBoard anBoard, const bgvariation bgv);
 extern void PortableSignal(int nSignal, void (*p) (int), psighandler * pOld, int fRestart);

@@ -1374,6 +1374,16 @@ GetMatchStateCubeInfo(cubeinfo * pci, const matchstate * pms)
                 pms->nMatchTo, pms->anScore, pms->fCrawford, pms->fJacoby, nBeavers, pms->bgv);
 }
 
+
+extern void
+GetMoneyCubeInfo(cubeinfo * pci, const matchstate * pms) {
+/* Fills pci with cube info for a money game, i.e., same as given match state except with nMatchTo=0. */
+    matchstate moneyms = *pms; // Copy
+    moneyms.nMatchTo=0;
+    moneyms.fJacoby=fJacoby;
+    GetMatchStateCubeInfo(pci, &moneyms);
+}
+
 static void
 DisplayCubeAnalysis(float aarOutput[2][NUM_ROLLOUT_OUTPUTS],
                     float aarStdDev[2][NUM_ROLLOUT_OUTPUTS], const evalsetup * pes)

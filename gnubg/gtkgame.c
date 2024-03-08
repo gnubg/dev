@@ -10269,12 +10269,3 @@ display_is_2d(const renderdata* prd)
 }
 #endif
 
-
-extern void
-GetMoneyCubeInfo(cubeinfo * pci, const matchstate * pms) {
-/* Fills pci with cube info for a money game, i.e., same as given match state except with nMatchTo=0. */
-    matchstate moneyms = *pms; // Copy
-    moneyms.nMatchTo=0;
-    moneyms.fJacoby=fJacoby;
-    GetMatchStateCubeInfo(pci, &moneyms);
-}
