@@ -1682,9 +1682,10 @@ board_button_press(GtkWidget * board, GdkEventButton * event, BoardData * bd)
     int editing = ToolbarIsEditing(pwToolbar);
     int numOnPoint;
 
-    /* remove tooltip */
+    /* remove help */
     if (editing) {
-        gtk_widget_set_tooltip_text(pwBoard, "");
+        // gtk_widget_set_tooltip_text(pwBoard, "");
+        gtk_widget_hide(pwBoardHelp);
     }
 
     /* Ignore double-clicks and multiple presses */
@@ -2345,7 +2346,7 @@ board_set(Board * board, gchar * board_text, const gint resigned, const gint cub
     int old_jacoby;
     int redrawNeeded = 0;
     gint failed = 0;
-    char szTooltip[500];
+    // char szTooltip[500];
 
     int *match_settings[3];
     unsigned int old_dice[2];
@@ -2561,15 +2562,15 @@ board_set(Board * board, gchar * board_text, const gint resigned, const gint cub
         bd->valid_move = NULL;
     }
 
-    /* adding a tooltip at the start only for any beginners */
-    sprintf(szTooltip, _(
-            "- To roll the dice: click on the right board.\n"
-            "- To move a checker: click on the checker, then click on its destination. Or drag and drop.\n"
-            "- To cube (when allowed): click on the grey cube on the left.\n"
-            "- To set the turn: click on the small checker image next to the player's name at the bottom.\n"
-            "- To edit the position, change the match length, etc.: click on the toolbar's Edit button."
-            ));
-    gtk_widget_set_tooltip_text(pwBoard, szTooltip);
+    // /* adding a tooltip at the start only for any beginners */
+    // sprintf(szTooltip, _(
+    //         "- To roll the dice: click on the right board.\n"
+    //         "- To move a checker: click on the checker, then click on its destination. Or drag and drop.\n"
+    //         "- To cube (when allowed): click on the grey cube on the left.\n"
+    //         "- To set the turn: click on the small checker image next to the player's name at the bottom.\n"
+    //         "- To edit the position, change the match length, etc.: click on the toolbar's Edit button."
+    //         ));
+    // gtk_widget_set_tooltip_text(pwBoard, szTooltip);
 
     if (bd->rd->nSize == 0)
         return 0;
@@ -3650,6 +3651,49 @@ chequer_key_new(int iPlayer, Board * board)
     return pw;
 }
 
+
+static void BoardInfo(GtkWidget* UNUSED(pw), GtkWidget* UNUSED(pwParent))
+{
+    GtkWidget* pwInfoDialog, * pwBox;
+    // const char* pch;
+    char szPlay []= "- To start the match, then to roll the dice: click on the right board.\n"
+            "- To move a checker: click on the checker, then click on its destination. Or drag and drop.\n"
+            "- To cube (when allowed): click on the grey cube on the left.\n"
+            "- To set the turn: click on the small checker image next to the player's name at the bottom.\n"
+            "- To edit the position, change the match length, etc.: click on the toolbar's Edit button.";
+    char szEdit [] = 
+            "- To set the turn: click on the small checker image next to the player's name at the bottom.\n"
+            "- To set the dice: click on the side of the board where you would normally click to roll the dice.\n"
+            "- To set the cube: click on the grey cube on the left. Then, the bottom cubes are for the bottom player, "
+            "and the top ones for the top player. Pick the sideward 64 cube in the middle to reset the cube.\n"
+            "- To set the score and match length: just edit the fields.\n"
+            "- To place the checkers: to place 3 checkers on some point, click the location where the 3rd checker would go. "
+            "Use the left button for the bottom player and the right one for the top player.\n"
+            "- To place a checker on the bar, click just below the top bar hinges for the bottom player, "
+            "and above the bottom ones for the top player.\n"
+            "- To remove all checkers from the board: click on one of the two oblong rectangles on the right.\n"
+            "- To set all checkers in their initial position: click on one of the two oblong rectangles on the left.";
+
+    pwInfoDialog = GTKCreateDialog(_("Explanations"), DT_INFO, NULL, DIALOG_FLAG_MINMAXBUTTONS, NULL, NULL);
+    // pwInfoDialog = GTKCreateDialog(_("Explanations"), DT_INFO, pwParent, DIALOG_FLAG_MODAL, NULL, NULL);
+    
+#if GTK_CHECK_VERSION(3,0,0)
+    pwBox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+#else
+    pwBox = gtk_vbox_new(FALSE, 0);
+#endif
+    gtk_container_set_border_width(GTK_CONTAINER(pwBox), 8);
+
+    gtk_container_add(GTK_CONTAINER(DialogArea(pwInfoDialog, DA_MAIN)), pwBox);
+
+    int editing = ToolbarIsEditing(pwToolbar);
+    AddText(pwBox, (editing) ?_(szEdit) : (szPlay));
+
+    gtk_widget_show_all (pwInfoDialog); /* use this if non-modal*/
+    // GTKRunDialog(pwInfoDialog); /* use this if modal */
+    
+}
+
 static void
 board_init(Board * board)
 {
@@ -3957,6 +4001,14 @@ board_init(Board * board)
 #if !GTK_CHECK_VERSION(3,18,0)
     gtk_adjustment_value_changed(GTK_ADJUSTMENT(bd->amatch));
 #endif
+
+    /* adding a help button at the start only for beginners */
+    gtk_box_pack_start(GTK_BOX(pwvbox), pwBoardHelp = gtk_button_new_with_label(_("How to play")), FALSE, FALSE, 0);
+    // gtk_container_add(GTK_CONTAINER(bd->mmatch),
+	// 	      helpButton = gtk_button_new_with_label(_("Explanations")));
+    gtk_widget_set_tooltip_text(pwBoardHelp, _("Click to obtain more explanations on how to play"));
+    g_signal_connect(pwBoardHelp, "clicked", G_CALLBACK(BoardInfo), NULL);
+
 
     /* dice drawing area */
 

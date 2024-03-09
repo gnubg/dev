@@ -704,6 +704,7 @@ GtkWidget *pwGrab;
 GtkWidget *pwOldGrab;
 
 GtkWidget *pwBoard;
+GtkWidget *pwBoardHelp;
 GtkWidget *pwMain = NULL;
 static GtkWidget *pwMenuBar;
 GtkWidget *pwToolbar;

@@ -38,6 +38,7 @@ extern GtkAccelGroup *pagMain;
 
 extern GtkWidget *pwAnalysis;
 extern GtkWidget *pwBoard;
+extern GtkWidget *pwBoardHelp;
 extern GtkWidget *pwCommentary;
 extern GtkWidget *pwGrab;
 extern GtkWidget *pwMain;

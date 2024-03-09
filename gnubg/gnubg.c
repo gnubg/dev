@@ -1623,7 +1623,9 @@ ShowBoard(void)
 
     /* remove any tooltip left over from the start*/
     if (ms.gs != GAME_NONE) 
-        gtk_widget_set_tooltip_text(pwBoard, "");
+        // gtk_widget_set_tooltip_text(pwBoard, "");
+        gtk_widget_hide(pwBoardHelp);
+
     
 #endif    
 }
