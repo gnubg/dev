@@ -84,6 +84,7 @@ typedef struct {
     int fShowEquity;
     int fShowBestMove;
     int fShowDiff;
+    int fShowOHagan;
     int fInvert;
     GtkWidget * pwGauge;
     GtkWidget *aapwGaugeDA[32];
@@ -105,6 +106,7 @@ typedef struct {
 static int fShowEquity = FALSE;
 static int fShowBestMove = FALSE;
 static int fShowDiff = FALSE;
+static int fShowOHagan = FALSE;
 
 static int
 TempMapEquities(evalcontext * pec, const matchstate * pms,
@@ -370,12 +372,22 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
     cubeinfo ci;
     int m;
     char szMove[FORMATEDMOVESIZE];
+    int mMax;
 
-    /* calc. min, max and average for (1) equity [in MWC terms?] (2) equity difference with 1st option (in normalized equity) */
+    /* Compute equity for each quadrant. 
+        Also calc. min, max and average for 
+        (1) equity [in MWC terms?] 
+        (2) equity difference with 1st option (in normalized equity) 
+     */
+
+    if (fShowDiff)
+        mMax = 1;
+    else
+        mMax = ptmw->n;
 
     rMax = -10000;
     rMin = +10000;
-    for (m = 0; m < ptmw->n; ++m) {
+    for (m = 0; m < mMax; ++m) {
         ptmw->atm[m].rAverage = 0.0f;
         for (i = 0; i < 6; ++i)
             for (j = 0; j < 6; ++j) {
@@ -393,32 +405,33 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
     ptmw->rMax = rMax;
     ptmw->rMin = rMin;
 
-    GetMatchStateCubeInfo(&ci, ptmw->atm[0].pms);
-    dMax = -10000.0;
-    dMin = +10000.0;
-    for (m = 1; m < ptmw->n; ++m) {
-        ptmw->atm[m].dAverage = 0.0f;
-        for (i = 0; i < 6; ++i)
-            for (j = 0; j < 6; ++j) {
-                d = ptmw->atm[m].aarEquityDiff[i][j] = GetEquity(ptmw->atm[m].aarEquity[i][j], &ci, ptmw->fInvert)
-                                                       - GetEquity(ptmw->atm[0].aarEquity[i][j], &ci, ptmw->fInvert);
-                // g_message("m=%d,i=%d,j=%d -> d=%+.3f",m,i,j,d);
-                ptmw->atm[m].dAverage += d;
-                if (d > dMax)
-                    dMax = d;
-                if (d < dMin)
-                    dMin = d;
-            }
-        ptmw->atm[m].dAverage /= 36.0f;
-    }
+    if (fShowDiff) {
+        GetMatchStateCubeInfo(&ci, ptmw->atm[0].pms);
+        dMax = -10000.0;
+        dMin = +10000.0;
+        for (m = 1; m < ptmw->n; ++m) {
+            ptmw->atm[m].dAverage = 0.0f;
+            for (i = 0; i < 6; ++i)
+                for (j = 0; j < 6; ++j) {
+                    d = ptmw->atm[m].aarEquityDiff[i][j] = GetEquity(ptmw->atm[m].aarEquity[i][j], &ci, ptmw->fInvert)
+                                                        - GetEquity(ptmw->atm[0].aarEquity[i][j], &ci, ptmw->fInvert);
+                    // g_message("m=%d,i=%d,j=%d -> d=%+.3f",m,i,j,d);
+                    ptmw->atm[m].dAverage += d;
+                    if (d > dMax)
+                        dMax = d;
+                    if (d < dMin)
+                        dMin = d;
+                }
+            ptmw->atm[m].dAverage /= 36.0f;
+        }
 
-    ptmw->dMax = dMax;
-    ptmw->dMin = dMin;
-    ptmw->dMaxAbs = MAX(-dMin,dMax);
-    // float dMAX = (dMax > (-dMin)) ? dMax : -dMin;
-    // g_message("dMax=%f,dMin=%f,ptmw->dMaxAbs=%f",dMax,dMin,ptmw->dMaxAbs);
-    g_assert(ptmw->n <=1 || ptmw->dMaxAbs>=0.0f);
-
+        ptmw->dMax = dMax;
+        ptmw->dMin = dMin;
+        ptmw->dMaxAbs = MAX(-dMin,dMax);
+        // float dMAX = (dMax > (-dMin)) ? dMax : -dMin;
+        // g_message("dMax=%f,dMin=%f,ptmw->dMaxAbs=%f",dMax,dMin,ptmw->dMaxAbs);
+        g_assert(ptmw->n <=1 || ptmw->dMaxAbs>=0.0f);
+    } 
 
     /* update styles (cell colors) & tooltips */
 
@@ -541,6 +554,8 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
 
     str = g_string_new("");
 
+    /* show equity */
+
     if (ptmw->fShowEquity) {
         float r = 0.0f;
 
@@ -571,7 +586,7 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
     }
 
 
-    /* move */
+    /* show best move */
 
     if (j >= 0 && ptmw->fShowBestMove) {
         char szMove[FORMATEDMOVESIZE];
@@ -831,6 +846,23 @@ ShowDiffToggled(GtkWidget * pw, tempmapwidget * ptmw)
 }
 
 static void
+ShowOHaganToggled(GtkWidget * pw, tempmapwidget * ptmw)
+{
+
+    int f = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
+
+    if (f != ptmw->fShowOHagan) {
+        fShowOHagan = ptmw->fShowOHagan = f;
+        UpdateTempMapEquities(ptmw);
+        DrawGauge(ptmw);
+    }
+
+    for (int i = 0; i < ptmw->n; ++i) {
+        UpdateTitles(ptmw,i);
+    }
+}
+
+static void
 DestroyDialog(gpointer p, GObject * UNUSED(obj))
 {
     tempmapwidget *ptmw = (tempmapwidget *) p;
@@ -856,7 +888,7 @@ DestroyDialog(gpointer p, GObject * UNUSED(obj))
 
 
 extern void
-GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const int fInvert)
+GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const int fInvert, const int fCube)
 {
 
     evalcontext ec = { TRUE, 0, FALSE, TRUE, 0.0, FALSE};
@@ -899,6 +931,9 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     if (n<=1)
         fShowDiff = 0;
     ptmw->fShowDiff = fShowDiff;
+    if (!fCube)
+        fShowOHagan = 0; /* only interesting in cube decisions */ 
+    ptmw->fShowOHagan = fShowOHagan;
     ptmw->nSizeDie = -1;
     ptmw->achDice[0] = ptmw->achDice[1] = NULL;
     ptmw->achPips[0] = ptmw->achPips[1] = NULL;
@@ -1177,6 +1212,15 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
         gtk_box_pack_start(GTK_BOX(pwv), pwh, FALSE, FALSE, 0);
     }
   
+    /* radio button for O'Hagan's Rule */
+    if (n==2) {
+        pw = gtk_check_button_new_with_label(_("Show O'Hagan"));
+        gtk_toggle_button_set_active((GtkToggleButton *) pw, ptmw->fShowOHagan);
+        gtk_box_pack_end(GTK_BOX(pwh), pw, FALSE, FALSE, 0);
+        g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowOHaganToggled), ptmw);
+    }
+
+    /* radio button for relative equities */
     if (n>1) {
         pw = gtk_check_button_new_with_label(_("Show diff"));
         gtk_toggle_button_set_active((GtkToggleButton *) pw, ptmw->fShowDiff);

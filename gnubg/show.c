@@ -2117,7 +2117,7 @@ CommandShowTemperatureMap(char *sz)
                     FormatCubePosition(asz[i], &ci);
                 }
 
-                GTKShowTempMap(ams, 2, asz, FALSE);
+                GTKShowTempMap(ams, 2, asz, FALSE, TRUE);
 
                 for (i = 0; i < 2; ++i)
                     g_free(asz[i]);
@@ -2126,7 +2126,7 @@ CommandShowTemperatureMap(char *sz)
                 outputerrf(_("Cube is not available."));
 
         } else
-            GTKShowTempMap(&ms, 1, NULL, FALSE);
+            GTKShowTempMap(&ms, 1, NULL, FALSE, FALSE);
 
         return;
     }

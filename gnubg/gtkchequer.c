@@ -264,7 +264,7 @@ MoveListTempMapClicked(GtkWidget * pw, hintdata * phd)
     MoveListFreeSelectionList(plSelList);
 
     GTKSetCurrentParent(pw);
-    GTKShowTempMap(ams, c, asz, TRUE);
+    GTKShowTempMap(ams, c, asz, TRUE, FALSE);
 
     g_free(ams);
     for (i = 0; i < c; ++i)

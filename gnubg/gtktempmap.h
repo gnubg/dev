@@ -21,6 +21,6 @@
 #define GTKTEMPMAP_H
 
 extern void
- GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const int fInvert);
+ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const int fInvert, const int fCube);
 
 #endif                          /* GTKTEMPMAP_H */
