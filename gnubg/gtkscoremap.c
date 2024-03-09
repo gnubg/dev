@@ -2905,10 +2905,10 @@ BuildOptions(scoremap * psm) {
     /* Display Eval frame */
     if (psm->cubeScoreMap) {
         //frameToolTip = "Select whether to display the equity, and how to display it: absolute equity, relative equity difference between Double and No-Double, or relative equity difference between Double/Pass and Double/Take";
-        BuildLabelFrame(psm, pwv, _("Display equity (hover over grid for details)"), _("Select whether to display the equity, and how to display it: absolute equity, relative equity difference between Double and No-Double, or relative equity difference between Double/Pass and Double/Take"), aszScoreMapCubeEquityDisplayShort, NUM_CUBEDISP, psm->displayCubeEval, DisplayEvalToggled, TRUE, vAlignExpand);
+        BuildLabelFrame(psm, pwv, _("Display equity (hover for details)"), _("Select whether to display the equity, and how to display it: absolute equity, relative equity difference between Double and No-Double, or relative equity difference between Double/Pass and Double/Take"), aszScoreMapCubeEquityDisplayShort, NUM_CUBEDISP, psm->displayCubeEval, DisplayEvalToggled, TRUE, vAlignExpand);
     } else {
         //frameToolTip =  "Select whether to display the equity, and how to display it: absolute equity, or relative equity difference between best move and second best move";
-        BuildLabelFrame(psm, pwv, _("Display equity (hover over grid for details)"), _("Select whether to display the equity, and how to display it: absolute equity, or relative equity difference between best move and second best move"), aszScoreMapMoveEquityDisplayShort, NUM_MOVEDISP, psm->displayMoveEval, DisplayEvalToggled, TRUE, vAlignExpand);
+        BuildLabelFrame(psm, pwv, _("Display equity (hover for details)"), _("Select whether to display the equity, and how to display it: absolute equity, or relative equity difference between best move and second best move"), aszScoreMapMoveEquityDisplayShort, NUM_MOVEDISP, psm->displayMoveEval, DisplayEvalToggled, TRUE, vAlignExpand);
     }
 
     /* colour by frame */

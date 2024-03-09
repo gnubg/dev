@@ -351,6 +351,7 @@ ToggleAnimation(GtkWidget * pw, GtkWidget * pwSpeed)
 static char *aszTutor[] = {
     N_("Doubtful"), N_("Bad"), N_("Very bad"), NULL
 };
+
 static char *aszQuiz[] =  {
     N_("Doubtful"), N_("Bad"), N_("Very bad"), NULL
 };

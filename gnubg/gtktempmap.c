@@ -85,6 +85,7 @@ typedef struct {
     int fShowBestMove;
     int fShowDiff;
     int fShowOHagan;
+    int fShowOption;
     int fInvert;
     GtkWidget * pwGauge;
     GtkWidget *aapwGaugeDA[32];
@@ -102,11 +103,17 @@ typedef struct {
 
 } tempmapwidget;
 
+static char *aszTempMap[] =  {
+    N_("Absolute equity"), N_("Relative equity"), N_("O'Hagan's Law"), NULL
+};
+
 /* Retain these from one GTKShowTempMap() to the next */
 static int fShowEquity = FALSE;
 static int fShowBestMove = FALSE;
 static int fShowDiff = FALSE;
 static int fShowOHagan = FALSE;
+static int fShowOption = 0;
+
 
 static int
 TempMapEquities(evalcontext * pec, const matchstate * pms,
@@ -855,12 +862,35 @@ ShowOHaganToggled(GtkWidget * pw, tempmapwidget * ptmw)
         fShowOHagan = ptmw->fShowOHagan = f;
         UpdateTempMapEquities(ptmw);
         DrawGauge(ptmw);
-    }
-
-    for (int i = 0; i < ptmw->n; ++i) {
+            for (int i = 0; i < ptmw->n; ++i) {
         UpdateTitles(ptmw,i);
     }
+    }
+
+
 }
+
+static void
+ShowOptionToggled(GtkWidget * pw, tempmapwidget * ptmw)
+/* This is called by gtk when the user clicks on the "display eval" radio buttons.
+*/
+{
+    int *pi = (int *) g_object_get_data(G_OBJECT(pw), "user_data");
+    if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw) )) {
+        if (fShowOption != (*pi)) {
+            g_message("*pi=%d",*pi);
+            fShowOption = ptmw->fShowOption = (*pi);
+            fShowDiff = ptmw->fShowDiff = (*pi==1);
+            fShowOHagan = ptmw->fShowOHagan = (*pi==2);
+            UpdateTempMapEquities(ptmw);
+            DrawGauge(ptmw);
+            for (int i = 0; i < ptmw->n; ++i) {
+                UpdateTitles(ptmw,i);
+            }
+        }
+    }
+}
+
 
 static void
 DestroyDialog(gpointer p, GObject * UNUSED(obj))
@@ -901,6 +931,8 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     GtkWidget *pwv;
     GtkWidget *pw;
     GtkWidget *pwh;
+    GtkWidget *pwh2;
+    // GtkWidget *pwhbox;
     GtkWidget *pwx = NULL;
 #if GTK_CHECK_VERSION(3,0,0)
     GtkWidget *pwOuterGrid;
@@ -909,6 +941,7 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     GtkWidget *pwOuterTable;
     GtkWidget *pwTable = NULL;
 #endif
+    GtkWidget * pwFrame;
 
     int k, l, km, lm, m;
 
@@ -934,6 +967,7 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     if (!fCube)
         fShowOHagan = 0; /* only interesting in cube decisions */ 
     ptmw->fShowOHagan = fShowOHagan;
+    ptmw->fShowOption = fShowOption;
     ptmw->nSizeDie = -1;
     ptmw->achDice[0] = ptmw->achDice[1] = NULL;
     ptmw->achPips[0] = ptmw->achPips[1] = NULL;
@@ -1228,6 +1262,41 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
         g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowDiffToggled), ptmw);
     }
 
+
+
+//     pwev = gtk_event_box_new();
+//     gtk_event_box_set_visible_window(GTK_EVENT_BOX(pwev), FALSE);
+//     gtk_box_pack_end(GTK_BOX(pwh), pwev, FALSE, FALSE, 4);
+// #if GTK_CHECK_VERSION(3,0,0)
+//     pwhbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
+// #else
+//     pwhbox = gtk_hbox_new(FALSE, 4);
+// #endif
+//     gtk_container_add(GTK_CONTAINER(pwev), pwhbox);
+
+//     pw = gtk_combo_box_text_new();
+
+//     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pw), _("Absolute equity"));
+//     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pw), _("Relative equity"));
+//     gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pw), _("O'Hagan's law"));
+
+//     gtk_combo_box_set_active(GTK_COMBO_BOX(pow->pwShowPips), gui_show_pips);
+//     gtk_box_pack_start(GTK_BOX(pwhbox), gtk_label_new(_("Show Pips")), FALSE, FALSE, 0);
+//     gtk_box_pack_start(GTK_BOX(pwhbox), pow->pwShowPips, FALSE, FALSE, 0);
+//     gtk_box_pack_start(GTK_BOX(pwvbox), pwhbox, FALSE, FALSE, 0);
+
+//     gtk_box_pack_end(GTK_BOX(pwhbox), pw, FALSE, FALSE, 0);
+//     for (ppch = aszTempMap; *ppch; ppch++) {
+//         gtk_combo_box_text_append_text(GTK_COMBO_BOX_TEXT(pow->pwQuizSkill), gettext(*ppch));
+//     }
+//     // g_assert(nQuizSkillCurrent >= 0 && nQuizSkillCurrent <= 2);
+//     pow->pwShowPips = gtk_combo_box_text_new();
+        
+    // gtk_widget_set_tooltip_text(pwev,
+    //                             _("Specify how bad GNU Backgammon must think a "
+    //                               "decision is before adding it to the quiz positions."));
+    // gtk_box_pack_start(GTK_BOX(pwhbox), gtk_label_new(_("Test:")), FALSE, FALSE, 0);
+
     pw = gtk_check_button_new_with_label(_("Show equities"));
     gtk_toggle_button_set_active((GtkToggleButton *) pw, ptmw->fShowEquity);
     gtk_box_pack_end(GTK_BOX(pwh), pw, FALSE, FALSE, 0);
@@ -1238,6 +1307,36 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     gtk_toggle_button_set_active((GtkToggleButton *) pw, ptmw->fShowBestMove);
     gtk_box_pack_end(GTK_BOX(pwh), pw, FALSE, FALSE, 0);
     g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowBestMoveToggled), ptmw);
+
+
+    pwFrame=gtk_frame_new(_("test"));
+    gtk_box_pack_start(GTK_BOX(pwv), pwFrame, FALSE, FALSE, 0);
+    gtk_widget_set_tooltip_text(pwFrame, _("test")); 
+    // gtk_widget_set_sensitive(pwFrame, TRUE);
+
+#if GTK_CHECK_VERSION(3,0,0)
+    pwh2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+#else
+    pwh2 = gtk_hbox_new(FALSE, 8);
+#endif
+    gtk_container_add(GTK_CONTAINER(pwFrame), pwh2);
+
+    for(i=0; i<3; i++) {
+        if (i==0) {
+            pw = pwx = gtk_radio_button_new_with_label(NULL, _(aszTempMap[0])); // First radio button
+        } else {
+            pw =  gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(pwx), _(aszTempMap[i])); // Associate this to the other radio buttons
+        }
+        gtk_box_pack_start(GTK_BOX(pwh2), pw, FALSE, FALSE, 0);
+        gtk_widget_set_tooltip_text(pw, _("test2"));
+        pi = (int *)g_malloc(sizeof(int));
+        *pi=(int)i; // here use "=(int)labelEnum[i];" and put it in the input of the function if needed, while
+                    //  defining sth like " int labelEnum[] = { NUMBERS, ENGLISH, BOTH };" before calling the function
+        g_object_set_data_full(G_OBJECT(pw), "user_data", pi, g_free);
+        if (fShowOption==i) // again use "if (DefaultLabel==labelEnum[i])" if needed
+            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pw), 1); //we set this to toggle it on in case it's the default option
+        g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowOptionToggled), ptmw);
+    }
 
     /* update */
 
