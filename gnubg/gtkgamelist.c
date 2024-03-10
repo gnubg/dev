@@ -470,7 +470,7 @@ enum {COLUMN_INDEX, COLUMN_STRING, COLUMN_INT, N_COLUMNS};
 - opens the corrsponding file, 
 - and saves the parsing results in the categories static array 
 */
-int OpenQuizPositionsFile(const int index)
+static int OpenQuizPositionsFile(const int index)
 {
     char row[MAX_ROW_CHARS];
     int i = -2;
@@ -872,7 +872,7 @@ static int CountPositions(categorytype category) {
 
 /*case-insensitive string comparison*/
 // int string_cmp (const categorytype * p1, const categorytype * p2) {
-int string_cmp (const void * p1, const void * p2) {
+static int string_cmp (const void * p1, const void * p2) {
     // const char * pa = (const char *) a;
     // const char * pb = (const char *) b;
     // return strcmp(pa,pb);
@@ -1312,7 +1312,7 @@ AddPositionClicked(GtkButton * UNUSED(button), gpointer treeview)
     return;    
 }
 
-extern int AddNDPositionToFile(categorytype * pcategory, GtkWidget * UNUSED(pw)) {
+static int AddNDPositionToFile(categorytype * pcategory, GtkWidget * UNUSED(pw)) {
     // g_message("I'm in the test func: %s", pcategory->name);
     UserCommand2("previous roll");
     UserCommand2("previous roll");
@@ -1810,7 +1810,7 @@ static GtkWidget *delButton;
 static GtkWidget *renameButton;
 static GtkWidget *startButton;
 
-void on_changed(GtkTreeSelection *selection, gpointer UNUSED(p))
+static void on_changed(GtkTreeSelection *selection, gpointer UNUSED(p))
 {
     GtkTreeIter iter;
     GtkTreeModel *model;
@@ -2283,7 +2283,7 @@ static void BuildQuizMenu(GdkEventButton *event){
 //         return FALSE;
 // }
 
-gboolean
+static gboolean
 view_onButtonPressed (GtkWidget *UNUSED(treeview),
                       GdkEventButton *event,
               gpointer UNUSED(userdata))
@@ -2342,12 +2342,13 @@ view_onButtonPressed (GtkWidget *UNUSED(treeview),
     return FALSE; //GDK_EVENT_PROPAGATE;
 }
 
-gboolean view_onPopupMenu (GtkWidget * UNUSED(treeview), gpointer UNUSED(userdata)) {
-//   view_popup_menu(treeview, NULL, userdata);
-// g_message("view_onPopupMenu");
-    BuildQuizMenu(NULL);
-    return FALSE; //GDK_EVENT_STOP;
-}
+// /* seems unused now */
+// static gboolean view_onPopupMenu (GtkWidget * UNUSED(treeview), gpointer UNUSED(userdata)) {
+// //   view_popup_menu(treeview, NULL, userdata);
+// // g_message("view_onPopupMenu");
+//     BuildQuizMenu(NULL);
+//     return FALSE; //GDK_EVENT_STOP;
+// }
 
 
 extern GtkWidget *

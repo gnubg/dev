@@ -52,7 +52,7 @@ int showMoveListDetail = 1;
 moverecord *pmrCurAnn;
 
 /* automatically select the played move and best alternative moves for rollout or eval */
-void MoveListAutoMark(movelist * pml, int keyIndex)
+static void MoveListAutoMark(movelist * pml, int keyIndex)
 {
     int c;
 

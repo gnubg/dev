@@ -157,19 +157,20 @@ ToolbarSetPlaying(GtkWidget * pwToolbar, const int f)
 
 }
 
-extern void
-ToolbarSetClockwise(GtkWidget * pwToolbar, const int f)
-{
+/* seems unused now */
+// static void
+// ToolbarSetClockwise(GtkWidget * pwToolbar, const int f)
+// {
 
-    toolbarwidget *ptw = g_object_get_data(G_OBJECT(pwToolbar),
-                                           "toolbarwidget");
+//     toolbarwidget *ptw = g_object_get_data(G_OBJECT(pwToolbar),
+//                                            "toolbarwidget");
 
-#if !defined(USE_GTKITEMFACTORY)
-    gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(ptw->pwButtonClockwise), f);
-#else
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ptw->pwButtonClockwise), f);
-#endif
-}
+// #if !defined(USE_GTKITEMFACTORY)
+//     gtk_toggle_tool_button_set_active(GTK_TOGGLE_TOOL_BUTTON(ptw->pwButtonClockwise), f);
+// #else
+//     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ptw->pwButtonClockwise), f);
+// #endif
+// }
 
 
 // extern void ToggleClockwise(void)

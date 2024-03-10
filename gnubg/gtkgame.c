@@ -5288,7 +5288,7 @@ InitGTK(int *argc, char ***argv)
 /* ************** */
 /* this function needed to be in a GTK file because it is launched by GTK
 with an UNUSED GTK pointer*/
-void
+static void
 GoToGnubgWebsite(gpointer UNUSED(p), guint UNUSED(n), GtkWidget * UNUSED(pwEvent))
 {
     // OpenURL("https://www.gnu.org/software/gnubg/#downloading");
@@ -7195,12 +7195,14 @@ static void LoadPositionAndStartClicked(GtkWidget * UNUSED(pw), gpointer UNUSED(
     DestroyPanel(WINDOW_HINT);
     LoadPositionAndStart();    
 }
-static void DeletePositionClicked(GtkWidget * UNUSED(pw), gpointer UNUSED(p)) {
+static void DeletePositionClicked(GtkWidget * UNUSED(pw), gpointer UNUSED(p)) 
+{
     DeletePosition();
 }
 
 
-extern void BuildQuizHintBottom(GtkWidget *pwHint, GtkWidget *pwMoves){
+static void BuildQuizHintBottom(GtkWidget *pwHint, GtkWidget *pwMoves)
+{
     GtkWidget *pwMainVBox, *pwMainHBox, *pwMainHBox2, *pwv, *pwh, *pwh2,
         *stopButton, *againButton, *deleteButton;
 
@@ -9031,11 +9033,11 @@ static int MWCLength=MAX_DECISIONS;
 #define EPSILON 0.001
 
 /*shows translation x->X when x=0=>X=a and x=1=>X=b*/
-double translateX(double x,double a,double b) {
+static double translateX(double x,double a,double b) {
     return a+x*(b-a);
 }
 
-double trueX (double x) { 
+static double trueX (double x) { 
     // (i/(n-1))*da.width*19/20+da.width/20
     /*
     x=0->X=margin1*d
@@ -9050,7 +9052,7 @@ double trueX (double x) {
     // return (da.width*(x*(1-margin)+margin));
 }
 
-double trueY (double y) { //}, gfloat h, gfloat margin) {
+static double trueY (double y) { //}, gfloat h, gfloat margin) {
     /*
     y=0->-h(1-margin1) on screen->Y=+h(1-margin1)
     y=1->-h*margin2 on screen->Y=+h*margin2
@@ -9379,7 +9381,7 @@ on_expose_event (GtkWidget *widget, GdkEventExpose *event, gpointer UNUSED(user_
 //     gtk_widget_destroy(pw);
 // }
 
-void MWCPlotInfo(GtkWidget* UNUSED(pw), GtkWidget* pwParent) 
+static void MWCPlotInfo(GtkWidget* UNUSED(pw), GtkWidget* pwParent) 
 {
     GtkWidget* pwInfoDialog, * pwBox;
     // const char* pch;
@@ -9415,7 +9417,7 @@ red (negative) and green (positive) arrows. It is centered at 50\% for convenien
     GTKRunDialog(pwInfoDialog);
 }
 
-void DrawMWC (void)  //GtkWidget* pwParent) {
+static void DrawMWC (void)  //GtkWidget* pwParent) {
 {
 #if GTK_CHECK_VERSION(3,0,0)
     /* careful: GTK3, not GTK2*/
@@ -9500,7 +9502,7 @@ void DrawMWC (void)  //GtkWidget* pwParent) {
 // g_message("4");
 }
 
-void initArrays(void) {
+static void initArrays(void) {
     for (int i = 0; i < MWCLength; i++) {
         mwcD [i]=-5.0; /* vector of all decisions impacting mwc*/
         mwcBestD [i]=-5.0; /* optimal decisions*/
@@ -9606,7 +9608,7 @@ extern void ComputeMWC(void)//GtkWidget* pwParent)
 
 /* creating this placeholder function with all the inputs needed when pressing a button;
 the real function above doesn't have inputs*/
-void PlotMWCTrigger(gpointer UNUSED(p), guint UNUSED(n), GtkWidget * UNUSED(pw)){
+static void PlotMWCTrigger(gpointer UNUSED(p), guint UNUSED(n), GtkWidget * UNUSED(pw)){
     // destroying first the parent window
     // this used to be a problem when we close the MWC window:
     // it was solved in the stats window function, so no need

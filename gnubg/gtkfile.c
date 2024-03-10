@@ -1000,7 +1000,7 @@ GTKAnalyzeCurrent(void)
 
 }
 
-extern void
+static void
 AnalyzeSingleFile(void)
 {
     gchar *folder = NULL;

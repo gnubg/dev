@@ -4863,7 +4863,7 @@ callback_parse_python_option(const gchar *UNUSED(name), const gchar *value, gpoi
 /* ************************************************ */
 
 
-
+#if !defined(USE_GTK)
 /* Launches the update screen to inform the user there is a newer gnubg.
 
 The implementation is based on GTKMessage, which is at the basis of GetInputYN and
@@ -4873,7 +4873,7 @@ the options).
 
 Note that we split between this function and GTKAskToUpdate for the GTK side.
 */
-void AskToUpdate(char * availableVersion)
+static void AskToUpdate(char * availableVersion)
 {
 
     char *sz = g_strdup_printf(_("A new version of GNU Backgammon is available. "
@@ -4889,6 +4889,8 @@ void AskToUpdate(char * availableVersion)
     g_free(sz);
 
 }
+#endif
+
 #undef CHECKUPDATE
  
 /* This is the "official" recommended function.
@@ -5454,7 +5456,7 @@ DisplayKeyNames(void)
     }
 }
 
-int NameIsKey (const char sz[]) {
+static int NameIsKey (const char sz[]) {
     for(int i=0;i < keyNamesFirstEmpty; i++) {
         if (!strcmp(sz, keyNames[i])) {
             // g_message("NameIsKey: EXISTS! %s=%s at i=%d", sz,keyNames[i],i);
