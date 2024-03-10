@@ -92,6 +92,8 @@ typedef struct {
     // GtkWidget * pwGaugeDiff;
     GtkWidget *apwGauge[2];
     // GtkWidget *apwGaugeDiff[2];
+    GtkWidget * pwContainer;
+
     float rMin, rMax;
     float dMin, dMax, dMaxAbs; /* min/max equity differences and max absolute value*/
 
@@ -102,7 +104,6 @@ typedef struct {
 
     tempmap oppTM[6][6]; /* when considering two consecutive rolls: getting a second-roll opponent TM for each possible 1st roll */
     
-
     evalcontext ec; /* includes the eval ply */
 } tempmapwidget;
 
@@ -222,7 +223,7 @@ SecondRollEquities(int i0, int j0, evalcontext * pec, const matchstate * pms, fl
     float aar[6][6];
     cubeinfo ci,ci2;
     cubeinfo cix;
-    char szMove[FORMATEDMOVESIZE];
+    // char szMove[FORMATEDMOVESIZE];
                 
     // evalcontext ec = {TRUE, 0, FALSE, TRUE, 0.0, FALSE};
 
@@ -982,6 +983,22 @@ UpdateTitles(tempmapwidget * ptmw) {
     }
 }
 
+static void
+HideGhostMaps(tempmapwidget * ptmw) {
+
+    gtk_widget_show_all(ptmw->pwContainer); /* use this if non-modal*/
+
+    /* hiding ghost maps */
+    if (ptmw->n==1 && !fShowTwoRolls)
+        gtk_widget_hide(ptmw->atm[1].Frame);   
+    else if (ptmw->n>2 && fShowTwoRolls) {
+        for (int m = 2; m < ptmw->n; ++m) {
+            gtk_widget_hide(ptmw->atm[m].Frame);   
+        }
+    }
+}
+
+
 /* here we update all TempMap elements assuming the eval ply has not changed */
 static void
 UpdateAll(tempmapwidget * ptmw) {
@@ -990,6 +1007,7 @@ UpdateAll(tempmapwidget * ptmw) {
     //     SecondRollEquities(ptmw->atm[0].pms, ptmw->oppTM[iDefault][jDefault].aarEquity, ptmw->oppTM[iDefault][jDefault].aaanMove,
     //                                     ptmw->atm[0].szTitle);
     // } 
+    HideGhostMaps(ptmw);
     UpdateTempMapEquities(ptmw);
     DrawGauge(ptmw);
     UpdateTitles(ptmw);
@@ -1138,22 +1156,27 @@ DestroyDialog(gpointer p, GObject * UNUSED(obj))
 {
     tempmapwidget *ptmw = (tempmapwidget *) p;
     int i;
-
+    int n2=MAX(ptmw->n,2);
     /* garbage collect */
 
     g_free(ptmw->achDice[0]);
     g_free(ptmw->achDice[1]);
     g_free(ptmw->achPips[0]);
     g_free(ptmw->achPips[1]);
-
-    for (i = 0; i < ptmw->n; ++i) {
+    g_message("a");
+    for (i = 0; i < n2; ++i) {
         g_free(ptmw->atm[i].pms);
+    g_message("b");
         g_free(ptmw->atm[i].szTitle);
+    g_message("c");
     }
+    g_message("d");
 
     g_free(ptmw->atm);
+    g_message("e");
 
     g_free(ptmw);
+    g_message("f");
 
 }
 
@@ -1202,8 +1225,8 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     ptmw->fShowEquity = fShowEquity;
     ptmw->fInvert = fInvert;
     ptmw->n = n;
-    if (n<=1)
-        fShowDiff = 0;
+    // if (n<=1)
+    //     fShowDiff = 0;
     ptmw->fShowDiff = fShowDiff;
     if (!fCube)
         fShowTwoRolls = 0; /* only interesting in cube decisions */ 
@@ -1215,10 +1238,14 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     ptmw->dMaxAbs=1; /* only to initialize and avoid division by 0 */
     ptmw->ec=ec;
 
-    ptmw->atm = (tempmap *) g_malloc(n * sizeof(tempmap));
-    for (i = 0; i < n; ++i) {
+    /* if n=1, we build 2 maps for the 2roll mode, but hide the 2nd map */
+    int n2=MAX(n,2);
+
+    ptmw->atm = (tempmap *) g_malloc(n2 * sizeof(tempmap));
+    for (i = 0; i < n2; ++i) {
         ptmw->atm[i].pms = (matchstate *) g_malloc(sizeof(matchstate));
-        memcpy(ptmw->atm[i].pms, &ams[i], sizeof(matchstate));
+        if (i<n)
+            memcpy(ptmw->atm[i].pms, &ams[i], sizeof(matchstate));
     }
 
     /* vbox to hold tree widget and buttons */
@@ -1231,13 +1258,17 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     gtk_container_set_border_width(GTK_CONTAINER(pwv), 6);
     gtk_container_add(GTK_CONTAINER(DialogArea(pwDialog, DA_MAIN)), pwv);
 
+    ptmw->pwContainer = pwv;
+
     /* calculate number of rows and columns */
 
     for (lm = 1; /**/; ++lm) /* computing lm=max(l)+1*/
-        if (lm * lm >= n)
+        if (lm * lm >= n2)
             break;
 
-    for (km = 1; km * lm < n; ++km); /* computing km=max(k)+1*/
+    for (km = 1; km * lm < n2; ++km); /* computing km=max(k)+1*/
+
+    // g_message("n=%d,n2=%d,km=%d,lm=%d",n,n2,km,lm);
 
 #if GTK_CHECK_VERSION(3,0,0)
     pwOuterGrid = gtk_grid_new();
@@ -1250,11 +1281,13 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
 #endif
 
     for (k = m = 0; k < km; ++k) /* m is the global index, (k,l) the position*/
-        for (l = 0; l < lm && m < n; ++l, ++m) {
-
+        for (l = 0; l < lm && m < n2; ++l, ++m) { /*km,lm are k_max, l_max as computed previously, not k*m and l*m*/
             tempmap *ptm = &ptmw->atm[m];
 
-            ptm->szTitle = (aszTitle && aszTitle[m] && *aszTitle[m]) ? g_strdup(aszTitle[m]) : NULL;
+            if (m<n)
+                ptm->szTitle = (aszTitle && aszTitle[m] && *aszTitle[m]) ? g_strdup(aszTitle[m]) : NULL;
+            else
+                ptm->szTitle = g_strdup("dummy frame for 2roll mode"); /* this is purposeful so we can g_free it like the other strings */
 
             ptm->Frame = pw = gtk_frame_new(ptm->szTitle);    
 
@@ -1456,36 +1489,36 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
 
     /* frame for TM modes*/
     char * szToolTip = "temp";
-    if (n >= 2) {
-        pwFrame=gtk_frame_new(_("Map:")); //"In all maps except the first, display:"
-        gtk_box_pack_start(GTK_BOX(pwv), pwFrame, FALSE, FALSE, 0);
-        gtk_widget_set_tooltip_text(pwFrame, _(szToolTip)); 
-        // gtk_widget_set_sensitive(pwFrame, TRUE);
+    // if (n >= 2) {
+    pwFrame=gtk_frame_new(_("Map:")); //"In all maps except the first, display:"
+    gtk_box_pack_start(GTK_BOX(pwv), pwFrame, FALSE, FALSE, 0);
+    gtk_widget_set_tooltip_text(pwFrame, _(szToolTip)); 
+    // gtk_widget_set_sensitive(pwFrame, TRUE);
 
-    #if GTK_CHECK_VERSION(3,0,0)
-        pwh2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
-    #else
-        pwh2 = gtk_hbox_new(FALSE, 8);
-    #endif
-        gtk_container_add(GTK_CONTAINER(pwFrame), pwh2);
+#if GTK_CHECK_VERSION(3,0,0)
+    pwh2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+#else
+    pwh2 = gtk_hbox_new(FALSE, 8);
+#endif
+    gtk_container_add(GTK_CONTAINER(pwFrame), pwh2);
 
-        for(i=0; i<3; i++) {
-            if (i==0) {
-                pw = pwx = gtk_radio_button_new_with_label(NULL, _(aszTempMap[0])); // First radio button
-            } else if ((i==1) || ((i==2) && fCube) ){
-                pw =  gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(pwx), _(aszTempMap[i])); // Associate this to the other radio buttons
-            }
-            gtk_box_pack_start(GTK_BOX(pwh2), pw, FALSE, FALSE, 0);
-            gtk_widget_set_tooltip_text(pw, _(aszTMTooltip[i]));
-            pi = (int *)g_malloc(sizeof(int));
-            *pi=(int)i; // here use "=(int)labelEnum[i];" and put it in the input of the function if needed, while
-                        //  defining sth like " int labelEnum[] = { NUMBERS, ENGLISH, BOTH };" before calling the function
-            g_object_set_data_full(G_OBJECT(pw), "user_data", pi, g_free);
-            if (fShowMode==i) // again use "if (DefaultLabel==labelEnum[i])" if needed
-                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pw), 1); //we set this to toggle it on in case it's the default option
-            g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowModeToggled), ptmw);
+    for(i=0; i<3; i++) {
+        if (i==0) {
+            pw = pwx = gtk_radio_button_new_with_label(NULL, _(aszTempMap[0])); // First radio button
+        } else { //if ((i==1) || ((i==2) && fCube) ){
+            pw =  gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(pwx), _(aszTempMap[i])); // Associate this to the other radio buttons
         }
+        gtk_box_pack_start(GTK_BOX(pwh2), pw, FALSE, FALSE, 0);
+        gtk_widget_set_tooltip_text(pw, _(aszTMTooltip[i]));
+        pi = (int *)g_malloc(sizeof(int));
+        *pi=(int)i; // here use "=(int)labelEnum[i];" and put it in the input of the function if needed, while
+                    //  defining sth like " int labelEnum[] = { NUMBERS, ENGLISH, BOTH };" before calling the function
+        g_object_set_data_full(G_OBJECT(pw), "user_data", pi, g_free);
+        if (fShowMode==i) // again use "if (DefaultLabel==labelEnum[i])" if needed
+            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pw), 1); //we set this to toggle it on in case it's the default option
+        g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowModeToggled), ptmw);
     }
+    // }
 
     /* k-ply eval*/
 #if GTK_CHECK_VERSION(3,0,0)
@@ -1604,6 +1637,18 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
 
     gtk_widget_show_all (pwDialog); /* use this if non-modal*/
     // GTKRunDialog(pwDialog); /* use this if modal */
+
+    HideGhostMaps(ptmw);
+
+    // /* hiding ghost maps */
+    // if (n==1 && !fShowTwoRolls)
+    //     gtk_widget_hide(ptmw->atm[1].Frame);   
+    // else if (n>2 && fShowTwoRolls) {
+    //     for (m = 2; m < n; ++m) {
+    //         gtk_widget_hide(ptmw->atm[m].Frame);   
+    //     }
+    // }
+
 
     // return ptmw;
 }
