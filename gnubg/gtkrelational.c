@@ -750,6 +750,10 @@ extern void ComputeHistory(int usePlayerName)
             stats[i - 2] = (float) g_strtod(rs2->data[j][i], NULL);
 
         matchErrors[j-1]=(stats[0] + stats[1]) * 1000.0f;
+        /* The "infer-report" states "The value read from moves[_] was never initialized."
+         *  for the next line ... but isn't it initialized 4 rows above?
+         * Same for stats[0 or 1]: 2-2=0, 3-2=1).
+         */
         matchMoves[j-1]=moves[0] + moves[1];
         matchErrorRate[j-1]=Ratiof(stats[0] + stats[1], moves[0] + moves[1]) * 1000.0f;
 
@@ -903,6 +907,7 @@ create_model(void)
         for (i = 5; i < 14; ++i)
             stats[i - 5] = (float) g_strtod(rs->data[j][i], NULL);
 
+        /* see previously: we get erroneous "error: Uninitialized Value" reports here */
         gtk_list_store_append(playerStore, &iter);
         gtk_list_store_set(playerStore, &iter,
                            COLUMN_NICK,

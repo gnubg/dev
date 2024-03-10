@@ -3565,7 +3565,8 @@ SaveMiscSettings(FILE * pf)
     fprintf(pf, "set display %s\n", fDisplay ? "on" : "off");
     fprintf(pf, "set firsttimeupdates %d\n", fFirstTimeUpdates);    
     fprintf(pf, "set gotofirstgame %s\n", fGotoFirstGame ? "on" : "off");
-    fprintf(pf, "set nextupdatetime %ld\n", (nextUpdateTime));
+    fprintf(pf, "set nextupdatetime %jd\n", (nextUpdateTime));
+    // fprintf(pf, "set nextupdatetime %ld\n", (nextUpdateTime));
     fprintf(pf, "set output matchpc %s\n", fOutputMatchPC ? "on" : "off");
     fprintf(pf, "set output mwc %s\n", fOutputMWC ? "on" : "off");
     fprintf(pf, "set output rawboard %s\n", fOutputRawboard ? "on" : "off");

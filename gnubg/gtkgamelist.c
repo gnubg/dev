@@ -915,6 +915,8 @@ extern void GetPositionCategories(void) {
     InitCategoryArray();
 
     DIR* dir  = opendir(g_build_filename(szHomeDirectory, "quiz", NULL));
+    if (!dir)
+        return;
     while (NULL != (entry = readdir(dir))) {
         //g_message("entry->d_name=%s",entry->d_name);
         const char *dot = strrchr(entry->d_name, '.');
