@@ -83,8 +83,8 @@ typedef struct {
     int fShowEquity;
     int fShowBestMove;
     int fShowDiff;
-    int fShowOHagan;
-    int fShowOption;
+    int fShowTwoRolls;
+    int fShowMode;
     int fInvert;
     GtkWidget * pwGauge;
     GtkWidget *aapwGaugeDA[32];
@@ -100,21 +100,31 @@ typedef struct {
 
     int nSizeDie;
 
-    tempmap oppTM[6][6]; /* for O'Hagan: getting an opponent TM for each possible roll */
-    // float NextMoveEquity[6][6][6][6]; /* for O'Hagan */
+    tempmap oppTM[6][6]; /* when considering two consecutive rolls: getting a second-roll opponent TM for each possible 1st roll */
 
 } tempmapwidget;
 
 static char *aszTempMap[] =  {
-    N_("Absolute equity"), N_("Relative equity"), N_("O'Hagan's Law"), NULL
+    N_("Absolute equity"), N_("Relative equity"), N_("Two-roll equity"), N_("O'Hagan's Law"), NULL
 };
+static char *aszTMTooltip[] =  {
+    N_("In each scenario, obtain a map of the 36 equities corresponding to the 36 possible rolls."), 
+    N_("The first map provides an absolute equity that serves as a basis, while the other maps provide an equity increase or decrease "
+            "relative to this basis."), 
+    N_("The first map shows the equity following the first roll of the observed player, and the second map shows "
+            "the equity following the roll of his opponent. E.g., the 1-ply eval of a given roll in the first map "
+            "should equal the corresponding 0-ply (top-left quadrant) average eval of the rolls in the second map."), 
+    N_("O'Hagan's Law"), NULL
+};
+
+
 
 /* Retain these from one GTKShowTempMap() to the next */
 static int fShowEquity = FALSE;
 static int fShowBestMove = FALSE;
 static int fShowDiff = FALSE;
-static int fShowOHagan = FALSE;
-static int fShowOption = 0;
+static int fShowTwoRolls = FALSE;
+static int fShowMode = 0;
 
 /* computes all equities*/
 static int
@@ -197,7 +207,7 @@ TempMapEquities(evalcontext * pec, const matchstate * pms,
 
 /* computes all equities after move i0,j0*/
 static int
-OHaganPostMoveEquities(int i0, int j0, evalcontext * pec, const matchstate * pms,
+SecondRollEquities(int i0, int j0, evalcontext * pec, const matchstate * pms,
                 float aarEquity[6][6], int aaanMove[6][6][8], const gchar * szTitle)
 {
     int i, j;
@@ -467,7 +477,6 @@ GetEquityString(const float rEquity, const cubeinfo * pci, const int fInvert)
         return OutputMWC(r, &ci, TRUE);
     } else
         return OutputMWC(r, pci, TRUE);
-
 }
 
 
@@ -483,18 +492,19 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
     char szMove[FORMATEDMOVESIZE];
     int mMax;
 
-    /* Use equity for each quadrant, and compute min, max and average. Three options for what to compute: 
+    /* Use equity for each quadrant, and compute min, max and average. Four options for what to compute: 
         (1) Absolute equity: equity [in MWC terms?] 
         (2) Relative equity: equity difference with 1st option (in normalized equity) 
-        (3) O'Hagan: equity for 2nd roll after the given roll
+        (3) Two-roll equity: equity for 2nd roll on the right after some given 1st roll on the left 
+        (4) O'Hagan: 
      */
 
-    if (fShowOHagan)
+    if (fShowTwoRolls)
         g_assert(ptmw->n == 2);
 
     if (fShowDiff)
         mMax = 1;
-    else /* incl. O'Hagan, with n==2 */
+    else /* incl. two-roll equity, with n==2 */
         mMax = ptmw->n;
 
     rMax = -10000;
@@ -503,7 +513,7 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
         ptmw->atm[m].rAverage = 0.0f;
         for (i = 0; i < 6; ++i)
             for (j = 0; j < 6; ++j) {
-                if (m==1 && fShowOHagan)
+                if (m==1 && fShowTwoRolls)
                     r = ptmw->oppTM[5][2].aarEquity[i][j];
                 else
                     r = ptmw->atm[m].aarEquity[i][j];
@@ -548,9 +558,9 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
         g_assert(ptmw->n <=1 || ptmw->dMaxAbs>=0.0f);
     } 
 
-    // if (fShowOHagan) {
+    // if (fShowTwoRolls) {
     //     /* compute equities and best moves of all 36*36 options following the 36 possible rolls */
-    //     OHaganPostMoveEquities(5,2,&ec, ptmw->atm[0].pms, ptmw->oppTM[5][2].aarEquity, ptmw->oppTM[5][2].aaanMove,
+    //     SecondRollEquities(5,2,&ec, ptmw->atm[0].pms, ptmw->oppTM[5][2].aarEquity, ptmw->oppTM[5][2].aaanMove,
     //                     ptmw->atm[0].szTitle); 
         
     // }
@@ -583,7 +593,7 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
                                                         ptmw->atm[m].aaanMove[i][j]));
                     // g_message("%s",sz);
                     SetStyleDiff(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquityDiff[i][j], ptmw->dMaxAbs);
-                } else if (m==1 && fShowOHagan) { /* O'Hagan equities for opponent roll following our roll in m=0 */
+                } else if (m==1 && fShowTwoRolls) { /* 2nd-roll equities for opponent roll following our roll in m=0 */
                     sz = g_strdup_printf("%s [%s]",
                             GetEquityString(ptmw->oppTM[5][2].aarEquity[i][j], &ci, ptmw->fInvert),
                             FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
@@ -599,7 +609,7 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
                 } 
                 
                 // /* colors */
-                // if (!fShowDiff || m==0) /* absolute equities or O'Hagan*/
+                // if (!fShowDiff || m==0) /* absolute equities or 2nd-roll equities*/
                 //     SetStyle(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquity[i][j], rMin, rMax, ptmw->fInvert);
                 // else /* difference i.e. relative equities */
                 //     SetStyleDiff(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquityDiff[i][j], ptmw->dMaxAbs);
@@ -618,11 +628,11 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
                             GetEquityString(ptmw->atm[m].rAverage, &ci, ptmw->fInvert));
             gtk_widget_set_tooltip_text(ptmw->atm[m].pweAverage,sz);
             SetStyleDiff(ptmw->atm[m].pwAverage, ptmw->atm[m].dAverage, ptmw->dMaxAbs);
-        // } else if (m==1 && fShowOHagan) { /* O'Hagan equities for opponent roll following our roll in m=0 */
+        // } else if (m==1 && fShowTwoRolls) { /* 2nd-roll equities (i.e. comsidering opponent roll) following our roll in m=0 */
         //    gtk_widget_set_tooltip_text(ptmw->atm[m].pweAverage,
         //                             GetEquityString(ptmw->atm[m].rAverage, &ci, ptmw->fInvert));
         //     SetStyle(ptmw->atm[m].pwAverage, ptmw->atm[m].rAverage, rMin, rMax, ptmw->fInvert);
-        } else { /* absolute equities OR O'Hagan*/
+        } else { /* absolute equities OR 2nd-roll equities*/
             gtk_widget_set_tooltip_text(ptmw->atm[m].pweAverage,
                                     GetEquityString(ptmw->atm[m].rAverage, &ci, ptmw->fInvert));
             SetStyle(ptmw->atm[m].pwAverage, ptmw->atm[m].rAverage, rMin, rMax, ptmw->fInvert);
@@ -642,6 +652,9 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
     } 
 }
 
+/* Function to draw quadrant and show equity and best move (in addition to the function above to show
+ *  the tooltip with the equity and best move, and to choose the right color based on equity) 
+ */
 static gboolean
 DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
 {
@@ -692,32 +705,44 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
     /* show equity */
 
     if (ptmw->fShowEquity) {
-        float r = 0.0f;
-
-        if (j >= 0)
-            r = ptmw->atm[m].aarEquity[i][j];
-        else if (j == -1)
-            r = ptmw->atm[m].rAverage;
-        // g_message("m=%d,i=%d,j=%d -> r=%f",m,i,j,r);
         GetMatchStateCubeInfo(&ci, ptmw->atm[0].pms);
-        tmp = GetEquityString(r, &ci, ptmw->fInvert);
-        while (*tmp == ' ')
-            tmp++;
-        if (fShowDiff && m>0) {
-            // float auxEquity=GetEquity(r, &ci, ptmw->fInvert)-GetEquity(ptmw->atm[0].aarEquity[i][j], &ci, ptmw->fInvert);
-            // if (i==0 && j==0)
-                // g_message("myequitydiff=%+.3f",auxEquity);
+
+        if (m==1 && fShowTwoRolls) { /* 2nd-roll equities for opponent roll following our roll in m=0 */
             if (j >= 0)
-                tmp2=GetEquityDiffString(ptmw->atm[0].aarEquity[i][j],r,&ci,ptmw->fInvert);
+                tmp = GetEquityString(ptmw->oppTM[5][2].aarEquity[i][j], &ci, ptmw->fInvert);
+                    // FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
+                    //                             ptmw->oppTM[5][2].aaanMove[i][j])); /* TBD: check if board needs to be updated before */
             else if (j == -1)
-                tmp2=GetEquityDiffString(ptmw->atm[0].rAverage,r,&ci,ptmw->fInvert);
-
-            // g_message("m=%d,i=%d,j=%d -> tmp=%s",m,i,j,tmp);
-            // tmp = sprintf(tmp,"%+.3f",auxEquity);
-
-            g_string_append_printf(str, "%s (%s)", tmp2, tmp);
-        } else
+                tmp = GetEquityString(ptmw->atm[m].rAverage, &ci, ptmw->fInvert);
             g_string_append(str, tmp);
+        } else {
+            /* absolute equities */
+            float r = 0.0f;
+            if (j >= 0)
+                r = ptmw->atm[m].aarEquity[i][j];
+            else if (j == -1)
+                r = ptmw->atm[m].rAverage;
+            // g_message("m=%d,i=%d,j=%d -> r=%f",m,i,j,r);
+            tmp = GetEquityString(r, &ci, ptmw->fInvert);
+            while (*tmp == ' ')
+                tmp++;
+            /* relative equities */
+            if (fShowDiff && m>0) {
+                // float auxEquity=GetEquity(r, &ci, ptmw->fInvert)-GetEquity(ptmw->atm[0].aarEquity[i][j], &ci, ptmw->fInvert);
+                // if (i==0 && j==0)
+                    // g_message("myequitydiff=%+.3f",auxEquity);
+                if (j >= 0)
+                    tmp2=GetEquityDiffString(ptmw->atm[0].aarEquity[i][j],r,&ci,ptmw->fInvert);
+                else if (j == -1)
+                    tmp2=GetEquityDiffString(ptmw->atm[0].rAverage,r,&ci,ptmw->fInvert);
+
+                // g_message("m=%d,i=%d,j=%d -> tmp=%s",m,i,j,tmp);
+                // tmp = sprintf(tmp,"%+.3f",auxEquity);
+
+                g_string_append_printf(str, "%s (%s)", tmp2, tmp);
+            } else
+                g_string_append(str, tmp);
+        }
     }
 
 
@@ -725,9 +750,14 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
 
     if (j >= 0 && ptmw->fShowBestMove) {
         char szMove[FORMATEDMOVESIZE];
-
-        // FormatMovePlain(szMove, (ConstTanBoard)ptmw->atm[m].pms->anBoard, ptmw->atm[m].aaanMove[i][j]);
-        FormatMove(szMove, (ConstTanBoard)ptmw->atm[m].pms->anBoard, ptmw->atm[m].aaanMove[i][j]);
+        if (m==1 && fShowTwoRolls) { /* 2nd-roll equities for opponent roll following our roll in m=0 */
+            FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
+                                                ptmw->oppTM[5][2].aaanMove[i][j]); 
+        } else {
+            // FormatMovePlain(szMove, (ConstTanBoard)ptmw->atm[m].pms->anBoard, ptmw->atm[m].aaanMove[i][j]);
+            FormatMove(szMove, (ConstTanBoard)ptmw->atm[m].pms->anBoard, ptmw->atm[m].aaanMove[i][j]);
+        }
+        
         if (ptmw->fShowEquity)
             g_string_append_printf(str, " [%s]", szMove);
         else
@@ -981,13 +1011,13 @@ UpdateTitles(tempmapwidget * ptmw, int i) {
 // }
 
 // static void
-// ShowOHaganToggled(GtkWidget * pw, tempmapwidget * ptmw)
+// ShowTwoRollsToggled(GtkWidget * pw, tempmapwidget * ptmw)
 // {
 
 //     int f = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
 
-//     if (f != ptmw->fShowOHagan) {
-//         fShowOHagan = ptmw->fShowOHagan = f;
+//     if (f != ptmw->fShowTwoRolls) {
+//         fShowTwoRolls = ptmw->fShowTwoRolls = f;
 //         UpdateTempMapEquities(ptmw);
 //         DrawGauge(ptmw);
 //             for (int i = 0; i < ptmw->n; ++i) {
@@ -1004,14 +1034,14 @@ ShowOptionToggled(GtkWidget * pw, tempmapwidget * ptmw)
     
     int *pi = (int *) g_object_get_data(G_OBJECT(pw), "user_data");
     if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw) )) {
-        if (fShowOption != (*pi)) {
+        if (fShowMode != (*pi)) {
             g_message("*pi=%d",*pi);
-            fShowOption = ptmw->fShowOption = (*pi);
+            fShowMode = ptmw->fShowMode = (*pi);
             fShowDiff = ptmw->fShowDiff = (*pi==1);
-            fShowOHagan = ptmw->fShowOHagan = (*pi==2);
-            if (fShowOHagan) {
+            fShowTwoRolls = ptmw->fShowTwoRolls = (*pi==2);
+            if (fShowTwoRolls) {
                 evalcontext ec = { TRUE, 0, FALSE, TRUE, 0.0, FALSE};
-                OHaganPostMoveEquities(5,2,&ec, ptmw->atm[0].pms, ptmw->oppTM[5][2].aarEquity, ptmw->oppTM[5][2].aaanMove,
+                SecondRollEquities(5,2,&ec, ptmw->atm[0].pms, ptmw->oppTM[5][2].aarEquity, ptmw->oppTM[5][2].aaanMove,
                                                 ptmw->atm[0].szTitle);
             } 
             UpdateTempMapEquities(ptmw);
@@ -1097,9 +1127,9 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
         fShowDiff = 0;
     ptmw->fShowDiff = fShowDiff;
     if (!fCube)
-        fShowOHagan = 0; /* only interesting in cube decisions */ 
-    ptmw->fShowOHagan = fShowOHagan;
-    ptmw->fShowOption = fShowOption;
+        fShowTwoRolls = 0; /* only interesting in cube decisions */ 
+    ptmw->fShowTwoRolls = fShowTwoRolls;
+    ptmw->fShowMode = fShowMode;
     ptmw->nSizeDie = -1;
     ptmw->achDice[0] = ptmw->achDice[1] = NULL;
     ptmw->achPips[0] = ptmw->achPips[1] = NULL;
@@ -1337,6 +1367,41 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
 
     /* buttons */
 
+
+    /* frame for TM modes*/
+    char * szToolTip = "temp";
+    if (n >= 2) {
+        pwFrame=gtk_frame_new(_("Map:")); //"In all maps except the first, display:"
+        gtk_box_pack_start(GTK_BOX(pwv), pwFrame, FALSE, FALSE, 0);
+        gtk_widget_set_tooltip_text(pwFrame, _(szToolTip)); 
+        // gtk_widget_set_sensitive(pwFrame, TRUE);
+
+    #if GTK_CHECK_VERSION(3,0,0)
+        pwh2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
+    #else
+        pwh2 = gtk_hbox_new(FALSE, 8);
+    #endif
+        gtk_container_add(GTK_CONTAINER(pwFrame), pwh2);
+
+        for(i=0; i<3; i++) {
+            if (i==0) {
+                pw = pwx = gtk_radio_button_new_with_label(NULL, _(aszTempMap[0])); // First radio button
+            } else if ((i==1) || ((i==2) && fCube) ){
+                pw =  gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(pwx), _(aszTempMap[i])); // Associate this to the other radio buttons
+            }
+            gtk_box_pack_start(GTK_BOX(pwh2), pw, FALSE, FALSE, 0);
+            gtk_widget_set_tooltip_text(pw, _(aszTMTooltip[i]));
+            pi = (int *)g_malloc(sizeof(int));
+            *pi=(int)i; // here use "=(int)labelEnum[i];" and put it in the input of the function if needed, while
+                        //  defining sth like " int labelEnum[] = { NUMBERS, ENGLISH, BOTH };" before calling the function
+            g_object_set_data_full(G_OBJECT(pw), "user_data", pi, g_free);
+            if (fShowMode==i) // again use "if (DefaultLabel==labelEnum[i])" if needed
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pw), 1); //we set this to toggle it on in case it's the default option
+            g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowOptionToggled), ptmw);
+        }
+    }
+
+    /* k-ply eval*/
 #if GTK_CHECK_VERSION(3,0,0)
     pwh = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 4);
 #else
@@ -1381,9 +1446,9 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     // /* radio button for O'Hagan's Rule */
     // if (n==2) {
     //     pw = gtk_check_button_new_with_label(_("Show O'Hagan"));
-    //     gtk_toggle_button_set_active((GtkToggleButton *) pw, ptmw->fShowOHagan);
+    //     gtk_toggle_button_set_active((GtkToggleButton *) pw, ptmw->fShowTwoRolls);
     //     gtk_box_pack_end(GTK_BOX(pwh), pw, FALSE, FALSE, 0);
-    //     g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowOHaganToggled), ptmw);
+    //     g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowTwoRollsToggled), ptmw);
     // }
 
     // /* radio button for relative equities */
@@ -1439,37 +1504,6 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     gtk_toggle_button_set_active((GtkToggleButton *) pw, ptmw->fShowEquity);
     gtk_box_pack_end(GTK_BOX(pwh), pw, FALSE, FALSE, 0);
     g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowEquityToggled), ptmw);
-
-    if (n >= 2) {
-        pwFrame=gtk_frame_new(_("Show:")); //"In all maps except the first, display:"
-        gtk_box_pack_start(GTK_BOX(pwv), pwFrame, FALSE, FALSE, 0);
-        // gtk_widget_set_tooltip_text(pwFrame, _("test")); 
-        // gtk_widget_set_sensitive(pwFrame, TRUE);
-
-    #if GTK_CHECK_VERSION(3,0,0)
-        pwh2 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 8);
-    #else
-        pwh2 = gtk_hbox_new(FALSE, 8);
-    #endif
-        gtk_container_add(GTK_CONTAINER(pwFrame), pwh2);
-
-        for(i=0; i<3; i++) {
-            if (i==0) {
-                pw = pwx = gtk_radio_button_new_with_label(NULL, _(aszTempMap[0])); // First radio button
-            } else if ((i==1) || ((i==2) && fCube) ){
-                pw =  gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(pwx), _(aszTempMap[i])); // Associate this to the other radio buttons
-            }
-            gtk_box_pack_start(GTK_BOX(pwh2), pw, FALSE, FALSE, 0);
-            gtk_widget_set_tooltip_text(pw, _("test2"));
-            pi = (int *)g_malloc(sizeof(int));
-            *pi=(int)i; // here use "=(int)labelEnum[i];" and put it in the input of the function if needed, while
-                        //  defining sth like " int labelEnum[] = { NUMBERS, ENGLISH, BOTH };" before calling the function
-            g_object_set_data_full(G_OBJECT(pw), "user_data", pi, g_free);
-            if (fShowOption==i) // again use "if (DefaultLabel==labelEnum[i])" if needed
-                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pw), 1); //we set this to toggle it on in case it's the default option
-            g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowOptionToggled), ptmw);
-        }
-    }
 
     /* update */
 
