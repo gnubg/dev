@@ -102,8 +102,9 @@ typedef struct {
 
     int nSizeDie;
 
+    tempmap TM1;
     tempmap oppTM[6][6]; /* when considering two consecutive rolls: getting a second-roll opponent TM for each possible 1st roll */
-    
+        
     evalcontext ec; /* includes the eval ply */
 } tempmapwidget;
 
@@ -122,13 +123,16 @@ static char *aszTMTooltip[] =  {
     N_("O'Hagan's Law")
 };
 
-
+// static char szTwoRollSelect[] = g_strdup_printf("%s",_("Click on some square to select it as a first roll and check the opponent's second-roll responses."));
+static char szTwoRollSelect[] =N_("Click on some square to select it as a first roll and check the opponent's second-roll responses.");
+// static char szDICE[] = N_("<die> <die>"),
 
 /* Retain these from one GTKShowTempMap() to the next */
 static int fShowEquity = FALSE;
 static int fShowBestMove = FALSE;
 static int fShowDiff = FALSE;
 static int fShowTwoRolls = FALSE;
+static int fTwoRollsSelected = FALSE;
 static int fShowMode = 0;
 static int iDefault = 0;
 static int jDefault = 0;
@@ -610,6 +614,7 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
     for (m = 0; m < ptmw->n; ++m) {
         for (i = 0; i < 6; ++i)
             for (j = 0; j < 6; ++j) {
+                // g_message("updateTMequities: before setstyle: m=%d,i=%d,j=%d",m,i,j);
                 /* tooltip text & colors */
                 if (m>0 && fShowDiff) { /* relative equities */
                     sz = g_strdup_printf("[%s (%d,%d)]\n\n%s: \t\t%s\n%s: \t\t%s\n%s: \t%s", _(szROLL), i+1,j+1, _(szREL),
@@ -1110,19 +1115,28 @@ ShowModeToggled(GtkWidget * pw, tempmapwidget * ptmw)
 /* This is called by gtk when the user clicks on the "display eval" radio buttons.
 */
 {
-    
+    int OldMode;
     int *pi = (int *) g_object_get_data(G_OBJECT(pw), "user_data");
     if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw) )) {
         if (fShowMode != (*pi)) {
+            OldMode = fShowMode;
             g_message("*pi=%d",*pi);
             fShowMode = ptmw->fShowMode = (*pi);
             fShowDiff = ptmw->fShowDiff = (*pi==1);
             fShowTwoRolls = ptmw->fShowTwoRolls = (*pi==2);
-
-            if (CalcTempMapEquities(ptmw, FALSE)) /* don't recompute m=0, only the other maps*/
-                return;
-
+            if (OldMode == 2 && fTwoRollsSelected) { /* we used the maps for 2roll mode */
+                fTwoRollsSelected = FALSE;
+                if (CalcTempMapEquities(ptmw, TRUE)) /* don't recompute m=0, only the other maps*/
+                    return;
+            } else {
+                fTwoRollsSelected = FALSE;
+                if (CalcTempMapEquities(ptmw, FALSE)) /* don't recompute m=0, only the other maps*/
+                    return;
+            }
             UpdateAll(ptmw);
+            if (fShowTwoRolls) {
+                outputerrf("%s",szTwoRollSelect);
+            }
         }
     }
 }
@@ -1130,25 +1144,46 @@ ShowModeToggled(GtkWidget * pw, tempmapwidget * ptmw)
 static void
 key_press(GtkWidget * pw, GdkEvent * UNUSED(event), tempmapwidget * ptmw)
 {
-    int m;
+    int m,i,j;
 
-    if (fShowTwoRolls) {
-        const int *pi = (int *) g_object_get_data(G_OBJECT(pw), "user_data");
-        /*  *pi = i * 6 + j + m * 100; */
-        g_assert(*pi >= 0);
-        m = *pi / 100;
-        iDefault = (*pi % 100) / 6;
-        jDefault = (*pi % 100) % 6;
-        g_assert(m==0 && 0<=iDefault && iDefault<=5 && 0<=jDefault && jDefault<=5);
-        g_message("m=%d,i=%d,j=%d",m,iDefault,jDefault);
+    
+    const int *pi = (int *) g_object_get_data(G_OBJECT(pw), "user_data");
+    /*  *pi = i * 6 + j + m * 100; */
+    g_assert(*pi >= 0);
+    m = *pi / 100;
+    i = (*pi % 100) / 6;
+    j = (*pi % 100) % 6;
+    if (!(m>0 && fShowTwoRolls)) { /*exclude case where we click on the 2nd-roll answer*/
+        fTwoRollsSelected = TRUE;
+        if (fShowTwoRolls) { /* zoom in on some square of TM m=0 */
+            ptmw->TM1 = ptmw->atm[m];
+            // memcpy(ptmw->TM1, ptmw->atm[m], sizeof(tempmap));
+        } else {
+            /* we enter a 2roll mode */
+            fShowMode = ptmw->fShowMode = 2;
+            fShowDiff = ptmw->fShowDiff = FALSE;
+            fShowTwoRolls = ptmw->fShowTwoRolls = TRUE;
+        }
+        iDefault=i;
+        jDefault=j;
 
-        UpdateAll(ptmw);
+        if (CalcTempMapEquities(ptmw, FALSE)) /* don't recompute m=0, only the other maps*/
+            return;
+
+
+
+    }
+
+    g_assert(m==0 && 0<=iDefault && iDefault<=5 && 0<=jDefault && jDefault<=5);
+    g_message("m=%d,i=%d,j=%d",m,iDefault,jDefault);
+
+    UpdateAll(ptmw);
 
         // if (iDefault==5 && jDefault==5) {
         //     g_message("hide");
         //     gtk_widget_hide(ptmw->atm[1].Frame);        
         // }
-    }
+    
 
 }
 
@@ -1191,13 +1226,15 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     GtkWidget *pw;
     GtkWidget *pwh;
     GtkWidget *pwh2;
+    GtkWidget *pwhgrid;
+    GtkWidget *pwvgrid;
     // GtkWidget *pwhbox;
     GtkWidget *pwx = NULL;
 #if GTK_CHECK_VERSION(3,0,0)
-    GtkWidget *pwOuterGrid;
+    // GtkWidget *pwOuterGrid;
     GtkWidget *pwGrid = NULL;
 #else
-    GtkWidget *pwOuterTable;
+    // GtkWidget *pwOuterTable;
     GtkWidget *pwTable = NULL;
 #endif
     GtkWidget * pwFrame;
@@ -1263,20 +1300,38 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
 
     for (km = 1; km * lm < n2; ++km); /* computing km=max(k)+1*/
 
-    // g_message("n=%d,n2=%d,km=%d,lm=%d",n,n2,km,lm);
+    g_message("n=%d,n2=%d,km=%d,lm=%d",n,n2,km,lm);
+
+// #if GTK_CHECK_VERSION(3,0,0)
+//     pwOuterGrid = gtk_grid_new();
+//     gtk_grid_set_column_homogeneous(GTK_GRID(pwOuterGrid), TRUE);
+//     gtk_grid_set_row_homogeneous(GTK_GRID(pwOuterGrid), TRUE);
+//     gtk_box_pack_start(GTK_BOX(pwv), pwOuterGrid, TRUE, TRUE, 0);
+// #else
+//     pwOuterTable = gtk_table_new(km, lm, TRUE);
+//     gtk_box_pack_start(GTK_BOX(pwv), pwOuterTable, TRUE, TRUE, 0);
+// #endif
+
+    for (k = m = 0; k < km; ++k) { /* m is the global index, (k,l) the position; km,lm are k_max, l_max as computed previously, not k*m and l*m!*/
+        // g_message("in k: n=%d,n2=%d,k=%d < km=%d?, m=%d",n,n2,k,km,m); /* why does this start with k=1? shouldn't it be k=0???*/
 
 #if GTK_CHECK_VERSION(3,0,0)
-    pwOuterGrid = gtk_grid_new();
-    gtk_grid_set_column_homogeneous(GTK_GRID(pwOuterGrid), TRUE);
-    gtk_grid_set_row_homogeneous(GTK_GRID(pwOuterGrid), TRUE);
-    gtk_box_pack_start(GTK_BOX(pwv), pwOuterGrid, TRUE, TRUE, 0);
+        pwhgrid = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 #else
-    pwOuterTable = gtk_table_new(km, lm, TRUE);
-    gtk_box_pack_start(GTK_BOX(pwv), pwOuterTable, TRUE, TRUE, 0);
+        pwhgrid = gtk_hbox_new(FALSE, 0);
 #endif
+        gtk_box_pack_start(GTK_BOX(pwv), pwhgrid, FALSE, FALSE, 0);
 
-    for (k = m = 0; k < km; ++k) /* m is the global index, (k,l) the position*/
-        for (l = 0; l < lm && m < n2; ++l, ++m) { /*km,lm are k_max, l_max as computed previously, not k*m and l*m*/
+        for (l = 0; l < lm && m < n2; ++l, ++m) { 
+            // g_message("in l: n=%d,n2=%d,k=%d < km=%d?, l=%d < lm=%d? ,m=%d",n,n2,k,km,l,lm,m); 
+
+#if GTK_CHECK_VERSION(3,0,0)
+            pwvgrid = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
+#else
+            pwvgrid = gtk_vbox_new(FALSE, 6);
+#endif
+            gtk_box_pack_start(GTK_BOX(pwhgrid), pwvgrid, FALSE, FALSE, 0);
+
             tempmap *ptm = &ptmw->atm[m];
 
             if (m<n)
@@ -1284,20 +1339,22 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
             else
                 ptm->szTitle = g_strdup("dummy frame for 2roll mode"); /* this is purposeful so we can g_free it like the other strings */
 
-            ptm->Frame = pw = gtk_frame_new(ptm->szTitle);    
+            ptm->Frame = gtk_frame_new(ptm->szTitle);    
+            // gtk_container_add(GTK_CONTAINER(pwhgrid), pw);
+            gtk_box_pack_start(GTK_BOX(pwvgrid), ptm->Frame, FALSE, FALSE, 0);
 
 #if GTK_CHECK_VERSION(3,0,0)
-            gtk_grid_attach(GTK_GRID(pwOuterGrid), pw, l, k, 1, 1);
+            // gtk_grid_attach(GTK_GRID(pwOuterGrid), ptm->Frame, l, k, 1, 1);
 
             pwGrid = gtk_grid_new();
             gtk_grid_set_column_homogeneous(GTK_GRID(pwGrid), TRUE);
             gtk_grid_set_row_homogeneous(GTK_GRID(pwGrid), TRUE);
-            gtk_container_add(GTK_CONTAINER(pw), pwGrid);
+            gtk_container_add(GTK_CONTAINER(ptm->Frame), pwGrid);
 #else
-            gtk_table_attach_defaults(GTK_TABLE(pwOuterTable), pw, l, l + 1, k, k + 1);
+            // gtk_table_attach_defaults(GTK_TABLE(pwOuterTable), ptm->Frame, l, l + 1, k, k + 1);
 
             pwTable = gtk_table_new(7, 7, TRUE);
-            gtk_container_add(GTK_CONTAINER(pw), pwTable);
+            gtk_container_add(GTK_CONTAINER(ptm->Frame), pwTable);
 #endif
 
             /* drawing areas */
@@ -1410,6 +1467,8 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
 #endif
 
         }
+    }
+
     /* map titles */
     UpdateTitles(ptmw);
 
@@ -1619,6 +1678,9 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     gtk_box_pack_end(GTK_BOX(pwh), pw, FALSE, FALSE, 0);
     g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowEquityToggled), ptmw);
 
+
+
+
     /* update */
 
     CalcTempMapEquities(ptmw, TRUE);
@@ -1634,6 +1696,14 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     // GTKRunDialog(pwDialog); /* use this if modal */
 
     HideGhostMaps(ptmw);
+
+    /* in 2roll mode, choose some default TM for the 1st roll  */
+    if (fShowTwoRolls) {
+        fTwoRollsSelected=FALSE;
+        // outputerrf(_("Click on some square to select it as a first roll and check the opponent's second-roll responses."));
+        outputerrf("%s", szTwoRollSelect);
+        // memcpy(ptmw->TM1, ptmw->atm[m], sizeof ptmw->atm[m]);
+    }
 
     // /* hiding ghost maps */
     // if (n==1 && !fShowTwoRolls)
