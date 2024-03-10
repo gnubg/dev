@@ -7108,6 +7108,9 @@ GTKTextWindow(const char *szOutput, const char *title, const dialogtype type, Gt
     EmptyClipboard();
     SetClipboardData(CF_TEXT, hMem);
     CloseClipboard();
+#else
+    GtkClipboard * clipboard = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+    gtk_clipboard_set_text(clipboard, szOutput, -1);
 #endif // Win32
 
     pwText = gtk_text_view_new();
