@@ -108,8 +108,9 @@ typedef struct {
 } tempmapwidget;
 
 static char *aszTempMap[] =  {
-    N_("Absolute equity"), N_("Relative equity"), N_("Two-roll equity"), N_("O'Hagan's Law"), NULL
+    N_("Absolute equity"), N_("Relative equity"), N_("Two-roll equity"), N_("O'Hagan's Law")//, NULL
 };
+// int modesTempMap[] = { ABS, DIFF, TWO_ROLL, OHAGAN };
 static char *aszTMTooltip[] =  {
     N_("In each scenario, obtain a map of the 36 equities corresponding to the 36 possible rolls."), 
     N_("The first map provides an absolute equity that serves as a basis, while the other maps provide an equity increase or decrease "
@@ -118,7 +119,7 @@ static char *aszTMTooltip[] =  {
             "the equity following the roll of his opponent. E.g., the 1-ply eval of a given roll in the first map "
             "should equal the corresponding 0-ply (top-left quadrant) average eval of the rolls in the second map, "
             "assuming the 0-ply eval picked the same best move in the first roll as the 1-ply eval."), 
-    N_("O'Hagan's Law"), NULL
+    N_("O'Hagan's Law")
 };
 
 
@@ -1163,20 +1164,14 @@ DestroyDialog(gpointer p, GObject * UNUSED(obj))
     g_free(ptmw->achDice[1]);
     g_free(ptmw->achPips[0]);
     g_free(ptmw->achPips[1]);
-    g_message("a");
     for (i = 0; i < n2; ++i) {
         g_free(ptmw->atm[i].pms);
-    g_message("b");
         g_free(ptmw->atm[i].szTitle);
-    g_message("c");
     }
-    g_message("d");
 
     g_free(ptmw->atm);
-    g_message("e");
 
     g_free(ptmw);
-    g_message("f");
 
 }
 
@@ -1335,12 +1330,10 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
 #else
                     g_signal_connect(G_OBJECT(ptm->aapwDA[i][j]), "expose_event", G_CALLBACK(ExposeQuadrant), ptmw);
 #endif
-                    if (m==0) {
-                        gtk_widget_add_events(ptm->aapwDA[i][j], GDK_BUTTON_PRESS_MASK);
-                        g_signal_connect(G_OBJECT(ptm->aapwDA[i][j]), "button_press_event", G_CALLBACK(key_press), ptmw);
+                    gtk_widget_add_events(ptm->aapwDA[i][j], GDK_BUTTON_PRESS_MASK);
+                    g_signal_connect(G_OBJECT(ptm->aapwDA[i][j]), "button_press_event", G_CALLBACK(key_press), ptmw);
                             // sprintf(sz, _("In edit mode, click on this checker to set player %d on roll."), iPlayer);
                         // gtk_widget_set_tooltip_text(ptm->aapwDA[i][j], _("In two-roll equity mode, click on this square to map the corresponding second-roll equities."));
-                    }
                 }
 
                 /* die */
@@ -1503,20 +1496,22 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     gtk_container_add(GTK_CONTAINER(pwFrame), pwh2);
 
     for(i=0; i<3; i++) {
-        if (i==0) {
-            pw = pwx = gtk_radio_button_new_with_label(NULL, _(aszTempMap[0])); // First radio button
-        } else { //if ((i==1) || ((i==2) && fCube) ){
-            pw =  gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(pwx), _(aszTempMap[i])); // Associate this to the other radio buttons
+        if (!(i==1 && n==1)) { /* don't offer a diff button when there is a single map */
+            if (i==0) {
+                pw = pwx = gtk_radio_button_new_with_label(NULL, _(aszTempMap[0])); // First radio button
+            } else { //if ((i==1) || ((i==2) && fCube) ){
+                pw =  gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(pwx), _(aszTempMap[i])); // Associate this to the other radio buttons
+            }
+            gtk_box_pack_start(GTK_BOX(pwh2), pw, FALSE, FALSE, 0);
+            gtk_widget_set_tooltip_text(pw, _(aszTMTooltip[i]));
+            pi = (int *)g_malloc(sizeof(int));
+            *pi=(int)i; // here use "=(int)labelEnum[i];" and put it in the input of the function if needed, while
+                        //  defining sth like " int labelEnum[] = { NUMBERS, ENGLISH, BOTH };" before calling the function
+            g_object_set_data_full(G_OBJECT(pw), "user_data", pi, g_free);
+            if (fShowMode==i) // again use "if (DefaultLabel==labelEnum[i])" if needed
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pw), 1); //we set this to toggle it on in case it's the default option
+            g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowModeToggled), ptmw);
         }
-        gtk_box_pack_start(GTK_BOX(pwh2), pw, FALSE, FALSE, 0);
-        gtk_widget_set_tooltip_text(pw, _(aszTMTooltip[i]));
-        pi = (int *)g_malloc(sizeof(int));
-        *pi=(int)i; // here use "=(int)labelEnum[i];" and put it in the input of the function if needed, while
-                    //  defining sth like " int labelEnum[] = { NUMBERS, ENGLISH, BOTH };" before calling the function
-        g_object_set_data_full(G_OBJECT(pw), "user_data", pi, g_free);
-        if (fShowMode==i) // again use "if (DefaultLabel==labelEnum[i])" if needed
-            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pw), 1); //we set this to toggle it on in case it's the default option
-        g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowModeToggled), ptmw);
     }
     // }
 
