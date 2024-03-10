@@ -102,6 +102,7 @@ typedef struct {
 
     tempmap oppTM[6][6]; /* when considering two consecutive rolls: getting a second-roll opponent TM for each possible 1st roll */
 
+    evalcontext ec; /* includes the eval ply */
 } tempmapwidget;
 
 static char *aszTempMap[] =  {
@@ -113,7 +114,8 @@ static char *aszTMTooltip[] =  {
             "relative to this basis."), 
     N_("The first map shows the equity following the first roll of the observed player, and the second map shows "
             "the equity following the roll of his opponent. E.g., the 1-ply eval of a given roll in the first map "
-            "should equal the corresponding 0-ply (top-left quadrant) average eval of the rolls in the second map."), 
+            "should equal the corresponding 0-ply (top-left quadrant) average eval of the rolls in the second map, "
+            "assuming the 0-ply eval picked the same best move in the first roll as the 1-ply eval."), 
     N_("O'Hagan's Law"), NULL
 };
 
@@ -128,10 +130,9 @@ static int fShowMode = 0;
 static int iDefault = 0;
 static int jDefault = 0;
 
-/* computes all equities*/
+/* computes all equities and best moves for a given TempMap and stores them */
 static int
-TempMapEquities(evalcontext * pec, const matchstate * pms,
-                float aarEquity[6][6], int aaanMove[6][6][8], const gchar * szTitle, const float rFac)
+TempMapEquities(evalcontext * pec, const matchstate * pms, float aarEquity[6][6], int aaanMove[6][6][8], const gchar * szTitle, const float rFac)
 {
 
     int i, j;
@@ -207,9 +208,9 @@ TempMapEquities(evalcontext * pec, const matchstate * pms,
 
 }
 
-/* computes all equities after move (iDefault,jDefault)*/
+/* in two-roll mode, computes all equities for 2nd roll after 1st roll (iDefault,jDefault) */
 static int
-SecondRollEquities(const matchstate * pms, float aarEquity[6][6], int aaanMove[6][6][8], const gchar * szTitle)
+SecondRollEquities(evalcontext * pec, const matchstate * pms, float aarEquity[6][6], int aaanMove[6][6][8], const gchar * szTitle)
 {
     int i, j;
     float arOutput[NUM_ROLLOUT_OUTPUTS];
@@ -221,7 +222,7 @@ SecondRollEquities(const matchstate * pms, float aarEquity[6][6], int aaanMove[6
     cubeinfo cix;
     char szMove[FORMATEDMOVESIZE];
                 
-    evalcontext ec = {TRUE, 0, FALSE, TRUE, 0.0, FALSE};
+    // evalcontext ec = {TRUE, 0, FALSE, TRUE, 0.0, FALSE};
 
     GetMatchStateCubeInfo(&cix, pms);
     memcpy(&ci, &cix, sizeof ci); /* copy cix->ci*/
@@ -230,7 +231,7 @@ SecondRollEquities(const matchstate * pms, float aarEquity[6][6], int aaanMove[6
 
     memcpy(anBoard, pms->anBoard, sizeof(anBoard)); /* copy {pms->anBoard} -> anBoard */
 
-    if (FindBestMove(tmp, iDefault + 1, jDefault + 1, anBoard, &ci, &ec, defaultFilters) < 0) {
+    if (FindBestMove(tmp, iDefault + 1, jDefault + 1, anBoard, &ci, pec, defaultFilters) < 0) {
         return -1;
     }
 
@@ -264,7 +265,7 @@ SecondRollEquities(const matchstate * pms, float aarEquity[6][6], int aaanMove[6
 
             memcpy(anBoard2, anBoard, sizeof(anBoard)); /* copy anBoard -> anBoard2 */
 
-            if (FindBestMove(aaan[i][j], i + 1, j + 1, anBoard2, &ci2, &ec, defaultFilters) < 0) {
+            if (FindBestMove(aaan[i][j], i + 1, j + 1, anBoard2, &ci2, pec, defaultFilters) < 0) {
                 ProgressEnd();
                 return -1;
             }
@@ -279,7 +280,7 @@ SecondRollEquities(const matchstate * pms, float aarEquity[6][6], int aaanMove[6
             SwapSides(anBoard2);
             ci2.fMove = !ci2.fMove;
 
-            if (GeneralEvaluationE(arOutput, (ConstTanBoard) anBoard2, &ci2, &ec) < 0) {
+            if (GeneralEvaluationE(arOutput, (ConstTanBoard) anBoard2, &ci2, pec) < 0) {
                 ProgressEnd();
                 return -1;
             }
@@ -309,24 +310,29 @@ SecondRollEquities(const matchstate * pms, float aarEquity[6][6], int aaanMove[6
 }
 
 static int
-CalcTempMapEquities(evalcontext * pec, tempmapwidget * ptmw)
+CalcTempMapEquities(tempmapwidget * ptmw, int fRecomputeMap0)
 {
+    // const evalcontext *pec = { TRUE, 0, FALSE, TRUE, 0.0, FALSE };
 
-    int i;
+    for (int m = 0; m < ptmw->n; ++m) {
 
-    for (i = 0; i < ptmw->n; ++i)
-        if (TempMapEquities(pec, ptmw->atm[i].pms,
-                            ptmw->atm[i].aarEquity,
-                            ptmw->atm[i].aaanMove,
-                            ptmw->atm[i].szTitle, (float) (ptmw->atm[i].pms->nCube / ptmw->atm[0].pms->nCube)) < 0)
-            return -1;
-
+        if (m==1 && fShowTwoRolls) { /* 2nd-roll equities for opponent roll in map m=1 following our (now-computed) 1st roll in map m=0 */
+            if (SecondRollEquities(&ptmw->ec, ptmw->atm[0].pms, ptmw->oppTM[iDefault][jDefault].aarEquity, ptmw->oppTM[iDefault][jDefault].aaanMove,
+                                        ptmw->atm[0].szTitle) < 0)
+                return -1;
+        } else {  /* compute the regular absolute equities for map m... */
+            if (m>0 || (m==0 && fRecomputeMap0)) { /* ... but don't recompute map m=0 if it was already computed at this ply to avoid wasting resources */
+                if (TempMapEquities(&ptmw->ec, ptmw->atm[m].pms, ptmw->atm[m].aarEquity, ptmw->atm[m].aaanMove,
+                                    ptmw->atm[m].szTitle, (float) (ptmw->atm[m].pms->nCube / ptmw->atm[0].pms->nCube)) < 0)
+                    return -1;
+            }
+        }
+    }
     return 0;
 
 }
 
-
-
+/*********************** Done w/ computations, now dealing with the display ************************/
 
 static void
 UpdateStyle(GtkWidget * pw, const float r, const int fColor)
@@ -488,6 +494,15 @@ GetEquityString(const float rEquity, const cubeinfo * pci, const int fInvert)
 }
 
 
+
+/* Use equity value for each quadrant, and compute min, max and average.  
+ *   The quadrant equity computations happen earlier. 
+ *   Four options for what to display: 
+ *   (1) Absolute equity: equity [in MWC terms?] 
+ *   (2) Relative equity: equity difference with 1st map (in normalized equity) 
+ *   (3) Two-roll equity: equity for 2nd roll on the right map after some given 1st roll on the left map 
+ *   (4) O'Hagan: ...
+ */
 static void
 UpdateTempMapEquities(tempmapwidget * ptmw)
 {
@@ -499,13 +514,6 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
     int m;
     char szMove[FORMATEDMOVESIZE];
     int mMax;
-
-    /* Use equity for each quadrant, and compute min, max and average. Four options for what to compute: 
-        (1) Absolute equity: equity [in MWC terms?] 
-        (2) Relative equity: equity difference with 1st option (in normalized equity) 
-        (3) Two-roll equity: equity for 2nd roll on the right after some given 1st roll on the left 
-        (4) O'Hagan: 
-     */
 
     if (fShowTwoRolls)
         g_assert(ptmw->n == 2);
@@ -593,7 +601,7 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
             for (j = 0; j < 6; ++j) {
                 /* tooltip text & colors */
                 if (m>0 && fShowDiff) { /* relative equities */
-                    sz = g_strdup_printf("[%s]\n\n%s: \t%s\n%s: \t%s\n%s: \t%s", _(szROLL), _(szREL),
+                    sz = g_strdup_printf("[%s]\n\n%s: \t\t%s\n%s: \t\t%s\n%s: \t%s", _(szROLL), _(szREL),
                             GetEquityDiffString(ptmw->atm[0].aarEquity[i][j], ptmw->atm[m].aarEquity[i][j],
                                                                 &ci, ptmw->fInvert), _(szABS),
                             GetEquityString(ptmw->atm[m].aarEquity[i][j], &ci, ptmw->fInvert), _(szMOVE),
@@ -602,14 +610,16 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
                     // g_message("%s",sz);
                     SetStyleDiff(ptmw->atm[m].aapwDA[i][j], ptmw->atm[m].aarEquityDiff[i][j], ptmw->dMaxAbs);
                 } else if (m==1 && fShowTwoRolls) { /* 2nd-roll equities for opponent roll following our roll in m=0 */
-                    sz = g_strdup_printf("%s [%s]",
-                            GetEquityString(ptmw->oppTM[iDefault][jDefault].aarEquity[i][j], &ci, ptmw->fInvert),
+                    /* For FormatMove: should board be updated before? Is it more intuitive to express it
+                    in the opponent's view or in the player's view? (e.g. 24/18 or 1/7?) */
+                    sz = g_strdup_printf("[%s]\n\n%s: \t\t%s\n%s: \t%s", _(szROLL), _(szABS),
+                            GetEquityString(ptmw->oppTM[iDefault][jDefault].aarEquity[i][j], &ci, ptmw->fInvert), _(szMOVE),
                             FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
-                                                        ptmw->oppTM[iDefault][jDefault].aaanMove[i][j])); /* TBD: check if board needs to be updated before */
+                                                        ptmw->oppTM[iDefault][jDefault].aaanMove[i][j])); 
                     SetStyle(ptmw->atm[m].aapwDA[i][j],ptmw->oppTM[iDefault][jDefault].aarEquity[i][j], rMin, rMax, ptmw->fInvert);
                 } else { /* absolute equities */
-                    sz = g_strdup_printf("%s [%s]",
-                            GetEquityString(ptmw->atm[m].aarEquity[i][j], &ci, ptmw->fInvert),
+                    sz = g_strdup_printf("[%s]\n\n%s: \t\t%s\n%s: \t%s", _(szROLL), _(szABS),
+                            GetEquityString(ptmw->atm[m].aarEquity[i][j], &ci, ptmw->fInvert),  _(szMOVE),
                             FormatMove(szMove, (ConstTanBoard) ptmw->atm[m].pms->anBoard,
                                                         ptmw->atm[m].aaanMove[i][j]));
                     // g_message("equity=%s",sz);
@@ -661,7 +671,8 @@ UpdateTempMapEquities(tempmapwidget * ptmw)
 }
 
 /* Function to draw quadrant and show equity and best move (in addition to the function above to show
- *  the tooltip with the equity and best move, and to choose the right color based on equity) 
+ *  the tooltip with the equity and best move, and to choose the right color based on equity).
+ *  All computations happen earlier. 
  */
 static gboolean
 DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
@@ -752,7 +763,6 @@ DrawQuadrant(GtkWidget * pw, cairo_t * cr, tempmapwidget * ptmw)
                 g_string_append(str, tmp);
         }
     }
-
 
     /* show best move */
 
@@ -893,54 +903,6 @@ ExposeDie(GtkWidget * pw, GdkEventExpose * pev, tempmapwidget * ptmw)
 }
 #endif
 
-static void
-TempMapPlyToggled(GtkWidget * pw, tempmapwidget * ptmw)
-{
-    const int *pi = (int *) g_object_get_data(G_OBJECT(pw), "user_data");
-
-    evalcontext ec = { TRUE, 0, FALSE, TRUE, 0.0, FALSE };
-
-    if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw))) {
-
-        /* recalculate equities */
-
-        ec.nPlies = *pi;
-
-        if (CalcTempMapEquities(&ec, ptmw))
-            return;
-
-        UpdateTempMapEquities(ptmw);
-
-    }
-
-}
-
-
-static void
-ShowEquityToggled(GtkWidget * pw, tempmapwidget * ptmw)
-{
-
-    int f = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
-
-    if (f != ptmw->fShowEquity) {
-        fShowEquity = ptmw->fShowEquity = f;
-        UpdateTempMapEquities(ptmw);
-    }
-
-}
-
-
-static void
-ShowBestMoveToggled(GtkWidget * pw, tempmapwidget * ptmw)
-{
-
-    int f = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
-
-    if (f != ptmw->fShowBestMove) {
-        fShowBestMove = ptmw->fShowBestMove = f;
-        UpdateTempMapEquities(ptmw);
-    }
-}
 
 static void 
 DrawGauge(tempmapwidget *ptmw)
@@ -995,19 +957,73 @@ UpdateTitles(tempmapwidget * ptmw, int m) {
     }
 }
 
+/* here we update all TempMap elements assuming the eval ply has not changed */
 static void
 UpdateAll(tempmapwidget * ptmw) {
-    if (fShowTwoRolls) {
-        // evalcontext ec = { TRUE, 0, FALSE, TRUE, 0.0, FALSE};
-        SecondRollEquities(ptmw->atm[0].pms, ptmw->oppTM[iDefault][jDefault].aarEquity, ptmw->oppTM[iDefault][jDefault].aaanMove,
-                                        ptmw->atm[0].szTitle);
-    } 
+    // if (fShowTwoRolls) {
+    //     // evalcontext ec = { TRUE, 0, FALSE, TRUE, 0.0, FALSE};
+    //     SecondRollEquities(ptmw->atm[0].pms, ptmw->oppTM[iDefault][jDefault].aarEquity, ptmw->oppTM[iDefault][jDefault].aaanMove,
+    //                                     ptmw->atm[0].szTitle);
+    // } 
     UpdateTempMapEquities(ptmw);
     DrawGauge(ptmw);
     for (int m = 0; m < ptmw->n; ++m) {
         UpdateTitles(ptmw,m);
     }
 }
+
+static void
+TempMapPlyToggled(GtkWidget * pw, tempmapwidget * ptmw)
+{
+    const int *pi = (int *) g_object_get_data(G_OBJECT(pw), "user_data");
+
+    // evalcontext ec = { TRUE, 0, FALSE, TRUE, 0.0, FALSE };
+
+    if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw))) {
+
+        /* recalculate equities */
+
+        ptmw->ec.nPlies = *pi;
+
+        if (CalcTempMapEquities(ptmw, TRUE))
+            return;
+
+        UpdateAll(ptmw);
+        // UpdateTempMapEquities(ptmw);
+
+    }
+
+}
+
+
+static void
+ShowEquityToggled(GtkWidget * pw, tempmapwidget * ptmw)
+{
+
+    int f = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
+
+    if (f != ptmw->fShowEquity) {
+        fShowEquity = ptmw->fShowEquity = f;
+        UpdateTempMapEquities(ptmw);
+    }
+
+}
+
+
+static void
+ShowBestMoveToggled(GtkWidget * pw, tempmapwidget * ptmw)
+{
+
+    int f = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(pw));
+
+    if (f != ptmw->fShowBestMove) {
+        fShowBestMove = ptmw->fShowBestMove = f;
+        UpdateTempMapEquities(ptmw);
+    }
+}
+
+
+
 // static void
 // ShowDiffToggled(GtkWidget * pw, tempmapwidget * ptmw)
 // {
@@ -1048,7 +1064,7 @@ UpdateAll(tempmapwidget * ptmw) {
 // }
 
 static void
-ShowOptionToggled(GtkWidget * pw, tempmapwidget * ptmw)
+ShowModeToggled(GtkWidget * pw, tempmapwidget * ptmw)
 /* This is called by gtk when the user clicks on the "display eval" radio buttons.
 */
 {
@@ -1060,6 +1076,10 @@ ShowOptionToggled(GtkWidget * pw, tempmapwidget * ptmw)
             fShowMode = ptmw->fShowMode = (*pi);
             fShowDiff = ptmw->fShowDiff = (*pi==1);
             fShowTwoRolls = ptmw->fShowTwoRolls = (*pi==2);
+
+            if (CalcTempMapEquities(ptmw, FALSE)) /* don't recompute m=0, only the other maps*/
+                return;
+
             UpdateAll(ptmw);
         }
     }
@@ -1165,6 +1185,7 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
     ptmw->achDice[0] = ptmw->achDice[1] = NULL;
     ptmw->achPips[0] = ptmw->achPips[1] = NULL;
     ptmw->dMaxAbs=1; /* only to initialize and avoid division by 0 */
+    ptmw->ec=ec;
 
     ptmw->atm = (tempmap *) g_malloc(n * sizeof(tempmap));
     for (i = 0; i < n; ++i) {
@@ -1435,7 +1456,7 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
             g_object_set_data_full(G_OBJECT(pw), "user_data", pi, g_free);
             if (fShowMode==i) // again use "if (DefaultLabel==labelEnum[i])" if needed
                 gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(pw), 1); //we set this to toggle it on in case it's the default option
-            g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowOptionToggled), ptmw);
+            g_signal_connect(G_OBJECT(pw), "toggled", G_CALLBACK(ShowModeToggled), ptmw);
         }
     }
 
@@ -1545,7 +1566,7 @@ GTKShowTempMap(const matchstate ams[], const int n, gchar * aszTitle[], const in
 
     /* update */
 
-    CalcTempMapEquities(&ec, ptmw);
+    CalcTempMapEquities(ptmw, TRUE);
     UpdateTempMapEquities(ptmw);
 
     /* modality */
