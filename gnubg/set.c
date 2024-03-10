@@ -3030,7 +3030,7 @@ CommandSetScoreMapMatchLength(char* sz)
 }
 
 extern void
-CommandSetScoreMapLabel(char* sz)
+CommandSetScoreMapLabel(const char* sz)
 {
  
     for (int i=0; i<NUM_LABEL; i++){
@@ -3043,7 +3043,7 @@ CommandSetScoreMapLabel(char* sz)
 }
 
 extern void
-CommandSetScoreMapJacoby(char* sz)
+CommandSetScoreMapJacoby(const char* sz)
 {
  
     for (int i=0; i<NUM_JACOBY; i++){
@@ -3056,7 +3056,7 @@ CommandSetScoreMapJacoby(char* sz)
 }
 
 extern void
-CommandSetScoreMapCubeEquityDisplay(char* sz)
+CommandSetScoreMapCubeEquityDisplay(const char* sz)
 {
  
     for (int i=0; i<NUM_CUBEDISP; i++){
@@ -3069,7 +3069,7 @@ CommandSetScoreMapCubeEquityDisplay(char* sz)
 }
 
 extern void
-CommandSetScoreMapMoveEquityDisplay(char* sz)
+CommandSetScoreMapMoveEquityDisplay(const char* sz)
 {
  
     for (int i=0; i<NUM_MOVEDISP; i++){
@@ -3082,7 +3082,7 @@ CommandSetScoreMapMoveEquityDisplay(char* sz)
 }
 
 extern void
-CommandSetScoreMapColour(char* sz)
+CommandSetScoreMapColour(const char* sz)
 {
  
     for (int i=0; i<NUM_COLOUR; i++){
@@ -3095,7 +3095,7 @@ CommandSetScoreMapColour(char* sz)
 }
 
 extern void
-CommandSetScoreMapLayout(char* sz)
+CommandSetScoreMapLayout(const char* sz)
 {
  
     for (int i=0; i<NUM_LAYOUT; i++){

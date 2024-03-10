@@ -1098,7 +1098,7 @@ extern int
 CompareNames(char *sz0, char *sz1)
 {
 
-    static char ach[] = " \t\r\n\f\v_";
+    static const char ach[] = " \t\r\n\f\v_";
 
     for (; *sz0 || *sz1; sz0++, sz1++)
         if (toupper(*sz0) != toupper(*sz1) && (!strchr(ach, *sz0) || !strchr(ach, *sz1)))
@@ -3464,7 +3464,7 @@ SavePlayerSettings(FILE * pf)
         fprintf(pf, "set aliases %s\n", player1aliases);
 
     fprintf(pf, "set keynames");
-    for(int i=0;i < keyNamesFirstEmpty; i++) {
+    for(i=0;i < keyNamesFirstEmpty; i++) {
         fprintf(pf, "\t%s", keyNames[i]);
     }
     fprintf(pf, "\n");
@@ -3565,7 +3565,7 @@ SaveMiscSettings(FILE * pf)
     fprintf(pf, "set display %s\n", fDisplay ? "on" : "off");
     fprintf(pf, "set firsttimeupdates %d\n", fFirstTimeUpdates);    
     fprintf(pf, "set gotofirstgame %s\n", fGotoFirstGame ? "on" : "off");
-    fprintf(pf, "set nextupdatetime %jd\n", (nextUpdateTime));
+    fprintf(pf, "set nextupdatetime %jd\n", (nextUpdateTime)); /* <- following a compiler report */
     // fprintf(pf, "set nextupdatetime %ld\n", (nextUpdateTime));
     fprintf(pf, "set output matchpc %s\n", fOutputMatchPC ? "on" : "off");
     fprintf(pf, "set output mwc %s\n", fOutputMWC ? "on" : "off");
@@ -5641,7 +5641,7 @@ confirmOverwrite(const char *sz, const int f)
 }
 
 extern void
-setDefaultFileName(char *path)
+setDefaultFileName(const char *path)
 {
     g_free(szCurrentFolder);
     g_free(szCurrentFileName);

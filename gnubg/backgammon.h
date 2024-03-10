@@ -535,7 +535,7 @@ extern void ResetInterrupt(void);
 extern void SaveRolloutSettings(FILE * pf, const char *sz, rolloutcontext * prc);
 extern int SetBoard(char *szGNUbgID);
 extern int SetCubeValue(int n);
-extern void setDefaultFileName(char *path);
+extern void setDefaultFileName(const char *path);
 extern void SetDice(int n0, int n1);
 extern int SetGNUbgID(char *szGNUbgID);
 extern void SetMatchDate(matchinfo * pmi);

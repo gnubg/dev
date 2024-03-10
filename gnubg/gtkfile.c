@@ -211,7 +211,7 @@ SaveOptionsCallBack(GtkWidget * UNUSED(pw), SaveOptions * pso)
 }
 
 static void
-SaveCommon(guint f, gchar * prompt)
+SaveCommon(guint f, const gchar * prompt)
 {
     GtkWidget *hbox;
     guint i;

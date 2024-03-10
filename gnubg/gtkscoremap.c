@@ -825,7 +825,7 @@ As a result, the function writes in rgbvals the desired border color for the qua
 // }
 
 static void
-FindMoveColour(gtkquadrant * pgq, quadrantdata * pq, const scoremap * psm, float r) { //)GtkWidget * pw, char * bestMove, const scoremap * psm, float r) {
+FindMoveColour(gtkquadrant * pgq, const quadrantdata * pq, const scoremap * psm, float r) { //)GtkWidget * pw, char * bestMove, const scoremap * psm, float r) {
 /*  This function colors the quadrants in the move scoremap.
 It looks at the best move of each quadrant, and compares it with the top-k most frequent moves of the scoremap
 (or less if there are less than k); it then colors the quadrant according to TOP_K_COLORS.
@@ -1223,7 +1223,7 @@ Specifically: (1) The color of each square (2) The hover text of each square (3)
         char sz[100]; 
         char longsz[100];
         char hoversz[100]={""};
-        char empty[100]={""};
+        const char empty[100]={""};
         int delta = MAX(0, psm->truenMatchTo - MATCH_SIZE(psm)); 
 
         if (psm->cubeScoreMap) {
@@ -1802,7 +1802,7 @@ The function updates the decision text in each square.
     const quadrantdata * pq;
     PangoLayout *layout;
     PangoFontDescription *description;
-    int i=0,j=0, x,y;
+    int i,j, x,y;
     GtkAllocation allocation;
     gtk_widget_get_allocation(pw, &allocation);
     char buf[200];
@@ -2225,6 +2225,23 @@ BuildTableContainer(scoremap * psm, int oldSize)
 
         /* score labels */
         pw = gtk_label_new("");
+        /* note: the following compiler comment does not seem right (after all, i is non-negative), but it's
+        left here in case there is a future error:
+
+        gtkscoremap.c:2220:25: warning: Either the condition 'i>=oldSize' is redundant or the array 'psm->apwRowLabel[22]' is accessed at index -1, which is out of bounds. [negativeIndex]
+        psm->apwRowLabel[i]=pw; // remember it to update later
+                        ^
+        gtkscoremap.c:3164:29: note: Calling function 'BuildTableContainer', 2nd argument '0' value is 0
+            BuildTableContainer(psm,0); //0==oldSize
+                                    ^
+        gtkscoremap.c:2211:19: note: Assuming that condition 'i>=oldSize' is not redundant
+                    if  (i>=oldSize || j>=oldSize) {
+                        ^
+        gtkscoremap.c:2220:25: note: Negative array index
+                psm->apwRowLabel[i]=pw; // remember it to update later
+
+        [same for later: psm->apwColLabel[i]=pw;]        
+        */
         psm->apwRowLabel[i]=pw; // remember it to update later
 
 #if GTK_CHECK_VERSION(3,0,0)
