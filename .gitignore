@@ -451,3 +451,4 @@ gnubg/config.h.in~
 *.Tpo
 gnubg/.vscode/settings.json
 
+gnubg/gtkboard-7ed35e0f.o.tmp
