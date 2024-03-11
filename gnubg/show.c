@@ -2075,7 +2075,7 @@ CommandShowRolls(char *sz)
 
 
 extern void
-CommandShowTemperatureMap(char *sz)
+CommandShowTemperatureMap(const char *sz)
 {
 
     if (ms.gs != GAME_PLAYING) {
@@ -2140,7 +2140,7 @@ CommandShowTemperatureMap(char *sz)
 
 // defined in backgammon.h
 extern void
-CommandShowScoreMap(char *sz)
+CommandShowScoreMap(const char *sz)
 {
     if (ms.gs != GAME_PLAYING) {
         outputerrf(_("No game in progress (type `new game' to start one)."));

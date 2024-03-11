@@ -1109,7 +1109,8 @@ Return the position of the category, -1 if problem */
 static int
 RenameCategory(const char * szOld, const char * szNew)
 {
-    if (!strcmp(szOld, szNew)) {
+    if (!strcmp(szOld, szNew)) { /* compiler: "Null pointer passed as 1st argument to string comparison function"
+                        ... does it mean that maybe szOld=""? actually we check for that before calling the function */
         GTKMessage(_("Error: The old and new category names are the same"), DT_INFO);
         return -1;
     }

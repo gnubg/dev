@@ -951,6 +951,7 @@ static void GTKAutoSave(void)
         g_free(cmd);
         g_free(dir);
         g_free(filename);
+        return;
     }
 
     // *save = g_strconcat(dir, G_DIR_SEPARATOR_S, filename, ".sgf", NULL);

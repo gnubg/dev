@@ -991,6 +991,8 @@ AnalyzeMove(moverecord * pmr, matchstate * pms, const listOLD * plParentGame,
             if (!pmr->evalMoveAtMoney){
                 for (pmr->n.iMove = 0; pmr->n.iMove < pmr->ml.cMoves; pmr->n.iMove++) {
                     if (EqualKeys(key, pmr->ml.amMoves[pmr->n.iMove].key)) {
+                        /* here compiler complains loudly, but it's unclear why:
+                        "Array access (via field 'data') results in a null pointer dereference"*/
                         rChequerSkill = pmr->ml.amMoves[pmr->n.iMove].rScore - pmr->ml.amMoves[0].rScore;
 
     #if defined(USE_GTK)    
