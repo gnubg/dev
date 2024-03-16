@@ -452,3 +452,5 @@ gnubg/config.h.in~
 gnubg/.vscode/settings.json
 
 gnubg/*.o.tmp
+gnubg/autom4te.cache/output.4
+gnubg/autom4te.cache/traces.4
